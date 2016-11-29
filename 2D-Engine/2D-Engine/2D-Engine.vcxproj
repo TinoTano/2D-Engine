@@ -22,7 +22,11 @@
     <ClCompile Include="..\SFML-2.4.1\include\imgui-1.49\imgui-SFML.cpp" />
     <ClCompile Include="..\SFML-2.4.1\include\imgui-1.49\imgui.cpp" />
     <ClCompile Include="..\SFML-2.4.1\include\imgui-1.49\imgui_draw.cpp" />
+    <ClCompile Include="Application.cpp" />
     <ClCompile Include="main.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Application.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{03FEF98F-A07D-4344-9822-C20E3DB131C1}</ProjectGuid>
