@@ -1,52 +1,43 @@
-#include <SFML/Graphics/RenderWindow.hpp>
-#include <SFML/System/Clock.hpp>
-#include <SFML/Window/Event.hpp>
-#include "imgui-1.49\imgui.h"
-#include "imgui-1.49\imgui-SFML.h"
+#include "Engine.h"
+#include "LOG.h"
 
-int main()
+Engine* engine = nullptr;
+
+int main(int argc, char* args[])
 {
-	sf::RenderWindow window(sf::VideoMode(1366, 768), "");
-	window.setVerticalSyncEnabled(true);
-	ImGui::SFML::Init(window);
 
-	window.resetGLStates();
-	sf::Clock deltaClock;
+	engine = new Engine();
 
-	while (window.isOpen()) {
-		sf::Event event;
-		while (window.pollEvent(event)) {
-			ImGui::SFML::ProcessEvent(event);
-
-			if (event.type == sf::Event::Closed) {
-				window.close();
+	if (engine != nullptr) {
+		LOG("========== Awake phase ==========");
+		if (engine->Awake()) {
+			LOG("========== Start phase ==========");
+			if (engine->Start()) {
+				LOG("========== Update phase ==========");
+				while (engine->DoUpdate()) {
+				}
+				LOG("========== CleanUp phase ==========");
+				if (engine->CleanUp()) {
+					delete engine;
+					engine = nullptr;
+				}
+				else {
+					LOG("Error doing CleanUp");
+				}
+			}
+			else {
+				LOG("Error doing Start");
 			}
 		}
-
-		ImGui::SFML::Update(window, deltaClock.restart());
-
-		ImGui::Begin("First window"); // begin first window
-		if(ImGui::Button("Button")) {
-			printf("Bla");
-		}// some stuff
-		ImGui::BeginMainMenuBar();
-		ImGui::EndMenuBar();
-		ImGui::End();
-
-		ImGui::Begin("Another window"); // begin second window
-										// some another stuff
-		ImGui::End();
-
-		/*ImGui::Begin("Hello, world!");
-		ImGui::Button("Look at this pretty button");
-		ImGui::End();*/
-
-		window.clear(); // fill background with color
-		ImGui::Render();
-		window.display();
+		else {
+			LOG("Error doing Awake");
+		}
 	}
 
-	ImGui::SFML::Shutdown();
+	if (engine != nullptr) {
+		delete engine;
+		engine = nullptr;
+	}
 
 	return 0;
 }
