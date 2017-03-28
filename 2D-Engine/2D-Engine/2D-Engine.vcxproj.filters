@@ -86,6 +86,15 @@
     <ClCompile Include="ComponentTransform.cpp">
       <Filter>GameObject\Components</Filter>
     </ClCompile>
+    <ClCompile Include="SFML-2.4.2\include\imgui-1.49\imguidock.cpp">
+      <Filter>ImGUI</Filter>
+    </ClCompile>
+    <ClCompile Include="PanelScene.cpp">
+      <Filter>Editor</Filter>
+    </ClCompile>
+    <ClCompile Include="PanelConsole.cpp">
+      <Filter>Editor</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Engine.h">
@@ -138,6 +147,15 @@
     </ClInclude>
     <ClInclude Include="ComponentTransform.h">
       <Filter>GameObject\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="SFML-2.4.2\include\imgui-1.49\imguidock.h">
+      <Filter>ImGUI</Filter>
+    </ClInclude>
+    <ClInclude Include="PanelScene.h">
+      <Filter>Editor</Filter>
+    </ClInclude>
+    <ClInclude Include="PanelConsole.h">
+      <Filter>Editor</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

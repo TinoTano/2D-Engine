@@ -13,6 +13,5 @@ public:
 	void DrawPanel();
 	void DrawChilds();
 	void CheckMouseHover();
-	void Resize(float w, float h);
 };
 

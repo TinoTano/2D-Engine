@@ -10,10 +10,9 @@
 PanelDetails::PanelDetails()
 {
 	active = true;
-	panelName = "Details Panel";
-	panelWidth = 200;
-	panelHeight = engine->renderWindowModule->window->getSize().y;
-	panelPosition = { (float)engine->renderWindowModule->window->getSize().x - panelWidth, 20 };
+	panelName = "Details";
+	dockPos = ImGuiDockSlot_Left;
+	newPanel = true;
 }
 
 
@@ -28,16 +27,8 @@ void PanelDetails::DrawPanel()
 		selectedGameObject = engine->sceneManagerModule->selectedGameObjects.front();
 	}
 
-	ImGui::Begin("Details", &active,
-		ImGuiWindowFlags_NoFocusOnAppearing |
-		ImGuiWindowFlags_HorizontalScrollbar |
-		ImGuiWindowFlags_AlwaysAutoResize |
-		ImGuiWindowFlags_NoCollapse |
-		ImGuiWindowFlags_ShowBorders);
-
 	if (selectedGameObject != nullptr) {
-
-		ImGui::Text("Name: %s",selectedGameObject->name.c_str());
+		ImGui::Text("Name: %s", selectedGameObject->name.c_str());
 		ImGui::SameLine();
 		ImGui::Text("Tag:");
 		ImGui::SameLine();
@@ -83,34 +74,25 @@ void PanelDetails::DrawPanel()
 		}
 		if (ImGui::BeginPopup("Components"))
 		{
-				if (ImGui::MenuItem("Transform")) {
-					if (selectedGameObject->GetComponent(Component::Transform) == nullptr) {
-						selectedGameObject->AddComponent(Component::Transform);
-					}
+			if (ImGui::MenuItem("Transform")) {
+				if (selectedGameObject->GetComponent(Component::Transform) == nullptr) {
+					selectedGameObject->AddComponent(Component::Transform);
 				}
-				if (ImGui::MenuItem("RigidBody")) {
-					if (selectedGameObject->GetComponent(Component::RigidBody) == nullptr) {
-						selectedGameObject->AddComponent(Component::RigidBody);
-					}
+			}
+			if (ImGui::MenuItem("RigidBody")) {
+				if (selectedGameObject->GetComponent(Component::RigidBody) == nullptr) {
+					selectedGameObject->AddComponent(Component::RigidBody);
 				}
-				if (ImGui::MenuItem("SpriteRenderer")) {
-					if (selectedGameObject->GetComponent(Component::SpriteRenderer) == nullptr) {
-						selectedGameObject->AddComponent(Component::SpriteRenderer);
-					}
+			}
+			if (ImGui::MenuItem("SpriteRenderer")) {
+				if (selectedGameObject->GetComponent(Component::SpriteRenderer) == nullptr) {
+					selectedGameObject->AddComponent(Component::SpriteRenderer);
 				}
+			}
 
 			ImGui::EndPopup();
 		}
 	}
-	
-	ImGui::End();
-}
-
-void PanelDetails::Resize(float w, float h)
-{
-	panelWidth += w;
-	panelHeight += h;
-	panelPosition.x = (float)engine->renderWindowModule->window->getSize().x - panelWidth;
 }
 
 void PanelDetails::DrawComponent(Component* component)

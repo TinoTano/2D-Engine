@@ -4,9 +4,7 @@
 #include "PanelHierarchy.h"
 #include "PanelAssets.h"
 #include "PanelDetails.h"
-
-#include "imgui-1.49\imgui.h"
-#include "imgui-1.49\imgui-SFML.h"
+#include "PanelScene.h"
 
 ModuleEditor::ModuleEditor()
 {
@@ -25,6 +23,8 @@ bool ModuleEditor::Awake()
 	editorPanels.push_back(hierarchyPanel = new PanelHierarchy());
 	editorPanels.push_back(assetsPanel = new PanelAssets());
 	editorPanels.push_back(detailsPanel = new PanelDetails());
+	editorPanels.push_back(scenePanel = new PanelScene());
+	editorPanels.push_back(consolePanel = new PanelConsole());
 
 	return true;
 }
@@ -70,14 +70,25 @@ bool ModuleEditor::Update(float deltaTime)
 		ImGui::EndMainMenuBar();
 	}
 
+	ImGui::SetNextWindowSize(ImGui::GetIO().DisplaySize);
+	ImGui::Begin("imguidock", NULL, ImVec2(0, 0), 1.0f, ImGuiWindowFlags_NoMove | 
+		ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoResize | 
+		ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoSavedSettings | 
+		ImGuiWindowFlags_NoTitleBar);
+	ImGui::BeginDockspace();
 	for (vector<Panel*>::iterator it = editorPanels.begin(); it != editorPanels.end(); it++) {
 		if ((*it)->IsActive())
 		{
-			ImGui::SetNextWindowPos((*it)->panelPosition, ImGuiSetCond_Always);
-			ImGui::SetNextWindowSize(ImVec2((*it)->panelWidth, (*it)->panelHeight), ImGuiSetCond_Always);
+			if ((*it)->newPanel) {				
+			}
+			ImGui::BeginDock((*it)->panelName.c_str());
+			ImGui::SetNextDock((*it)->dockPos);
 			(*it)->DrawPanel();
+			ImGui::EndDock();
 		}
 	}
+	ImGui::EndDockspace();
+	ImGui::End();
 
 	return ret;
 }

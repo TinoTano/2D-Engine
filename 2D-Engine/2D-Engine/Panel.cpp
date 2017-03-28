@@ -6,6 +6,8 @@ Panel::Panel()
 {
 	active = true;
 	panelName = "";
+	dockPos = ImGuiDockSlot_None;
+	newPanel = false;
 }
 
 Panel::~Panel()
@@ -22,12 +24,3 @@ bool Panel::IsActive() const
 	return active;
 }
 
-void Panel::SetPos(ImVec2 pos)
-{
-	panelPosition = pos;
-}
-
-ImVec2 Panel::GetPos() const
-{
-	return panelPosition;
-}

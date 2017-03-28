@@ -37,9 +37,6 @@ bool ModuleInput::PreUpdate()
 
 		case sf::Event::Resized:
 			engine->renderWindowModule->window->setView(sf::View(sf::FloatRect(0, 0, event.size.width, event.size.height)));
-			for (vector<Panel*>::iterator it = engine->editorModule->editorPanels.begin(); it != engine->editorModule->editorPanels.end(); it++) {
-				(*it)->Resize((*it)->panelWidth * (((float)event.size.width - windowWidth) / windowWidth), (*it)->panelHeight * (((float)event.size.height - windowHeight) / windowHeight));
-			}
 			break;
 
 		case sf::Event::LostFocus:

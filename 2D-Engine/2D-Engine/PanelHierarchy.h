@@ -11,8 +11,7 @@ public:
 
 	void DrawPanel();
 	void DrawChilds(GameObject* gameObject);
-	void CheckMouseHover(GameObject* gameObject);
-	void Resize(float w, float h);
+	void CheckMouseOver(GameObject* gameObject);
 	
 private:
 	bool showRenameWindow = false;

@@ -1,2 +1,14 @@
-﻿  2D-Engine.vcxproj -> C:\Users\adriamc\Documents\GitHub\2D-Engine\2D-Engine\Debug\2D-Engine.exe
-  2D-Engine.vcxproj -> C:\Users\adriamc\Documents\GitHub\2D-Engine\2D-Engine\Debug\2D-Engine.pdb (Partial PDB)
+﻿  ModuleEditor.cpp
+  Generating Code...
+  Skipping... (no relevant changes detected)
+  ModuleWindow.cpp
+  ModuleSceneManager.cpp
+  ModuleRenderWindow.cpp
+  ModuleGraphics.cpp
+  ModuleAudio.cpp
+  LOG.cpp
+  GameObject.cpp
+  ComponentTransform.cpp
+  Component.cpp
+  2D-Engine.vcxproj -> C:\Users\admin\Documents\GitHub\2D-Engine\2D-Engine\Debug\2D-Engine.exe
+  2D-Engine.vcxproj -> C:\Users\admin\Documents\GitHub\2D-Engine\2D-Engine\Debug\2D-Engine.pdb (Partial PDB)

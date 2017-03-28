@@ -4,9 +4,10 @@
 #include "Panel.h"
 #include "PanelAssets.h"
 #include "PanelDetails.h"
+#include "PanelHierarchy.h"
+#include "PanelScene.h"
+#include "PanelConsole.h"
 #include "GameObject.h"
-
-class PanelHierarchy;
 
 class ModuleEditor : public Module
 {
@@ -23,6 +24,8 @@ private:
 	PanelHierarchy* hierarchyPanel = nullptr;
 	PanelAssets* assetsPanel = nullptr;
 	PanelDetails* detailsPanel = nullptr;
+	PanelScene* scenePanel = nullptr;
+	PanelConsole* consolePanel = nullptr;
 
 public:
 	vector<Panel*> editorPanels;

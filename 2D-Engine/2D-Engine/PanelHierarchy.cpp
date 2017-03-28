@@ -9,10 +9,9 @@
 PanelHierarchy::PanelHierarchy()
 {
 	active = true;
-	panelName = "Hierarchy Panel";
-	panelPosition = { 0,20 };
-	panelWidth = 200;
-	panelHeight = 400;
+	panelName = "Hierarchy";
+	dockPos = ImGuiDockSlot_Bottom;
+	newPanel = true;
 }
 
 
@@ -22,13 +21,6 @@ PanelHierarchy::~PanelHierarchy()
 
 void PanelHierarchy::DrawPanel()
 {
-	ImGui::Begin("Hierarchy", &active,
-		ImGuiWindowFlags_NoFocusOnAppearing |
-		ImGuiWindowFlags_HorizontalScrollbar | 
-		ImGuiWindowFlags_AlwaysAutoResize | 
-		ImGuiWindowFlags_NoCollapse | 
-		ImGuiWindowFlags_ShowBorders );
-		
 	if (ImGui::IsMouseClicked(1) && ImGui::IsMouseHoveringWindow()) {
 		ImGui::OpenPopup("GameObject Options");
 	}
@@ -104,9 +96,6 @@ void PanelHierarchy::DrawPanel()
 	for (list<GameObject*>::iterator it = engine->sceneManagerModule->sceneRootObjects.begin(); it != engine->sceneManagerModule->sceneRootObjects.end(); it++) {
 		DrawChilds(*it);
 	}
-	
-	ImGui::End();
-	
 }
 
 void PanelHierarchy::DrawChilds(GameObject* gameObject)
@@ -126,7 +115,7 @@ void PanelHierarchy::DrawChilds(GameObject* gameObject)
 
 	if (ImGui::TreeNodeEx(gameObject->name.c_str(), flag))
 	{
-		CheckMouseHover(gameObject);
+		CheckMouseOver(gameObject);
 		for (list<GameObject*>::iterator it = gameObject->childs.begin(); it != gameObject->childs.end(); ++it) {
 			DrawChilds(*it);
 		}
@@ -134,12 +123,12 @@ void PanelHierarchy::DrawChilds(GameObject* gameObject)
 		ImGui::TreePop();
 	}
 	else {
-		CheckMouseHover(gameObject);
+		CheckMouseOver(gameObject);
 	}
 	
 }
 
-void PanelHierarchy::CheckMouseHover(GameObject* gameObject)
+void PanelHierarchy::CheckMouseOver(GameObject* gameObject)
 {
 	if (ImGui::IsMouseClicked(0)) {
 		if (ImGui::IsItemHoveredRect())
@@ -181,10 +170,4 @@ void PanelHierarchy::CheckMouseHover(GameObject* gameObject)
 		}
 	}
 	
-}
-
-void PanelHierarchy::Resize(float w, float h)
-{
-	panelWidth += w;
-	panelHeight += h;
 }

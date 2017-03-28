@@ -12,7 +12,6 @@ public:
 	virtual ~PanelDetails();
 
 	void DrawPanel();
-	void Resize(float w, float h);
 	void DrawComponent(Component* component);
 	void DrawTransformPanel(ComponentTransform* transform);
 

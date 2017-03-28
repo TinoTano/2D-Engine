@@ -28,10 +28,13 @@
     <ClCompile Include="ModuleSceneManager.cpp" />
     <ClCompile Include="Panel.cpp" />
     <ClCompile Include="PanelAssets.cpp" />
+    <ClCompile Include="PanelConsole.cpp" />
     <ClCompile Include="PanelDetails.cpp" />
     <ClCompile Include="PanelHierarchy.cpp" />
+    <ClCompile Include="PanelScene.cpp" />
     <ClCompile Include="SFML-2.4.2\include\imgui-1.49\imgui-SFML.cpp" />
     <ClCompile Include="SFML-2.4.2\include\imgui-1.49\imgui.cpp" />
+    <ClCompile Include="SFML-2.4.2\include\imgui-1.49\imguidock.cpp" />
     <ClCompile Include="SFML-2.4.2\include\imgui-1.49\imgui_draw.cpp" />
     <ClCompile Include="Engine.cpp" />
     <ClCompile Include="LOG.cpp" />
@@ -59,8 +62,11 @@
     <ClInclude Include="ModuleWindow.h" />
     <ClInclude Include="Panel.h" />
     <ClInclude Include="PanelAssets.h" />
+    <ClInclude Include="PanelConsole.h" />
     <ClInclude Include="PanelDetails.h" />
     <ClInclude Include="PanelHierarchy.h" />
+    <ClInclude Include="PanelScene.h" />
+    <ClInclude Include="SFML-2.4.2\include\imgui-1.49\imguidock.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{03FEF98F-A07D-4344-9822-C20E3DB131C1}</ProjectGuid>
@@ -118,10 +124,10 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>C:\Users\adriamc\Documents\GitHub\2D-Engine\2D-Engine\2D-Engine\SFML-2.4.2\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\admin\Documents\GitHub\2D-Engine\2D-Engine\2D-Engine\SFML-2.4.2\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
-      <AdditionalLibraryDirectories>C:\Users\adriamc\Documents\GitHub\2D-Engine\2D-Engine\2D-Engine\SFML-2.4.2\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>C:\Users\admin\Documents\GitHub\2D-Engine\2D-Engine\2D-Engine\SFML-2.4.2\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>OpenGL32.Lib;sfml-graphics-d.lib;sfml-window-d.lib;sfml-system-d.lib;sfml-network-d.lib;sfml-audio-d.lib;openal32.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
@@ -139,12 +145,12 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>C:\Users\adriamc\Documents\GitHub\2D-Engine\2D-Engine\2D-Engine\SFML-2.4.2\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\admin\Documents\GitHub\2D-Engine\2D-Engine\2D-Engine\SFML-2.4.2\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalLibraryDirectories>C:\Users\adriamc\Documents\GitHub\2D-Engine\2D-Engine\2D-Engine\SFML-2.4.2\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>C:\Users\admin\Documents\GitHub\2D-Engine\2D-Engine\2D-Engine\SFML-2.4.2\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>OpenGL32.Lib;openal32.lib;sfml-graphics.lib;sfml-window.lib;sfml-system.lib;sfml-network.lib;sfml-audio.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
