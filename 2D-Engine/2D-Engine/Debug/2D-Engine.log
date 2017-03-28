@@ -1,4 +1,2 @@
-﻿  PanelDetails.cpp
-c:\users\admin\documents\github\2d-engine\2d-engine\2d-engine\paneldetails.cpp(15): warning C4244: '=': conversion from 'unsigned int' to 'float', possible loss of data
-  2D-Engine.vcxproj -> C:\Users\admin\Documents\GitHub\2D-Engine\2D-Engine\Debug\2D-Engine.exe
-  2D-Engine.vcxproj -> C:\Users\admin\Documents\GitHub\2D-Engine\2D-Engine\Debug\2D-Engine.pdb (Partial PDB)
+﻿  2D-Engine.vcxproj -> C:\Users\adriamc\Documents\GitHub\2D-Engine\2D-Engine\Debug\2D-Engine.exe
+  2D-Engine.vcxproj -> C:\Users\adriamc\Documents\GitHub\2D-Engine\2D-Engine\Debug\2D-Engine.pdb (Partial PDB)
