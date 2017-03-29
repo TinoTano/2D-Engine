@@ -2,7 +2,8 @@
 
 #include "Module.h"
 
-class ModuleRenderWindow;
+class ModuleEngineWindow;
+class ModuleSceneWindow;
 class ModuleInput;
 class ModuleGraphics;
 class ModuleAudio;
@@ -24,7 +25,8 @@ public:
 	bool PostUpdate();
 
 public:
-	ModuleRenderWindow* renderWindowModule = nullptr;
+	ModuleEngineWindow* engineWindow = nullptr;
+	ModuleSceneWindow* sceneWindow = nullptr;
 	ModuleInput* inputModule = nullptr;
 	ModuleGraphics* graphicsModule = nullptr;
 	ModuleAudio* audioModule = nullptr;

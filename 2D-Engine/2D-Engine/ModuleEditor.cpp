@@ -1,10 +1,11 @@
 #include "ModuleEditor.h"
 #include "Engine.h"
-#include "ModuleRenderWindow.h"
+#include "ModuleEngineWindow.h"
 #include "PanelHierarchy.h"
 #include "PanelAssets.h"
 #include "PanelDetails.h"
 #include "PanelScene.h"
+#include "ModuleSceneWindow.h"
 
 ModuleEditor::ModuleEditor()
 {
@@ -17,8 +18,8 @@ ModuleEditor::~ModuleEditor()
 
 bool ModuleEditor::Awake()
 {
-	ImGui::SFML::Init(*(engine->renderWindowModule->window), NULL);
-	engine->renderWindowModule->window->resetGLStates();
+	ImGui::SFML::Init(*(engine->engineWindow->window), NULL);
+	engine->engineWindow->window->resetGLStates();
 
 	editorPanels.push_back(hierarchyPanel = new PanelHierarchy());
 	editorPanels.push_back(assetsPanel = new PanelAssets());
@@ -30,7 +31,7 @@ bool ModuleEditor::Awake()
 }
 
 bool ModuleEditor::PreUpdate() {
-	ImGui::SFML::Update(*(engine->renderWindowModule->window), engine->time);
+	ImGui::SFML::Update(*(engine->engineWindow->window), engine->time);
 	return true;
 }
 
@@ -71,10 +72,24 @@ bool ModuleEditor::Update(float deltaTime)
 	}
 
 	ImGui::SetNextWindowSize(ImGui::GetIO().DisplaySize);
-	ImGui::Begin("imguidock", NULL, ImVec2(0, 0), 1.0f, ImGuiWindowFlags_NoMove | 
+	ImGui::SetNextWindowPos(ImVec2(0,20));
+	ImGui::Begin("PanelEditor", NULL, ImVec2(0, 0), 1.0f, ImGuiWindowFlags_NoMove | 
 		ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoResize | 
-		ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoSavedSettings | 
-		ImGuiWindowFlags_NoTitleBar);
+		ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoTitleBar);
+
+	ImGui::SameLine(ImGui::GetIO().DisplaySize.x / 2 - 75);
+	if (ImGui::Button("Play", { 50,40 })) {
+		
+	}
+	ImGui::SameLine();
+	if (ImGui::Button("Stop", { 50,40 })) {
+	
+	}
+	ImGui::SameLine();
+	if (ImGui::Button("Pause", { 50,40 })) {
+	
+	}
+
 	ImGui::BeginDockspace();
 	for (vector<Panel*>::iterator it = editorPanels.begin(); it != editorPanels.end(); it++) {
 		if ((*it)->IsActive())

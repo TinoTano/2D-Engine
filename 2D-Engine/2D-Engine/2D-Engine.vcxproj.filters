@@ -35,12 +35,6 @@
     <ClCompile Include="LOG.cpp">
       <Filter>Tools</Filter>
     </ClCompile>
-    <ClCompile Include="ModuleWindow.cpp">
-      <Filter>Modules</Filter>
-    </ClCompile>
-    <ClCompile Include="ModuleRenderWindow.cpp">
-      <Filter>Modules</Filter>
-    </ClCompile>
     <ClCompile Include="ModuleInput.cpp">
       <Filter>Modules</Filter>
     </ClCompile>
@@ -95,6 +89,12 @@
     <ClCompile Include="PanelConsole.cpp">
       <Filter>Editor</Filter>
     </ClCompile>
+    <ClCompile Include="ModuleEngineWindow.cpp">
+      <Filter>Modules</Filter>
+    </ClCompile>
+    <ClCompile Include="ModuleSceneWindow.cpp">
+      <Filter>Modules</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Engine.h">
@@ -105,12 +105,6 @@
     </ClInclude>
     <ClInclude Include="LOG.h">
       <Filter>Tools</Filter>
-    </ClInclude>
-    <ClInclude Include="ModuleWindow.h">
-      <Filter>Modules</Filter>
-    </ClInclude>
-    <ClInclude Include="ModuleRenderWindow.h">
-      <Filter>Modules</Filter>
     </ClInclude>
     <ClInclude Include="ModuleInput.h">
       <Filter>Modules</Filter>
@@ -156,6 +150,12 @@
     </ClInclude>
     <ClInclude Include="PanelConsole.h">
       <Filter>Editor</Filter>
+    </ClInclude>
+    <ClInclude Include="ModuleEngineWindow.h">
+      <Filter>Modules</Filter>
+    </ClInclude>
+    <ClInclude Include="ModuleSceneWindow.h">
+      <Filter>Modules</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

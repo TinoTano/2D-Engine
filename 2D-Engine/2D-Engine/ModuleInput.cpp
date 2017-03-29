@@ -1,5 +1,5 @@
 #include "ModuleInput.h"
-#include "ModuleRenderWindow.h"
+#include "ModuleEngineWindow.h"
 #include "Engine.h"
 #include "ModuleEditor.h"
 
@@ -20,9 +20,9 @@ ModuleInput::~ModuleInput()
 bool ModuleInput::PreUpdate()
 {
 	sf::Event event;
-	windowWidth = engine->renderWindowModule->window->getSize().x;
-	windowHeight = engine->renderWindowModule->window->getSize().y;
-	while (engine->renderWindowModule->window->pollEvent(event))
+	windowWidth = engine->engineWindow->window->getSize().x;
+	windowHeight = engine->engineWindow->window->getSize().y;
+	while (engine->engineWindow->window->pollEvent(event))
 	{
 		ImGui::SFML::ProcessEvent(event);
 
@@ -31,12 +31,12 @@ bool ModuleInput::PreUpdate()
 		{
 			// window closed
 		case sf::Event::Closed:
-			engine->renderWindowModule->window->close();
+			engine->engineWindow->window->close();
 			engine->quit = true;
 			break;
 
 		case sf::Event::Resized:
-			engine->renderWindowModule->window->setView(sf::View(sf::FloatRect(0, 0, event.size.width, event.size.height)));
+			//engine->engineWindow->window->setView(sf::View(sf::FloatRect(0, 0, event.size.width, event.size.height)));
 			break;
 
 		case sf::Event::LostFocus:

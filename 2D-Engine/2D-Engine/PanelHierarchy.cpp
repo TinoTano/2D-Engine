@@ -3,7 +3,6 @@
 #include "Engine.h"
 #include "ModuleSceneManager.h"
 #include "ModuleInput.h"
-#include "ModuleRenderWindow.h"
 
 
 PanelHierarchy::PanelHierarchy()
@@ -80,10 +79,10 @@ void PanelHierarchy::DrawPanel()
 
 		ImGui::Text("Enter new name");
 
-		char a[20];
-		ImGui::InputText("", a, 20);
+		static char inputText[20];
+		ImGui::InputText("", inputText, 20);
 		if (ImGui::Button("Confirm")) {
-			engine->sceneManagerModule->selectedGameObjects.front()->Rename(a);
+			engine->sceneManagerModule->selectedGameObjects.front()->Rename(inputText);
 			showRenameWindow = false;
 		}
 		ImGui::SameLine();

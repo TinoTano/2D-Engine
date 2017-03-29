@@ -26,6 +26,7 @@
     <ClCompile Include="ModuleEditor.cpp" />
     <ClCompile Include="ModuleGraphics.cpp" />
     <ClCompile Include="ModuleSceneManager.cpp" />
+    <ClCompile Include="ModuleSceneWindow.cpp" />
     <ClCompile Include="Panel.cpp" />
     <ClCompile Include="PanelAssets.cpp" />
     <ClCompile Include="PanelConsole.cpp" />
@@ -43,8 +44,7 @@
       <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">C:\Users\admin\Documents\GitHub\2D-Engine\2D-Engine\SFML-2.4.2\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <ClCompile Include="ModuleInput.cpp" />
-    <ClCompile Include="ModuleRenderWindow.cpp" />
-    <ClCompile Include="ModuleWindow.cpp" />
+    <ClCompile Include="ModuleEngineWindow.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Component.h" />
@@ -57,9 +57,9 @@
     <ClInclude Include="ModuleEditor.h" />
     <ClInclude Include="ModuleGraphics.h" />
     <ClInclude Include="ModuleInput.h" />
-    <ClInclude Include="ModuleRenderWindow.h" />
+    <ClInclude Include="ModuleEngineWindow.h" />
     <ClInclude Include="ModuleSceneManager.h" />
-    <ClInclude Include="ModuleWindow.h" />
+    <ClInclude Include="ModuleSceneWindow.h" />
     <ClInclude Include="Panel.h" />
     <ClInclude Include="PanelAssets.h" />
     <ClInclude Include="PanelConsole.h" />
@@ -124,10 +124,10 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>C:\Users\admin\Documents\GitHub\2D-Engine\2D-Engine\2D-Engine\SFML-2.4.2\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)\SFML-2.4.2\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
-      <AdditionalLibraryDirectories>C:\Users\admin\Documents\GitHub\2D-Engine\2D-Engine\2D-Engine\SFML-2.4.2\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(ProjectDir)\SFML-2.4.2\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>OpenGL32.Lib;sfml-graphics-d.lib;sfml-window-d.lib;sfml-system-d.lib;sfml-network-d.lib;sfml-audio-d.lib;openal32.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
@@ -145,13 +145,13 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>C:\Users\admin\Documents\GitHub\2D-Engine\2D-Engine\2D-Engine\SFML-2.4.2\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)\SFML-2.4.2\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalLibraryDirectories>C:\Users\admin\Documents\GitHub\2D-Engine\2D-Engine\2D-Engine\SFML-2.4.2\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>OpenGL32.Lib;openal32.lib;sfml-graphics.lib;sfml-window.lib;sfml-system.lib;sfml-network.lib;sfml-audio.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(ProjectDir)\SFML-2.4.2\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>OpenGL32.Lib;sfml-graphics-d.lib;sfml-window-d.lib;sfml-system-d.lib;sfml-network-d.lib;sfml-audio-d.lib;openal32.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">

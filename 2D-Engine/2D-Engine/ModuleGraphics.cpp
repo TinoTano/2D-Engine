@@ -1,6 +1,6 @@
 #include "ModuleGraphics.h"
 #include "Engine.h"
-#include "ModuleRenderWindow.h"
+#include "ModuleSceneWindow.h"
 
 
 ModuleGraphics::ModuleGraphics()
@@ -16,7 +16,7 @@ ModuleGraphics::~ModuleGraphics()
 bool ModuleGraphics::Update(float deltaTime)
 {
 	for (list<sf::Drawable*>::iterator it = drawableObjectsList.begin(); it != drawableObjectsList.end(); it++) {
-		engine->renderWindowModule->drawableObjects.push_back(*it);
+		engine->sceneWindow->drawableObjects.push_back(*it);
 	}
 	return true;
 }

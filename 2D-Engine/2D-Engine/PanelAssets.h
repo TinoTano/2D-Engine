@@ -2,7 +2,6 @@
 
 #include "Panel.h"
 #include "Engine.h"
-#include "ModuleRenderWindow.h"
 
 class PanelAssets : public Panel
 {
