@@ -1,5 +1,6 @@
 #include "PanelScene.h"
 #include "ModuleSceneWindow.h"
+#include "ModuleEngineWindow.h"
 #include "Engine.h"
 
 
@@ -18,6 +19,5 @@ PanelScene::~PanelScene()
 
 void PanelScene::DrawPanel()
 {
-	//engine->sceneWindow->window->setPosition(ImGui::GetWindowPos());
-	//engine->sceneWindow->window->setSize(ImGui::GetWindowSize());
+	ImGui::Image(engine->sceneWindow->window->getTexture(), sf::Color::White, sf::Color::Transparent);
 }

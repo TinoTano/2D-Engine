@@ -20,6 +20,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Component.cpp" />
+    <ClCompile Include="ComponentSpriteRenderer.cpp" />
     <ClCompile Include="ComponentTransform.cpp" />
     <ClCompile Include="GameObject.cpp" />
     <ClCompile Include="ModuleAudio.cpp" />
@@ -48,6 +49,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Component.h" />
+    <ClInclude Include="ComponentSpriteRenderer.h" />
     <ClInclude Include="ComponentTransform.h" />
     <ClInclude Include="Engine.h" />
     <ClInclude Include="GameObject.h" />

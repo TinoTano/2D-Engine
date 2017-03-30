@@ -95,6 +95,9 @@
     <ClCompile Include="ModuleSceneWindow.cpp">
       <Filter>Modules</Filter>
     </ClCompile>
+    <ClCompile Include="ComponentSpriteRenderer.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Engine.h">
@@ -157,5 +160,6 @@
     <ClInclude Include="ModuleSceneWindow.h">
       <Filter>Modules</Filter>
     </ClInclude>
+    <ClInclude Include="ComponentSpriteRenderer.h" />
   </ItemGroup>
 </Project>

@@ -4,6 +4,7 @@
 #include "GameObject.h"
 #include "Component.h"
 #include "ComponentTransform.h"
+#include "ComponentSpriteRenderer.h"
 
 class PanelDetails : public Panel
 {

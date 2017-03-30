@@ -15,7 +15,7 @@ public:
 	bool CleanUp();
 
 public:
-	sf::RenderWindow* window;
+	sf::RenderTexture* window;
 	deque<sf::Drawable*> drawableObjects;
 	sf::Vector2i windowSize;
 	string windowName;

@@ -2,6 +2,7 @@
 #include "ModuleSceneManager.h"
 #include "Engine.h"
 #include "ComponentTransform.h"
+#include "ComponentSpriteRenderer.h"
 
 
 GameObject::GameObject(const GameObject & gameObject)
@@ -72,6 +73,7 @@ void GameObject::AddComponent(Component::ComponentType componentType)
 	case Component::RigidBody:
 		break;
 	case Component::SpriteRenderer:
+		componentsList.push_back(component = new ComponentSpriteRenderer());
 		break;
 	case Component::BoxCollider:
 		break;

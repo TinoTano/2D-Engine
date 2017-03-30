@@ -1,5 +1,6 @@
 #include "ModuleEngineWindow.h"
-
+#include "Engine.h"
+#include "ModuleSceneWindow.h"
 
 ModuleEngineWindow::ModuleEngineWindow()
 {
@@ -21,12 +22,15 @@ bool ModuleEngineWindow::Awake()
 
 bool ModuleEngineWindow::PreUpdate()
 {
-	window->clear(sf::Color::Blue);
+	
 	return true;
 }
 
 bool ModuleEngineWindow::PostUpdate()
 {
+	window->clear(sf::Color::Blue);
+	//window->draw((sf::Sprite)engine->sceneWindow->window->getTexture());
+	
 	ImGui::Render();
 	window->display();
 

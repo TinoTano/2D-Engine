@@ -18,9 +18,9 @@ ModuleEditor::~ModuleEditor()
 
 bool ModuleEditor::Awake()
 {
+	
 	ImGui::SFML::Init(*(engine->engineWindow->window), NULL);
 	engine->engineWindow->window->resetGLStates();
-
 	editorPanels.push_back(hierarchyPanel = new PanelHierarchy());
 	editorPanels.push_back(assetsPanel = new PanelAssets());
 	editorPanels.push_back(detailsPanel = new PanelDetails());

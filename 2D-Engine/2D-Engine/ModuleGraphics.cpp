@@ -6,6 +6,7 @@
 ModuleGraphics::ModuleGraphics()
 {
 	moduleName = "Graphics";
+	CreateShape();
 }
 
 
@@ -35,6 +36,7 @@ sf::Texture ModuleGraphics::LoadTexture(const char * path)
 sf::CircleShape* ModuleGraphics::CreateShape()
 {
 	sf::CircleShape* circle = new sf::CircleShape(50);
+	circle->setFillColor(sf::Color::Green);
 	drawableObjectsList.push_back(circle);
 	return circle;
 }

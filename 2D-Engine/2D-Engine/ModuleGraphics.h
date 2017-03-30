@@ -14,7 +14,7 @@ public:
 	sf::Texture LoadTexture(const char* path);
 	sf::CircleShape* CreateShape();
 
-private:
+public:
 	list<sf::Drawable*> drawableObjectsList;
 };
 
