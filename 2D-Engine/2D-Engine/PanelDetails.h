@@ -15,6 +15,7 @@ public:
 	void DrawPanel();
 	void DrawComponent(Component* component);
 	void DrawTransformPanel(ComponentTransform* transform);
+	void DrawSpriteRendererPanel(ComponentSpriteRenderer* spriteRenderer);
 
 };
 

@@ -16,6 +16,9 @@ GameObject::GameObject(const GameObject & gameObject)
 	this->destroyOnLoadScene = gameObject.destroyOnLoadScene;
 	this->tag = gameObject.tag;
 	this->layer = gameObject.layer;
+	this->childs = gameObject.childs;
+	AddComponent(Component::SpriteRenderer);
+	AddComponent(Component::Transform);
 }
 
 GameObject::GameObject(string name)
@@ -28,16 +31,20 @@ GameObject::GameObject(string name)
 	destroyOnLoadScene = false;
 	tag = "None";
 	layer = "None";
+	AddComponent(Component::SpriteRenderer);
+	AddComponent(Component::Transform);
 }
 
 GameObject::GameObject(GameObject * parent)
 {
-	name = "GameObject";
+	name = "New GameObject";
 	tag = "None";
 	layer = "None";
 	activeInScene = true;
 	destroyOnLoadScene = false;
 	SetParent(parent);
+	AddComponent(Component::SpriteRenderer);
+	AddComponent(Component::Transform);
 }
 
 
@@ -66,14 +73,14 @@ void GameObject::AddComponent(Component::ComponentType componentType)
 	switch (componentType)
 	{
 	case Component::Transform:
-		componentsList.push_back(component = new ComponentTransform());
+		componentsList.push_back(component = new ComponentTransform(this));
 		break;
 	case Component::Camera:
 		break;
 	case Component::RigidBody:
 		break;
 	case Component::SpriteRenderer:
-		componentsList.push_back(component = new ComponentSpriteRenderer());
+		componentsList.push_back(component = new ComponentSpriteRenderer(this));
 		break;
 	case Component::BoxCollider:
 		break;

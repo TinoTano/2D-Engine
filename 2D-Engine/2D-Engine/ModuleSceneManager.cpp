@@ -1,5 +1,6 @@
 #include "ModuleSceneManager.h"
-
+#include "Engine.h"
+#include "ModuleSceneWindow.h"
 
 
 ModuleSceneManager::ModuleSceneManager()
@@ -21,6 +22,7 @@ bool ModuleSceneManager::PreUpdate()
 {
 	for (list<GameObject*>::iterator it = gameObjectsToDestroy.begin(); it != gameObjectsToDestroy.end(); it++) {
 		(*it)->OnDestroy();
+		engine->sceneWindow->drawableObjects.erase(engine->sceneWindow->drawableObjects.begin());
 		delete *it;
 		*it = nullptr;
 	}
@@ -50,21 +52,22 @@ GameObject * ModuleSceneManager::CreateGameObject(GameObject * parent)
 	if (parent == nullptr) {
 		sceneRootObjects.push_back(gameObject);
 	}
-	
 	return gameObject;
 }
 
 GameObject * ModuleSceneManager::DuplicateGameObject(const GameObject * gameObject)
 {
-	return nullptr;
-}
+	GameObject* ret = nullptr;
 
-void ModuleSceneManager::CopyGameObject(const GameObject * gameObject)
-{
-}
+	if (gameObject != nullptr) {
+		ret = new GameObject(*gameObject);
 
-void ModuleSceneManager::PasteGameObject(GameObject * gameObject)
-{
+		if (ret->parent == nullptr) {
+			sceneRootObjects.push_back(ret);
+		}
+	}
+
+	return ret;
 }
 
 void ModuleSceneManager::NewScene()

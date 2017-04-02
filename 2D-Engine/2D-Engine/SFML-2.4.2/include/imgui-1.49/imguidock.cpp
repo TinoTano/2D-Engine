@@ -1208,6 +1208,11 @@ namespace ImGui {
 		g_dock.debugWindow();
 	}
 
+	IMGUI_API void SaveDocks()
+	{
+		return IMGUI_API void();
+	}
+
 
 #if (defined(IMGUIHELPER_H_) && !defined(NO_IMGUIHELPER_SERIALIZATION))
 #   ifndef NO_IMGUIHELPER_SERIALIZATION_SAVE

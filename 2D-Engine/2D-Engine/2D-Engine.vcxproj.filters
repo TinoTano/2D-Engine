@@ -96,6 +96,9 @@
       <Filter>Modules</Filter>
     </ClCompile>
     <ClCompile Include="ComponentSpriteRenderer.cpp">
+      <Filter>GameObject\Components</Filter>
+    </ClCompile>
+    <ClCompile Include="ModuleFileSystem.cpp">
       <Filter>Core</Filter>
     </ClCompile>
   </ItemGroup>
@@ -160,6 +163,14 @@
     <ClInclude Include="ModuleSceneWindow.h">
       <Filter>Modules</Filter>
     </ClInclude>
-    <ClInclude Include="ComponentSpriteRenderer.h" />
+    <ClInclude Include="ComponentSpriteRenderer.h">
+      <Filter>GameObject\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="ModuleFileSystem.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="2D-Engine.rc">
+      <Filter>Tools</Filter>
+    </ResourceCompile>
   </ItemGroup>
 </Project>

@@ -5,9 +5,10 @@
 class ComponentSpriteRenderer : public Component
 {
 public:
-	ComponentSpriteRenderer();
+	ComponentSpriteRenderer(GameObject* attachedObject);
 	virtual ~ComponentSpriteRenderer();
 
 	sf::Sprite* gameObjectSprite;
+	sf::Texture* spriteTexture;
 };
 

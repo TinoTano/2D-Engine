@@ -12,11 +12,11 @@ Engine::Engine()
 {
 	modulesList.push_back(engineWindow = new ModuleEngineWindow());
 	modulesList.push_back(inputModule = new ModuleInput());
-	modulesList.push_back(graphicsModule = new ModuleGraphics());
 	modulesList.push_back(audioModule = new ModuleAudio());
 	modulesList.push_back(editorModule = new ModuleEditor());
 	modulesList.push_back(sceneManagerModule = new ModuleSceneManager());
 	modulesList.push_back(sceneWindow = new ModuleSceneWindow());
+	modulesList.push_back(graphicsModule = new ModuleGraphics());
 }
 
 

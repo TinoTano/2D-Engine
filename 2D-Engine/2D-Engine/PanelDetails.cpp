@@ -106,6 +106,7 @@ void PanelDetails::DrawComponent(Component* component)
 	case Component::RigidBody:
 		break;
 	case Component::SpriteRenderer:
+		DrawSpriteRendererPanel((ComponentSpriteRenderer*)component);
 		break;
 	case Component::BoxCollider:
 		break;
@@ -126,17 +127,26 @@ void PanelDetails::DrawTransformPanel(ComponentTransform * transform)
 {
 	if (ImGui::CollapsingHeader("Transform", ImGuiTreeNodeFlags_DefaultOpen)) {
 		sf::Vector3f position = transform->position;
-		sf::Vector2f rotation = transform->rotation;
+		float rotation = transform->rotation;
 		sf::Vector2f scale = transform->scale;
 
 		if (ImGui::DragFloat3("Position", (float*)&position, 0.25f)) {
-			transform->position = position;
+			transform->SetPosition(position);
 		}
-		if (ImGui::DragFloat2("Rotation", (float*)&rotation, 0.25f)) {
-			transform->rotation = rotation;
+		if (ImGui::DragFloat("Rotation", (float*)&rotation, 0.25f)) {
+			transform->SetRotation(rotation);
 		}
 		if (ImGui::DragFloat2("Scale", (float*)&scale, 0.25f)) {
-			transform->scale = scale;
+			transform->SetScale(scale);
 		}
+	}
+}
+
+void PanelDetails::DrawSpriteRendererPanel(ComponentSpriteRenderer * spriteRenderer)
+{
+	if (ImGui::CollapsingHeader("Sprite Renderer", ImGuiTreeNodeFlags_DefaultOpen)) {
+		sf::Sprite* sprite = spriteRenderer->gameObjectSprite;
+		ImGui::Image(*sprite, ImVec2(100.f, 100.f), sf::Color::White, sf::Color::Transparent);
+
 	}
 }

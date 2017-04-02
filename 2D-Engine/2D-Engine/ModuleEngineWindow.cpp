@@ -29,8 +29,6 @@ bool ModuleEngineWindow::PreUpdate()
 bool ModuleEngineWindow::PostUpdate()
 {
 	window->clear(sf::Color::Blue);
-	//window->draw((sf::Sprite)engine->sceneWindow->window->getTexture());
-	
 	ImGui::Render();
 	window->display();
 

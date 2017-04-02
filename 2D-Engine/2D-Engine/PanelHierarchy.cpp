@@ -3,6 +3,7 @@
 #include "Engine.h"
 #include "ModuleSceneManager.h"
 #include "ModuleInput.h"
+#include "ModuleSceneWindow.h"
 
 
 PanelHierarchy::PanelHierarchy()
@@ -20,6 +21,7 @@ PanelHierarchy::~PanelHierarchy()
 
 void PanelHierarchy::DrawPanel()
 {
+	node = 0;
 	if (ImGui::IsMouseClicked(1) && ImGui::IsMouseHoveringWindow()) {
 		ImGui::OpenPopup("GameObject Options");
 	}
@@ -27,14 +29,9 @@ void PanelHierarchy::DrawPanel()
 	if (ImGui::BeginPopup("GameObject Options"))
 	{
 		if (!engine->sceneManagerModule->selectedGameObjects.empty()) {
-			if (ImGui::MenuItem("Copy")) {
-				for (list<GameObject*>::iterator it = engine->sceneManagerModule->selectedGameObjects.begin(); it != engine->sceneManagerModule->selectedGameObjects.end(); it++) {
-					engine->sceneManagerModule->CopyGameObject(*it);
-				}
-			}
 			if (ImGui::MenuItem("Duplicate")) {
 				for (list<GameObject*>::iterator it = engine->sceneManagerModule->selectedGameObjects.begin(); it != engine->sceneManagerModule->selectedGameObjects.end(); it++) {
-					engine->sceneManagerModule->DuplicateGameObject(*it);
+					engine->sceneWindow->drawableObjects.push_back(engine->sceneManagerModule->DuplicateGameObject(*it));
 				}
 			}
 			if (ImGui::MenuItem("Delete")) {
@@ -46,24 +43,16 @@ void PanelHierarchy::DrawPanel()
 				if (ImGui::MenuItem("Rename")) {
 					showRenameWindow = true;
 				}
-				if (ImGui::MenuItem("Create Child Game Object")) {
+				if (ImGui::MenuItem("Create Child")) {
 					GameObject* parent = nullptr;
-					if (engine->sceneManagerModule->selectedGameObjects.size() == 1) {
-						parent = engine->sceneManagerModule->selectedGameObjects.front();
-					}
-					engine->sceneManagerModule->CreateGameObject(parent);
+					parent = engine->sceneManagerModule->selectedGameObjects.front();
+					engine->sceneWindow->drawableObjects.push_back(engine->sceneManagerModule->CreateGameObject(parent));
 				}
 			}
-			else{
-				if (ImGui::MenuItem("Create Game Object")) {
-					engine->sceneManagerModule->CreateGameObject(nullptr);
-				}
-			}
+			ImGui::Separator();
 		}
-		else {
-			if (ImGui::MenuItem("Create Game Object")) {
-				engine->sceneManagerModule->CreateGameObject(nullptr);
-			}
+		if (ImGui::MenuItem("Create Game Object")) {
+			engine->sceneWindow->drawableObjects.push_back(engine->sceneManagerModule->CreateGameObject(nullptr));
 		}
 		
 		ImGui::EndPopup();
@@ -99,20 +88,21 @@ void PanelHierarchy::DrawPanel()
 
 void PanelHierarchy::DrawChilds(GameObject* gameObject)
 {
+	sprintf_s(nodeName, 30, "%s##node_%i", gameObject->name.c_str(), node++);
 	unsigned int flag = 0;
 
-	if (!gameObject->childs.empty()) {
-		flag = ImGuiTreeNodeFlags_Leaf;
+	if (gameObject->childs.empty()) {
+		flag |= ImGuiTreeNodeFlags_Leaf;
 	}
 	
 	for (list<GameObject*>::iterator it = engine->sceneManagerModule->selectedGameObjects.begin(); it != engine->sceneManagerModule->selectedGameObjects.end(); it++) {
 		if (gameObject == *it) {
-			flag = ImGuiTreeNodeFlags_Selected;
+			flag |= ImGuiTreeNodeFlags_Selected;
 			break;
 		}
 	}
 
-	if (ImGui::TreeNodeEx(gameObject->name.c_str(), flag))
+	if (ImGui::TreeNodeEx(nodeName, flag))
 	{
 		CheckMouseOver(gameObject);
 		for (list<GameObject*>::iterator it = gameObject->childs.begin(); it != gameObject->childs.end(); ++it) {

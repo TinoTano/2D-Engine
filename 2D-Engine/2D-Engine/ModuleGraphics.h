@@ -8,6 +8,7 @@ public:
 	ModuleGraphics();
 	virtual ~ModuleGraphics();
 
+	bool Start();
 	bool Update(float deltaTime);
 	bool CleanUp();
 

@@ -2,6 +2,7 @@
 #include "ModuleEngineWindow.h"
 #include "Engine.h"
 #include "ModuleEditor.h"
+#include "ModuleSceneWindow.h"
 
 #include "imgui-1.49\imgui.h"
 #include "imgui-1.49\imgui-SFML.h"
@@ -37,6 +38,7 @@ bool ModuleInput::PreUpdate()
 
 		case sf::Event::Resized:
 			//engine->engineWindow->window->setView(sf::View(sf::FloatRect(0, 0, event.size.width, event.size.height)));
+			//engine->sceneWindow->window->setView
 			break;
 
 		case sf::Event::LostFocus:

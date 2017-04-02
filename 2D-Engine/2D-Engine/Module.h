@@ -9,6 +9,7 @@
 #include <SFML\Audio.hpp>
 #include <SFML\System.hpp>
 #include <SFML\Graphics\RenderTexture.hpp>
+#include <SFML\Graphics\Sprite.hpp>
 #include "imgui-1.49\imgui.h"
 #include "imgui-1.49\imgui-SFML.h"
 

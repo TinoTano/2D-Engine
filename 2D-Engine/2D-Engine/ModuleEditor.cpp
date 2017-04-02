@@ -26,7 +26,6 @@ bool ModuleEditor::Awake()
 	editorPanels.push_back(detailsPanel = new PanelDetails());
 	editorPanels.push_back(scenePanel = new PanelScene());
 	editorPanels.push_back(consolePanel = new PanelConsole());
-
 	return true;
 }
 
@@ -104,7 +103,7 @@ bool ModuleEditor::Update(float deltaTime)
 	}
 	ImGui::EndDockspace();
 	ImGui::End();
-
+	ImGui::DockDebugWindow();
 	return ret;
 }
 

@@ -89,6 +89,7 @@ namespace ImGui {
 	IMGUI_API void EndDock();
 	IMGUI_API void SetDockActive();
 	IMGUI_API void DockDebugWindow();
+	IMGUI_API void SaveDocks();
 
 	// Ported from the original "Lua binding" code
 #if (defined(IMGUIHELPER_H_) && !defined(NO_IMGUIHELPER_SERIALIZATION))

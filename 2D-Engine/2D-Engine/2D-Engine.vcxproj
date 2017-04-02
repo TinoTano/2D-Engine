@@ -25,6 +25,7 @@
     <ClCompile Include="GameObject.cpp" />
     <ClCompile Include="ModuleAudio.cpp" />
     <ClCompile Include="ModuleEditor.cpp" />
+    <ClCompile Include="ModuleFileSystem.cpp" />
     <ClCompile Include="ModuleGraphics.cpp" />
     <ClCompile Include="ModuleSceneManager.cpp" />
     <ClCompile Include="ModuleSceneWindow.cpp" />
@@ -57,6 +58,7 @@
     <ClInclude Include="Module.h" />
     <ClInclude Include="ModuleAudio.h" />
     <ClInclude Include="ModuleEditor.h" />
+    <ClInclude Include="ModuleFileSystem.h" />
     <ClInclude Include="ModuleGraphics.h" />
     <ClInclude Include="ModuleInput.h" />
     <ClInclude Include="ModuleEngineWindow.h" />
@@ -69,6 +71,9 @@
     <ClInclude Include="PanelHierarchy.h" />
     <ClInclude Include="PanelScene.h" />
     <ClInclude Include="SFML-2.4.2\include\imgui-1.49\imguidock.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="2D-Engine.rc" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{03FEF98F-A07D-4344-9822-C20E3DB131C1}</ProjectGuid>

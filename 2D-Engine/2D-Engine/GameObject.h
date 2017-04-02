@@ -23,6 +23,7 @@ public:
 	GameObject* Instantiate(GameObject objectToClone, GameObject* parent);
 	void SetParent(GameObject* parent);
 	GameObject* GetParent() const;
+
 	void Rename(string name);
 
 	void OnEnable();
@@ -46,6 +47,6 @@ public:
 	list<Component*> componentsList;
 	list<GameObject*> childs;
 	GameObject* parent;
-
+	sf::Sprite* gameObjectSprite;
+	float positionZ;
 };
-

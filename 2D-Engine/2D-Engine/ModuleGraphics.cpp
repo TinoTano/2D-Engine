@@ -6,7 +6,6 @@
 ModuleGraphics::ModuleGraphics()
 {
 	moduleName = "Graphics";
-	CreateShape();
 }
 
 
@@ -14,11 +13,16 @@ ModuleGraphics::~ModuleGraphics()
 {
 }
 
+bool ModuleGraphics::Start() {
+	//CreateShape();
+	return true;
+}
+
 bool ModuleGraphics::Update(float deltaTime)
 {
-	for (list<sf::Drawable*>::iterator it = drawableObjectsList.begin(); it != drawableObjectsList.end(); it++) {
+	/*for (list<sf::Drawable*>::iterator it = drawableObjectsList.begin(); it != drawableObjectsList.end(); it++) {
 		engine->sceneWindow->drawableObjects.push_back(*it);
-	}
+	}*/
 	return true;
 }
 
@@ -37,6 +41,7 @@ sf::CircleShape* ModuleGraphics::CreateShape()
 {
 	sf::CircleShape* circle = new sf::CircleShape(50);
 	circle->setFillColor(sf::Color::Green);
+	circle->setPosition(50, 50);
 	drawableObjectsList.push_back(circle);
 	return circle;
 }

@@ -36,3 +36,9 @@ bool Component::IsActive() const
 {
 	return active;
 }
+
+GameObject * Component::GetGameObject() const
+{
+	return gameObject;
+}
+
