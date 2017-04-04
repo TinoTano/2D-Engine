@@ -22,7 +22,9 @@
     <ClCompile Include="Component.cpp" />
     <ClCompile Include="ComponentSpriteRenderer.cpp" />
     <ClCompile Include="ComponentTransform.cpp" />
+    <ClCompile Include="Data.cpp" />
     <ClCompile Include="GameObject.cpp" />
+    <ClCompile Include="Globals.cpp" />
     <ClCompile Include="ModuleAudio.cpp" />
     <ClCompile Include="ModuleEditor.cpp" />
     <ClCompile Include="ModuleFileSystem.cpp" />
@@ -40,7 +42,6 @@
     <ClCompile Include="SFML-2.4.2\include\imgui-1.49\imguidock.cpp" />
     <ClCompile Include="SFML-2.4.2\include\imgui-1.49\imgui_draw.cpp" />
     <ClCompile Include="Engine.cpp" />
-    <ClCompile Include="LOG.cpp" />
     <ClCompile Include="main.cpp">
       <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">C:\Users\admin\Documents\GitHub\2D-Engine\2D-Engine\SFML-2.4.2\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">C:\Users\admin\Documents\GitHub\2D-Engine\2D-Engine\SFML-2.4.2\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
@@ -52,9 +53,10 @@
     <ClInclude Include="Component.h" />
     <ClInclude Include="ComponentSpriteRenderer.h" />
     <ClInclude Include="ComponentTransform.h" />
+    <ClInclude Include="Data.h" />
     <ClInclude Include="Engine.h" />
     <ClInclude Include="GameObject.h" />
-    <ClInclude Include="LOG.h" />
+    <ClInclude Include="Globals.h" />
     <ClInclude Include="Module.h" />
     <ClInclude Include="ModuleAudio.h" />
     <ClInclude Include="ModuleEditor.h" />
@@ -71,9 +73,6 @@
     <ClInclude Include="PanelHierarchy.h" />
     <ClInclude Include="PanelScene.h" />
     <ClInclude Include="SFML-2.4.2\include\imgui-1.49\imguidock.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <ResourceCompile Include="2D-Engine.rc" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{03FEF98F-A07D-4344-9822-C20E3DB131C1}</ProjectGuid>
