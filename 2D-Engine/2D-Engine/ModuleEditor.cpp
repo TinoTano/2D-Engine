@@ -6,9 +6,12 @@
 #include "PanelDetails.h"
 #include "PanelScene.h"
 #include "ModuleSceneWindow.h"
+#include "ModuleSceneManager.h"
+#include "tinyfiledialogs.h"
 
 ModuleEditor::ModuleEditor()
 {
+	moduleName = "Editor";
 }
 
 
@@ -26,6 +29,7 @@ bool ModuleEditor::Awake()
 	editorPanels.push_back(detailsPanel = new PanelDetails());
 	editorPanels.push_back(scenePanel = new PanelScene());
 	editorPanels.push_back(consolePanel = new PanelConsole());
+	ImGui::LoadDocks();
 	return true;
 }
 
@@ -43,22 +47,49 @@ bool ModuleEditor::Update(float deltaTime)
 		bool selected = false;
 		if (ImGui::BeginMenu("File"))
 		{
-			ImGui::MenuItem("New Scene");
-			ImGui::MenuItem("Load Scene");
-			ImGui::MenuItem("Save Scene");
-			ImGui::MenuItem("Exit");
+			if (ImGui::MenuItem("New Scene")) {
+				engine->sceneManagerModule->NewScene();
+			}
+			if (ImGui::MenuItem("Load Scene")) {
+				char const * lFilterPatterns[1] = { "*.scene" };
+				const char* path = tinyfd_openFileDialog("Load Scene...", NULL, 1, lFilterPatterns, NULL, 0);
+				if (path != NULL) {
+					engine->sceneManagerModule->LoadScene(path);
+				}
+			}
+			if (ImGui::MenuItem("Save Scene")) {
+				char const * lFilterPatterns[1] = { "*.scene" };
+				const char* path = tinyfd_saveFileDialog("Save Scene...", (engine->sceneManagerModule->sceneName + ".scene").c_str(), 1, lFilterPatterns, NULL);
+				if (path != NULL) {
+					string str(path);
+					bool getChar = false;
+					string newSceneName;
+					for (string::reverse_iterator it = str.rbegin(); it != str.rend(); it++) {
+						if (*it == '\\') {
+							getChar = false;
+						}
+						if (getChar) {
+							newSceneName.insert(0, 1, *it);
+						}
+						if (*it == '.') {
+							getChar = true;
+						}
+					}
+					engine->sceneManagerModule->SaveScene(path);
+					engine->sceneManagerModule->savingIndex = 0;
+					engine->engineWindow->SetSceneName(newSceneName);
+				}
+			}
+			if (ImGui::MenuItem("Exit")) {
+				engine->quit = true;
+			}
 
 			ImGui::EndMenu();
 		}
 
 		if (ImGui::BeginMenu("Windows"))
 		{
-			ImGui::MenuItem("Console", "1", true);
-			ImGui::MenuItem("Scene Hierarchy", "2", true);
-			ImGui::MenuItem("Properties", "3", true);
-			ImGui::MenuItem("Configuration", "4", true);
-			ImGui::MenuItem("Resource Browser", "5", true);
-			ImGui::MenuItem("Quick Bar", "6", true);
+			//ImGui::MenuItem("Animator", "1", true);
 			ImGui::EndMenu();
 		}
 
@@ -89,26 +120,31 @@ bool ModuleEditor::Update(float deltaTime)
 	
 	}
 
+	ImGui::Separator();
 	ImGui::BeginDockspace();
 	for (vector<Panel*>::iterator it = editorPanels.begin(); it != editorPanels.end(); it++) {
 		if ((*it)->IsActive())
 		{
-			if ((*it)->newPanel) {				
-			}
 			ImGui::BeginDock((*it)->panelName.c_str());
-			ImGui::SetNextDock((*it)->dockPos);
 			(*it)->DrawPanel();
 			ImGui::EndDock();
 		}
 	}
 	ImGui::EndDockspace();
 	ImGui::End();
-	ImGui::DockDebugWindow();
 	return ret;
 }
 
 bool ModuleEditor::CleanUp()
 {
+	LOG("Freeing module editor");
+
+	for (vector<Panel*>::iterator it = editorPanels.begin(); it != editorPanels.end(); ++it)
+		RELEASE(*it);
+
+	editorPanels.clear();
+
+	ImGui::SaveDocks();
 	ImGui::SFML::Shutdown();
 	return true;
 }

@@ -1,6 +1,5 @@
 #include "Engine.h"
 #include "ModuleFileSystem.h"
-#include "LOG.h"
 #include "PhysFS/include/physfs.h"
 
 #pragma comment( lib, "PhysFS/libx86/physfs.lib" )
@@ -24,27 +23,25 @@ ModuleFileSystem::~ModuleFileSystem()
 }
 
 // Called before render is available
-bool ModuleFileSystem::Awake(pugi::xml_node& config)
+bool ModuleFileSystem::Awake(/*pugi::xml_node& config*/)
 {
 	LOG("Loading File System");
 	bool ret = true;
 
 	// Add all paths in configuration in order
-	for (pugi::xml_node path = config.child("path"); path; path = path.next_sibling("path"))
-	{
-		AddPath(path.child_value());
-	}
+	//for (pugi::xml_node path = config.child("path"); path; path = path.next_sibling("path"))
+	//{
+	//	AddPath(path.child_value());
+	//}
 
 	if (PHYSFS_setWriteDir(PHYSFS_getWriteDir()) == 0)
 		LOG("File System error while creating write dir: %s\n", PHYSFS_getLastError());
 	else
 	{
 		// We add the writing directory as a reading directory too with speacial mount point
-		LOG("Writing directory is %s\n", write_path);
-		AddPath(write_path, GetSaveDirectory());
+		//LOG("Writing directory is %s\n", write_path);
+		//AddPath(write_path, GetSaveDirectory());
 	}
-
-	SDL_free(write_path);
 
 	return ret;
 }
@@ -82,9 +79,9 @@ bool ModuleFileSystem::IsDirectory(const char* file) const
 }
 
 // Read a whole file and put it in a new buffer
-unsigned int ModuleFileSystem::Load(const char* file, char** buffer) const
+uint ModuleFileSystem::Load(const char* file, char** buffer) const
 {
-	unsigned int ret = 0;
+	uint ret = 0;
 
 	PHYSFS_file* fs_file = PHYSFS_openRead(file);
 
@@ -94,7 +91,7 @@ unsigned int ModuleFileSystem::Load(const char* file, char** buffer) const
 
 		if (size > 0)
 		{
-			*buffer = new char[(unsigned int)size];
+			*buffer = new char[(uint)size];
 			PHYSFS_sint64 readed = PHYSFS_read(fs_file, *buffer, 1, (PHYSFS_sint32)size);
 			if (readed != size)
 			{
@@ -102,7 +99,7 @@ unsigned int ModuleFileSystem::Load(const char* file, char** buffer) const
 				RELEASE(buffer);
 			}
 			else
-				ret = (unsigned int)readed;
+				ret = (uint)readed;
 		}
 
 		if (PHYSFS_close(fs_file) == 0)
@@ -115,9 +112,9 @@ unsigned int ModuleFileSystem::Load(const char* file, char** buffer) const
 }
 
 // Save a whole buffer to disk
-unsigned int ModuleFileSystem::Save(const char* file, const char* buffer, unsigned int size) const
+uint ModuleFileSystem::Save(const char* file, const char* buffer, unsigned int size) const
 {
-	unsigned int ret = 0;
+	uint ret = 0;
 
 	PHYSFS_file* fs_file = PHYSFS_openWrite(file);
 
@@ -127,7 +124,7 @@ unsigned int ModuleFileSystem::Save(const char* file, const char* buffer, unsign
 		if (written != size)
 			LOG("File System error while writing to file %s: %s\n", file, PHYSFS_getLastError());
 		else
-			ret = (unsigned int)written;
+			ret = (uint)written;
 
 		if (PHYSFS_close(fs_file) == 0)
 			LOG("File System error while closing file %s: %s\n", file, PHYSFS_getLastError());

@@ -1,11 +1,9 @@
 #include "Engine.h"
-#include "LOG.h"
 
 Engine* engine = nullptr;
 
 int main(int argc, char* args[])
 {
-
 	engine = new Engine();
 
 	if (engine != nullptr) {
@@ -38,6 +36,5 @@ int main(int argc, char* args[])
 		delete engine;
 		engine = nullptr;
 	}
-
 	return 0;
 }

@@ -12,9 +12,12 @@ public:
 	bool PreUpdate();
 	bool PostUpdate();
 	bool CleanUp();
+	void SetSceneName(string name);
 
 public:
 	sf::RenderWindow* window;
+
+private:
 	string windowName;
 };
 

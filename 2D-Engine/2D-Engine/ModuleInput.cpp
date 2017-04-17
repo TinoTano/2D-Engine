@@ -4,9 +4,6 @@
 #include "ModuleEditor.h"
 #include "ModuleSceneWindow.h"
 
-#include "imgui-1.49\imgui.h"
-#include "imgui-1.49\imgui-SFML.h"
-
 
 ModuleInput::ModuleInput()
 {

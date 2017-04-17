@@ -24,7 +24,7 @@
 
 #ifndef SFML_VECTOR2_HPP
 #define SFML_VECTOR2_HPP
-
+#include "cereal-1.2.2\include\cereal\types\polymorphic.hpp"
 
 namespace sf
 {
@@ -256,9 +256,7 @@ typedef Vector2<float>        Vector2f;
 
 } // namespace sf
 
-
 #endif // SFML_VECTOR2_HPP
-
 
 ////////////////////////////////////////////////////////////
 /// \class sf::Vector2

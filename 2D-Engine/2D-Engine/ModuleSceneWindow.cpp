@@ -59,7 +59,7 @@ bool ModuleSceneWindow::PostUpdate()
 
 bool ModuleSceneWindow::CleanUp()
 {
-	//window->close();
+	delete window;
 
 	return true;
 }

@@ -104,6 +104,9 @@
     <ClCompile Include="Globals.cpp">
       <Filter>Tools</Filter>
     </ClCompile>
+    <ClCompile Include="tinyfiledialogs.c">
+      <Filter>Tools</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Engine.h">
@@ -173,6 +176,9 @@
       <Filter>Tools</Filter>
     </ClInclude>
     <ClInclude Include="Globals.h">
+      <Filter>Tools</Filter>
+    </ClInclude>
+    <ClInclude Include="tinyfiledialogs.h">
       <Filter>Tools</Filter>
     </ClInclude>
   </ItemGroup>

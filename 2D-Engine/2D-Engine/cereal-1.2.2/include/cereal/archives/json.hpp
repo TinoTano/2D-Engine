@@ -29,8 +29,8 @@
 #ifndef CEREAL_ARCHIVES_JSON_HPP_
 #define CEREAL_ARCHIVES_JSON_HPP_
 
-#include "cereal/cereal.hpp"
-#include "cereal/details/util.hpp"
+#include "../cereal.hpp"
+#include "../details/util.hpp"
 
 namespace cereal
 {
@@ -50,11 +50,11 @@ namespace cereal
 #define CEREAL_RAPIDJSON_WRITE_DEFAULT_FLAGS kWriteNanAndInfFlag
 #define CEREAL_RAPIDJSON_PARSE_DEFAULT_FLAGS kParseFullPrecisionFlag | kParseNanAndInfFlag
 
-#include "cereal/external/rapidjson/prettywriter.h"
-#include "cereal/external/rapidjson/ostreamwrapper.h"
-#include "cereal/external/rapidjson/istreamwrapper.h"
-#include "cereal/external/rapidjson/document.h"
-#include "cereal/external/base64.hpp"
+#include "../external/rapidjson/prettywriter.h"
+#include "../external/rapidjson/ostreamwrapper.h"
+#include "../external/rapidjson/istreamwrapper.h"
+#include "../external/rapidjson/document.h"
+#include "../external/base64.hpp"
 
 #include <limits>
 #include <sstream>
@@ -584,10 +584,14 @@ namespace cereal
       }
 
       //! Finishes the most recently started node
-      void finishNode()
+      bool finishNode()
       {
         itsIteratorStack.pop_back();
-        ++itsIteratorStack.back();
+		if (itsIteratorStack.empty()) {
+			return true;
+		}
+		++itsIteratorStack.back();
+		return false;
       }
 
       //! Retrieves the current node name
@@ -640,6 +644,15 @@ namespace cereal
       void loadValue(std::string & val) { search(); val = itsIteratorStack.back().value().GetString(); ++itsIteratorStack.back(); }
       //! Loads a nullptr from the current node
       void loadValue(std::nullptr_t&)   { search(); CEREAL_RAPIDJSON_ASSERT(itsIteratorStack.back().value().IsNull()); ++itsIteratorStack.back(); }
+	  //! Loads a value from the current node - string overload
+
+	  bool isObject() {
+		  return itsIteratorStack.back().value().IsObject();
+	  }
+
+	  bool isEmptyObject() {
+		return itsIteratorStack.back().value().ObjectEmpty();
+	  }
 
       // Special cases to handle various flavors of long, which tend to conflict with
       // the int32_t or int64_t on various compiler/OS combinations.  MSVC doesn't need any of this.
@@ -707,8 +720,9 @@ namespace cereal
       //! Loads the size for a SizeTag
       void loadSize(size_type & size)
       {
-        if (itsIteratorStack.size() == 1)
-          size = itsDocument.Size();
+		  if (itsIteratorStack.size() == 1) {
+			  size = itsDocument.Size();
+		}
         else
           size = (itsIteratorStack.rbegin() + 1)->value().Size();
       }

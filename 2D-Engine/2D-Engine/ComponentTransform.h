@@ -15,6 +15,9 @@ public:
 	void OnEnable();
 	void OnDisable();
 
+	void Save(Data& data) const;
+	void Load(Data& data);
+
 public:
 	sf::Vector3f position;
 	float rotation;

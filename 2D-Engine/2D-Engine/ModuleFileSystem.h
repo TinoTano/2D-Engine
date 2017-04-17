@@ -8,7 +8,7 @@ public:
 	ModuleFileSystem();
 	virtual ~ModuleFileSystem();
 
-	bool Awake(pugi::xml_node&);
+	bool Awake(/*pugi::xml_node&*/);
 
 	bool CleanUp();
 
@@ -21,7 +21,7 @@ public:
 		return "save/";
 	}
 
-	unsigned int Load(const char* file, char** buffer) const;
-	unsigned int Save(const char* file, const char* buffer, unsigned int size) const;
+	uint Load(const char* file, char** buffer) const;
+	uint Save(const char* file, const char* buffer, unsigned int size) const;
 };
 

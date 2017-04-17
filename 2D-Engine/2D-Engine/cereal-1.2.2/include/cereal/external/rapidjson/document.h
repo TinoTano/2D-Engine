@@ -1678,7 +1678,7 @@ public:
     //!@name String
     //@{
 
-    const Ch* GetString() const { CEREAL_RAPIDJSON_ASSERT(IsString()); return (data_.f.flags & kInlineStrFlag) ? data_.ss.str : GetStringPointer(); }
+ 	const Ch* GetString() const { std::string str = data_.ss.str; if (str == "\x2") return ""; CEREAL_RAPIDJSON_ASSERT(IsString()); return (data_.f.flags & kInlineStrFlag) ? data_.ss.str : GetStringPointer(); }
 
     //! Get the length of string.
     /*! Since rapidjson permits "\\u0000" in the json string, strlen(v.GetString()) may not equal to v.GetStringLength().

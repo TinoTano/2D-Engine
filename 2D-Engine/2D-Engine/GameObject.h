@@ -1,16 +1,15 @@
 #pragma once
 
-#include <string>
-#include <list>
 #include "Component.h"
 #include "Engine.h"
+#include "Data.h"
 
 using namespace std;
 
 class GameObject
 {
 public:
-
+	GameObject();
 	GameObject(const GameObject& gameObject);
 	GameObject(string name);
 	GameObject(GameObject* parent);
@@ -22,6 +21,7 @@ public:
 	bool isActive();
 	GameObject* Instantiate(GameObject objectToClone, GameObject* parent);
 	void SetParent(GameObject* parent);
+	void SetParentByName(string name);
 	GameObject* GetParent() const;
 
 	void Rename(string name);
@@ -31,10 +31,13 @@ public:
 	void OnDestroy();
 
 	void Destroy();
-	void DestroyComponent(Component component);
+	void DestroyComponent(Component::ComponentType component);
 	void DestroyAfterTime(float time);
 	void DestroyInmediate();
 	void DestroyOnLoadScene(bool destroy);
+
+	void Save(Data& data) const;
+	void Load(Data & data);
 
 private:
 	bool destroyOnLoadScene;
@@ -49,4 +52,6 @@ public:
 	GameObject* parent;
 	sf::Sprite* gameObjectSprite;
 	float positionZ;
+	bool isRoot;
+	bool onDestroy;
 };

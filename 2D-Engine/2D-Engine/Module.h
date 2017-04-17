@@ -1,6 +1,6 @@
 #pragma once
 
-#include "LOG.h"
+#include "Globals.h"
 #include <string>
 #include <list>
 #include <deque>

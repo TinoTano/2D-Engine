@@ -21,15 +21,17 @@ public:
 	GameObject* PasteGameObject(GameObject* gameObject);
 
 	void NewScene();
-	void LoadScene();
-	void SaveScene();
+	void LoadScene(string path);
+	void SaveScene(string path) const;
 
 public:
 	list<GameObject*> selectedGameObjects;
 	list<GameObject*> gameObjectsToDestroy;
 	list<GameObject*> sceneRootObjects;
-
-private:
-	
+	map<string, int> sceneGameObjectsNameCounter;
+	vector<GameObject*> gameObjectsList;
+	string sceneName = "Untitled Scene";
+	map<GameObject*, string> gameObjectsParentsNames;
+	int savingIndex = 0;
 };
 

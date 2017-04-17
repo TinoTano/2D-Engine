@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include "Globals.h"
 #include "imgui-1.49\imgui.h"
 #include "imgui-1.49\imgui-SFML.h"
 #include "imgui-1.49\imguidock.h"
@@ -20,7 +21,6 @@ public:
 public:
 	bool active;
 	string panelName;
-	ImGuiDockSlot dockPos;
 	bool newPanel;
 };
 

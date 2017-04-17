@@ -6,7 +6,6 @@ Panel::Panel()
 {
 	active = true;
 	panelName = "";
-	dockPos = ImGuiDockSlot_None;
 	newPanel = false;
 }
 

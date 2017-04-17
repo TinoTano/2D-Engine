@@ -4,19 +4,21 @@
 
 ModuleEngineWindow::ModuleEngineWindow()
 {
-	moduleName = windowName = "2D Engine";
+	moduleName = "Engine Window";
+	windowName = "2D Engine - Untitled Scene";
 	window = nullptr;
 }
 
 
 ModuleEngineWindow::~ModuleEngineWindow()
 {
+	
 }
 
 bool ModuleEngineWindow::Awake()
 {
 	window = new sf::RenderWindow(sf::VideoMode(1600, 900), windowName);
-	window->setFramerateLimit(60);
+	window->setVerticalSyncEnabled(true);
 	return true;
 }
 
@@ -38,6 +40,12 @@ bool ModuleEngineWindow::PostUpdate()
 bool ModuleEngineWindow::CleanUp()
 {
 	window->close();
+	delete window;
 
 	return true;
+}
+
+void ModuleEngineWindow::SetSceneName(string name)
+{
+	window->setTitle("2D Engine - " + name);
 }

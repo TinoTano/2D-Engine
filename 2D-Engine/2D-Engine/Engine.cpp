@@ -23,11 +23,7 @@ Engine::Engine()
 Engine::~Engine()
 {
 	for (list<Module*>::iterator it = modulesList.begin(); it != modulesList.end(); it++) {
-		if ((*it) != NULL)
-		{
-			delete (*it);
-			(*it) = NULL;
-		}
+		RELEASE(*it);
 	}
 
 	modulesList.clear();
@@ -81,15 +77,27 @@ bool Engine::PostUpdate()
 	return ret;
 }
 
+float Engine::GetFPS() const
+{
+	return FPS;
+}
+
 bool Engine::CleanUp()
 {
-	return true;
+	bool ret = true;
+
+	for (list<Module*>::reverse_iterator it = modulesList.rbegin(); it != modulesList.rend() && ret; ++it)
+		if ((*it)->enable)
+			ret = (*it)->CleanUp();
+
+	return ret;
 }
 
 bool Engine::PreUpdate()
 {
 	time = clock.restart();
 	deltaTime = time.asSeconds();
+	FPS = 1000000.0f / time.asMicroseconds();
 
 	bool ret = true;
 	for (list<Module*>::iterator it = modulesList.begin(); it != modulesList.end(); it++)

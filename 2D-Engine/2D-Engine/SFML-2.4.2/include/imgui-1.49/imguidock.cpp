@@ -31,6 +31,7 @@ SOFTWARE.
 //-----------------------------------------------------------------------------------------------------------------
 
 #include "imguidock.h"
+#include "Data.h"
 
 bool gImGuiDockReuseTabWindowTextureIfAvailable = true;
 
@@ -1155,6 +1156,84 @@ namespace ImGui {
 			IM_ASSERT(false);
 			return -1;
 		}
+
+		void save()
+		{
+			Data data;
+			data.AddInt("Docks_Count", m_docks.size());
+
+			for (int i = 0; i < m_docks.size(); ++i) {
+				Dock& dock = *m_docks[i];
+				data.CreateSection("Dock_" + to_string(i));
+				data.AddString("label", dock.parent ? (dock.label[0] == '\0' ? "DOCK" : dock.label) : "ROOT");
+				data.AddInt("pos_X", (int)dock.pos.x);
+				data.AddInt("pos_Y", (int)dock.pos.y);
+				data.AddInt("size_X", (int)dock.size.x);
+				data.AddInt("size_Y", (int)dock.size.y);
+				data.AddInt("status", (int)dock.status);
+				data.AddBool("active", dock.active ? true : false);
+				data.AddBool("opened", dock.opened ? true : false);
+				fillLocation(dock);
+				data.AddString("location", strlen(dock.location) ? dock.location : "-1");
+				data.AddInt("child0", getDockIndex(dock.children[0]));
+				data.AddInt("child1", getDockIndex(dock.children[1]));
+				data.AddInt("prev_tab", getDockIndex(dock.prev_tab));
+				data.AddInt("next_tab", getDockIndex(dock.next_tab));
+				data.AddInt("parent", getDockIndex(dock.parent));
+				data.CloseSection();
+			}
+
+			data.SaveAsBinary("../Data/Editor_Layout");
+		}
+
+		Dock* getDockByIndex(int idx) { return idx < 0 ? nullptr : m_docks[(int)idx]; }
+
+		void load()
+		{
+			for (int i = 0; i < m_docks.size(); ++i)
+			{
+				m_docks[i]->~Dock();
+				MemFree(m_docks[i]);
+			}
+			m_docks.clear();
+
+			Data data;
+			if (data.LoadBinary("../Data/Editor_Layout")) {
+				int docksCount = data.GetInt("Docks_Count");
+				for (int i = 0; i < docksCount; i++) {
+					Dock *new_dock = (Dock *)MemAlloc(sizeof(Dock));
+					m_docks.push_back(new_dock);
+				}
+
+				for (int i = 0; i < docksCount; i++) {
+					data.EnterSection("Dock_" + to_string(i));
+					m_docks[i]->label = _strdup(data.GetString("label").c_str());
+					m_docks[i]->id = ImHash(m_docks[i]->label, 0);
+					m_docks[i]->status = (Status_)data.GetInt("status");
+					m_docks[i]->active = data.GetBool("active");
+					m_docks[i]->opened = data.GetBool("opened");
+					std::string str = data.GetString("location");
+					int j = 0;
+					for (std::string::iterator it = str.begin(); it != str.end(); it++) {
+						m_docks[i]->location[j] = *it;
+						j++;
+					}
+					m_docks[i]->location[j] = '\0';
+					m_docks[i]->children[0] = getDockByIndex(data.GetInt("child0"));
+					m_docks[i]->children[1] = getDockByIndex(data.GetInt("child1"));
+					m_docks[i]->prev_tab = getDockByIndex(data.GetInt("prev_tab"));
+					m_docks[i]->next_tab = getDockByIndex(data.GetInt("next_tab"));
+					m_docks[i]->parent = getDockByIndex(data.GetInt("parent"));
+					m_docks[i]->pos.x = data.GetInt("pos_X");
+					m_docks[i]->pos.y = data.GetInt("pos_Y");
+					m_docks[i]->size.x = data.GetInt("size_X");
+					m_docks[i]->size.y = data.GetInt("size_Y");
+					data.LeaveSection();
+
+					tryDockToStoredLocation(*m_docks[i]);
+				}
+			}
+		}
 	};
 
 
@@ -1208,113 +1287,14 @@ namespace ImGui {
 		g_dock.debugWindow();
 	}
 
-	IMGUI_API void SaveDocks()
+	void SaveDocks()
 	{
-		return IMGUI_API void();
+		g_dock.save();
 	}
 
-
-#if (defined(IMGUIHELPER_H_) && !defined(NO_IMGUIHELPER_SERIALIZATION))
-#   ifndef NO_IMGUIHELPER_SERIALIZATION_SAVE
-	bool SaveDock(ImGuiHelper::Serializer& s) {
-		if (!s.isValid()) return false;
-		DockContext& myDock = g_dock;
-		ImVector<DockContext::Dock*>& m_docks = myDock.m_docks;
-
-		int sz = m_docks.size(); s.save(&sz, "NumDocks"); int id = 0;
-		for (int i = 0; i < m_docks.size(); ++i) {
-			DockContext::Dock& dock = *m_docks[i];
-			s.save(&i, "index");
-			if (dock.label) s.save(dock.label, "label");
-			s.save(&dock.pos.x, "pos", 2);
-			s.save(&dock.size.x, "size", 2);
-			id = (int)dock.status; s.save(ImGui::FT_ENUM, &id, "status");
-			s.save(&dock.active, "active");
-			s.save(&dock.opened, "opened");
-			id = myDock.getDockIndex(dock.prev_tab); s.save(&id, "prev");
-			id = myDock.getDockIndex(dock.next_tab); s.save(&id, "next");
-			id = myDock.getDockIndex(dock.children[0]); s.save(&id, "child0");
-			id = myDock.getDockIndex(dock.children[1]); s.save(&id, "child1");
-			id = myDock.getDockIndex(dock.parent); s.save(&id, "parent");
-		}
-		return true;
+	void LoadDocks()
+	{
+		g_dock.load();
 	}
-	bool SaveDock(const char* filename) { ImGuiHelper::Serializer s(filename); return SaveDock(s); }
-#   endif //NO_IMGUIHELPER_SERIALIZATION_SAVE
-#   ifndef NO_IMGUIHELPER_SERIALIZATION_LOAD
-	struct DockParser {
-		DockContext* myDock; int numDocks; int curIndex;
-		inline static DockContext::Dock* getDockByIndex(DockContext* myDock, int idx) { return (idx < 0) ? NULL : myDock->m_docks[idx]; }
-		DockParser(DockContext* _myDock) : myDock(_myDock), numDocks(0), curIndex(-1) { IM_ASSERT(myDock); }
-		static bool Parse(ImGuiHelper::FieldType /*ft*/, int /*numArrayElements*/, void* pValue, const char* name, void* userPtr) {
-			DockParser& P = *((DockParser*)userPtr);
-			DockContext& myDock = *P.myDock;
-			ImVector<DockContext::Dock*>& m_docks = myDock.m_docks;
-			const int* pValueInt = (const int*)pValue;
-			if (strcmp(name, "NumDocks") == 0) {
-				IM_ASSERT(P.curIndex == -1);
-				P.numDocks = *pValueInt;
-				IM_ASSERT(m_docks.size() == 0);
-				m_docks.reserve(P.numDocks);
-				for (int i = 0; i<P.numDocks; i++) {
-					DockContext::Dock* new_dock = (DockContext::Dock*)ImGui::MemAlloc(sizeof(DockContext::Dock));
-					m_docks.push_back(IM_PLACEMENT_NEW(new_dock) DockContext::Dock());
-				}
-				P.curIndex = 0;
-			}
-			else if (P.curIndex<0 || P.curIndex>P.numDocks) { IM_ASSERT(true); return true; }
-			else if (strcmp(name, "index") == 0) {
-				P.curIndex = *pValueInt;
-				IM_ASSERT(P.curIndex >= 0 && P.curIndex<m_docks.size());
-				m_docks[P.curIndex]->last_frame = 0;
-				m_docks[P.curIndex]->invalid_frames = 0;
-			}
-			else if (strcmp(name, "label") == 0) {
-				m_docks[P.curIndex]->label = ImStrdup((const char*)pValue);
-				m_docks[P.curIndex]->id = ImHash(m_docks[P.curIndex]->label, 0);
-			}
-			else if (strcmp(name, "pos") == 0) m_docks[P.curIndex]->pos = *((ImVec2*)pValue);
-			else if (strcmp(name, "size") == 0) m_docks[P.curIndex]->size = *((ImVec2*)pValue);
-			else if (strcmp(name, "status") == 0) m_docks[P.curIndex]->status = (DockContext::Status_) (*pValueInt);
-			else if (strcmp(name, "active") == 0) m_docks[P.curIndex]->active = (*pValueInt) ? true : false;
-			else if (strcmp(name, "opened") == 0) m_docks[P.curIndex]->opened = (*pValueInt) ? true : false;
-
-			else if (strcmp(name, "prev") == 0) m_docks[P.curIndex]->prev_tab = getDockByIndex(&myDock, *pValueInt);
-			else if (strcmp(name, "next") == 0) m_docks[P.curIndex]->next_tab = getDockByIndex(&myDock, *pValueInt);
-			else if (strcmp(name, "child0") == 0) m_docks[P.curIndex]->children[0] = getDockByIndex(&myDock, *pValueInt);
-			else if (strcmp(name, "child1") == 0) m_docks[P.curIndex]->children[1] = getDockByIndex(&myDock, *pValueInt);
-			else if (strcmp(name, "parent") == 0) {
-				m_docks[P.curIndex]->parent = getDockByIndex(&myDock, *pValueInt);
-				if (P.curIndex + 1 == P.numDocks) {
-					return true;
-				}
-			}
-
-			return false;
-		}
-	};
-	bool LoadDock(ImGuiHelper::Deserializer& d, const char ** pOptionalBufferStart) {
-		if (!d.isValid()) return false;
-		const char* amount = pOptionalBufferStart ? (*pOptionalBufferStart) : 0;
-		DockContext& myDock = g_dock;
-		ImVector<DockContext::Dock*>& m_docks = myDock.m_docks;
-		// clear
-		for (int i = 0; i < m_docks.size(); ++i) {
-			m_docks[i]->~Dock();
-			ImGui::MemFree(m_docks[i]);
-		}
-		m_docks.clear();
-		myDock.m_current = myDock.m_next_parent = NULL;
-
-		// parse
-		DockParser parser(&myDock);
-		amount = d.parse(&DockParser::Parse, (void*)&parser, amount);
-		if (pOptionalBufferStart) *pOptionalBufferStart = amount;
-		return true;
-	}
-	bool LoadDock(const char* filename) { ImGuiHelper::Deserializer d(filename); return LoadDock(d); }
-#   endif //NO_IMGUIHELPER_SERIALIZATION_LOAD
-#endif //(defined(IMGUIHELPER_H_) && !defined(NO_IMGUIHELPER_SERIALIZATION))
-
 
 } // namespace ImGui

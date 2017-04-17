@@ -10,7 +10,6 @@ PanelDetails::PanelDetails()
 {
 	active = true;
 	panelName = "Details";
-	dockPos = ImGuiDockSlot_Left;
 	newPanel = true;
 }
 

@@ -10,7 +10,6 @@ PanelHierarchy::PanelHierarchy()
 {
 	active = true;
 	panelName = "Hierarchy";
-	dockPos = ImGuiDockSlot_Bottom;
 	newPanel = true;
 }
 
@@ -67,16 +66,41 @@ void PanelHierarchy::DrawPanel()
 			ImGuiWindowFlags_NoTitleBar);
 
 		ImGui::Text("Enter new name");
-
 		static char inputText[20];
 		ImGui::InputText("", inputText, 20);
+		if (showRenameError) {
+			ImGui::TextColored(ImVec4(1.f, 0.f, 0.f, 1.f), "Name cannot be blank");
+		}
 		if (ImGui::Button("Confirm")) {
-			engine->sceneManagerModule->selectedGameObjects.front()->Rename(inputText);
-			showRenameWindow = false;
+			bool isBlankString = true;
+			for (int i = 0; inputText[i] != '\0'; i++) {
+				if (inputText[i] != ' ') {
+					isBlankString = false;
+					break;
+				}
+			}
+			if (!isBlankString) {
+				map<string, int>::iterator it = engine->sceneManagerModule->sceneGameObjectsNameCounter.find(inputText);
+				if (it != engine->sceneManagerModule->sceneGameObjectsNameCounter.end()) {
+					engine->sceneManagerModule->sceneGameObjectsNameCounter[inputText] += 1;
+					engine->sceneManagerModule->selectedGameObjects.front()->Rename(inputText + '(' + to_string(it->second) + ')');
+				}
+				else {
+					engine->sceneManagerModule->sceneGameObjectsNameCounter[inputText] = 1;
+					engine->sceneManagerModule->selectedGameObjects.front()->Rename(inputText);
+				}
+				showRenameError = false;
+				showRenameWindow = false;
+			}
+			else {
+				showRenameError = true;
+			}
+			strcpy(inputText, "");
 		}
 		ImGui::SameLine();
 		if (ImGui::Button("Cancel")) {
 			showRenameWindow = false;
+			strcpy(inputText, "");
 		}
 		ImGui::End();
 	}
@@ -89,7 +113,7 @@ void PanelHierarchy::DrawPanel()
 void PanelHierarchy::DrawChilds(GameObject* gameObject)
 {
 	sprintf_s(nodeName, 30, "%s##node_%i", gameObject->name.c_str(), node++);
-	unsigned int flag = 0;
+	uint flag = 0;
 
 	if (gameObject->childs.empty()) {
 		flag |= ImGuiTreeNodeFlags_Leaf;
@@ -119,19 +143,14 @@ void PanelHierarchy::DrawChilds(GameObject* gameObject)
 
 void PanelHierarchy::CheckMouseOver(GameObject* gameObject)
 {
-	if (ImGui::IsMouseClicked(0)) {
+	if (ImGui::IsMouseClicked(0) || ImGui::IsMouseClicked(1)) {
 		if (ImGui::IsItemHoveredRect())
 		{
 			list<GameObject*>::iterator it;
 
 			if (!engine->sceneManagerModule->selectedGameObjects.empty()) {
 				it = find(engine->sceneManagerModule->selectedGameObjects.begin(), engine->sceneManagerModule->selectedGameObjects.end(), gameObject);
-				if (it != engine->sceneManagerModule->selectedGameObjects.end()) {
-					if (!engine->inputModule->IsKeyRepeated(sf::Keyboard::LControl)) {
-						engine->sceneManagerModule->selectedGameObjects.remove(gameObject);
-					}
-				}
-				else {
+				if (it == engine->sceneManagerModule->selectedGameObjects.end()) {
 					engine->sceneManagerModule->selectedGameObjects.push_back(gameObject);
 				}
 			}
@@ -140,7 +159,7 @@ void PanelHierarchy::CheckMouseOver(GameObject* gameObject)
 			}
 		}
 		else {
-			if (ImGui::IsMouseHoveringWindow()) {
+			if (ImGui::IsMouseHoveringWindow() && !ImGui::IsMouseClicked(1)) {
 				if (!engine->inputModule->IsKeyRepeated(sf::Keyboard::LControl) && !engine->sceneManagerModule->selectedGameObjects.empty() &&
 					!showRenameWindow) {
 					engine->sceneManagerModule->selectedGameObjects.remove(gameObject);
@@ -158,5 +177,4 @@ void PanelHierarchy::CheckMouseOver(GameObject* gameObject)
 			}
 		}
 	}
-	
 }

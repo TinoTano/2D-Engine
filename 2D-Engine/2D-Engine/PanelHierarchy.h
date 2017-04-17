@@ -15,8 +15,8 @@ public:
 	
 private:
 	bool showRenameWindow = false;
-	unsigned int node = 0;
+	uint node = 0;
 	char nodeName[30];
-	bool openSelected = false;
+	bool showRenameError = false;
 };
 

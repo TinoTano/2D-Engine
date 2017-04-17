@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Engine.h"
+#include "Data.h"
 
 class GameObject;
 
@@ -21,6 +22,9 @@ public:
 	void SetActive(bool active);
 	bool IsActive() const;
 	GameObject* GetGameObject() const;
+
+	virtual void Save(Data& data) const = 0;
+	virtual void Load(Data& data) = 0;
 
 public:
 	ComponentType type;

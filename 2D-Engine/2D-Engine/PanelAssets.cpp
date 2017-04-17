@@ -2,12 +2,10 @@
 #include "Engine.h"
 #include "ModuleEditor.h"
 
-
 PanelAssets::PanelAssets()
 {
 	active = true;
 	panelName = "Assets";
-	dockPos = ImGuiDockSlot_Bottom;
 	newPanel = false;
 }
 
@@ -18,7 +16,9 @@ PanelAssets::~PanelAssets()
 
 void PanelAssets::DrawPanel()
 {
-
+	if (ImGui::IsMouseClicked(1) && ImGui::IsMouseHoveringWindow()) {
+		
+	}
 }
 
 void PanelAssets::DrawChilds()

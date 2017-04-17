@@ -1,5 +1,7 @@
 #pragma once
 
+#include <vld.h>
+
 #define LOG(format, ...) _log(__FILE__, __LINE__, format, __VA_ARGS__)
 
 void _log(const char file[], int line, const char* format, ...);
@@ -31,14 +33,11 @@ typedef unsigned int uint;
 		 }\
 	 }
 
+template <class VALUE_TYPE> void SWAP(VALUE_TYPE& a, VALUE_TYPE& b)
+{
+	VALUE_TYPE tmp = a;
+	a = b;
+	b = tmp;
+}
+
 #define ASSETS_FOLDER "/Assets/"
-
-// Warning disabled ---
-#pragma warning( disable : 4577 ) // Warning that exceptions are disabled
-#pragma warning( disable : 4530 ) // Warning that exceptions are disabled
-
-// Disable STL exceptions
-#ifndef _HAS_EXCEPTIONS
-#define _HAS_EXCEPTIONS 0
-#endif
-#define _STATIC_CPPLIB

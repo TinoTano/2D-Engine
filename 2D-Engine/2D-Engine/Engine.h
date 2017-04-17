@@ -23,6 +23,8 @@ public:
 	bool PreUpdate();
 	bool DoUpdate();
 	bool PostUpdate();
+	
+	float GetFPS()const;
 
 public:
 	ModuleEngineWindow* engineWindow = nullptr;
@@ -40,6 +42,7 @@ private:
 	list<Module*> modulesList;
 	sf::Clock clock;
 	float deltaTime;
+	float FPS;
 };
 
 extern Engine* engine;

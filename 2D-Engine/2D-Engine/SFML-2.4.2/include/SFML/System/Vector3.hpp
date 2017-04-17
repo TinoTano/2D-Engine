@@ -257,7 +257,6 @@ typedef Vector3<float> Vector3f;
 
 } // namespace sf
 
-
 #endif // SFML_VECTOR3_HPP
 
 

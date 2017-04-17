@@ -45,3 +45,18 @@ void ComponentTransform::OnEnable()
 void ComponentTransform::OnDisable()
 {
 }
+
+void ComponentTransform::Save(Data & data) const
+{
+	data.AddInt("Type", type);
+	data.AddVector3Float("Position", position);
+	data.AddFloat("Rotation", rotation);
+	data.AddVector2Float("Scale", scale);
+}
+
+void ComponentTransform::Load(Data & data)
+{
+	SetPosition(data.GetVector3Float("Position"));
+	SetRotation(rotation = data.GetFloat("Rotation"));
+	SetScale(data.GetVector2Float("Scale"));
+}
