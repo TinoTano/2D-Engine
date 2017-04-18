@@ -1,6 +1,6 @@
 #pragma once
 
-#include <vld.h>
+//#include <vld.h>
 
 #define LOG(format, ...) _log(__FILE__, __LINE__, format, __VA_ARGS__)
 

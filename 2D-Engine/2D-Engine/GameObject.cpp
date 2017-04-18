@@ -23,16 +23,23 @@ GameObject::GameObject()
 
 GameObject::GameObject(const GameObject & gameObject)
 {
-	name = gameObject.name;
-	tag = gameObject.tag;
-	layer = gameObject.layer;
-	activeInScene = gameObject.activeInScene;
-	SetParent(gameObject.parent);
-	gameObjectSprite = gameObject.gameObjectSprite;
-	positionZ = gameObject.positionZ;
-	isRoot = gameObject.isRoot;
-	onDestroy = gameObject.onDestroy;
-	destroyOnLoadScene = gameObject.destroyOnLoadScene;
+	Data data;
+	gameObject.Save(data);
+	AddComponent(Component::Transform);
+	AddComponent(Component::SpriteRenderer);
+	for (int i = 0; i <= engine->sceneManagerModule->savingIndex; i++) {
+		data.EnterSection("GameObject_" + to_string(i));
+		if (i == 0) {
+			Load(data);
+		}
+		else {
+			GameObject* go = new GameObject();
+			go->Load(data);
+		}
+		data.LeaveSection();
+	}
+	engine->sceneManagerModule->savingIndex = 0;
+	data.ClearData();
 }
 
 GameObject::GameObject(string name)

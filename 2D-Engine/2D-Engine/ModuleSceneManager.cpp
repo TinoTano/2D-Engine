@@ -70,6 +70,8 @@ GameObject * ModuleSceneManager::CreateGameObject(GameObject * parent)
 	else {
 		sceneRootObjects.push_back(ret);
 	}
+
+	//Rename if name exist
 	map<string, int>::iterator it = sceneGameObjectsNameCounter.find(ret->name);
 	if (it != sceneGameObjectsNameCounter.end()) {
 		sceneGameObjectsNameCounter[ret->name] += 1;
@@ -82,56 +84,56 @@ GameObject * ModuleSceneManager::CreateGameObject(GameObject * parent)
 	return ret;
 }
 
-GameObject * ModuleSceneManager::DuplicateGameObject(const GameObject * gameObject)
+GameObject * ModuleSceneManager::DuplicateGameObject(GameObject * gameObject)
 {
 	GameObject* ret = nullptr;
 	int gameObjectCount = 1;
 
 	if (gameObject != nullptr) {
-		ret = new GameObject(*gameObject);
-		if (ret->parent == nullptr) {
-			ret->isRoot = true;
-			sceneRootObjects.push_back(ret);
+		//Rename if name exist
+		bool inParenthesis = false;
+		string str;
+		for (int i = 0; i < gameObject->name.size(); i++) {
+			if (gameObject->name[i] == ')') {
+				inParenthesis = false;
+				if (gameObject->name[i + 1] == '\0') {
+					break;
+				}
+				else {
+					str.clear();
+				}
+			}
+			if (inParenthesis) {
+				str.push_back(gameObject->name[i]);
+			}
+			if (gameObject->name[i] == '(') {
+				inParenthesis = true;
+			}
 		}
-	}
-	bool inParenthesis = false;
-	string str;
-	for (int i = 0; i < ret->name.size(); i++) {
-		if (ret->name[i] == ')') {
-			inParenthesis = false;
-			if (ret->name[i + 1] == '\0') {
-				break;
+		if (atoi(str.c_str()) != 0) {
+			gameObject->name.erase(gameObject->name.end() - (str.length() + 2), gameObject->name.end());
+			gameObjectCount = stoi(str);
+		}
+
+		map<string, int>::iterator it = sceneGameObjectsNameCounter.find(gameObject->name);
+		if (it != sceneGameObjectsNameCounter.end()) {
+			if (sceneGameObjectsNameCounter[gameObject->name] < gameObjectCount) {
+				sceneGameObjectsNameCounter[gameObject->name] = gameObjectCount + 1;
 			}
 			else {
-				str.clear();
+				sceneGameObjectsNameCounter[gameObject->name] += 1;
 			}
-		}
-		if (inParenthesis) {
-			str.push_back(ret->name[i]);
-		}
-		if (ret->name[i] == '(') {
-			inParenthesis = true;
-		}
-	}
-	if (atoi(str.c_str()) != 0) {
-		ret->name.erase(ret->name.end() - (str.length() + 2), ret->name.end());
-		gameObjectCount = stoi(str);
-	}
-	
-	map<string, int>::iterator it = sceneGameObjectsNameCounter.find(ret->name);
-	if (it != sceneGameObjectsNameCounter.end()) {
-		if (sceneGameObjectsNameCounter[ret->name] < gameObjectCount) {
-			sceneGameObjectsNameCounter[ret->name] = gameObjectCount + 1;
+			gameObject->Rename(gameObject->name + "(" + to_string(it->second) + ")");
 		}
 		else {
-			sceneGameObjectsNameCounter[ret->name] += 1;
+			sceneGameObjectsNameCounter[gameObject->name] = 1;
 		}
-		ret->Rename(ret->name + "(" + to_string(it->second) + ")");
+
+		ret = new GameObject(*gameObject);
 	}
-	else {
-		sceneGameObjectsNameCounter[ret->name] = 1;
-	}
+
 	gameObjectsList.push_back(ret);
+
 	return ret;
 }
 

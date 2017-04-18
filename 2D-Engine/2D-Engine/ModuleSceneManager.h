@@ -16,9 +16,7 @@ public:
 
 	GameObject* FindGameObject(string name) const;
 	GameObject* CreateGameObject(GameObject* parent = nullptr);
-	GameObject* DuplicateGameObject(const GameObject* gameObject);
-	void CopyGameObject(const GameObject* gameObject);
-	GameObject* PasteGameObject(GameObject* gameObject);
+	GameObject* DuplicateGameObject(GameObject* gameObject);
 
 	void NewScene();
 	void LoadScene(string path);

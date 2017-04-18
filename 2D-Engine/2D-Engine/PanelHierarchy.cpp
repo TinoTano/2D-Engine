@@ -30,6 +30,11 @@ void PanelHierarchy::DrawPanel()
 		if (!engine->sceneManagerModule->selectedGameObjects.empty()) {
 			if (ImGui::MenuItem("Duplicate")) {
 				for (list<GameObject*>::iterator it = engine->sceneManagerModule->selectedGameObjects.begin(); it != engine->sceneManagerModule->selectedGameObjects.end(); it++) {
+					if ((*it)->parent != nullptr) {
+						if (find(engine->sceneManagerModule->selectedGameObjects.begin(), engine->sceneManagerModule->selectedGameObjects.end(), (*it)->parent) != engine->sceneManagerModule->selectedGameObjects.end()) {
+							continue; //If parent will be duplicated skip this because parent will take care of childs;
+						}
+					}
 					engine->sceneWindow->drawableObjects.push_back(engine->sceneManagerModule->DuplicateGameObject(*it));
 				}
 			}
