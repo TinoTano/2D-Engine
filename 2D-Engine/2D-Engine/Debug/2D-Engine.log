@@ -1,21 +1,5 @@
-﻿  ModuleSceneManager.cpp
-c:\users\adriamc\documents\github\2d-engine\2d-engine\2d-engine\modulescenemanager.cpp(56): warning C4018: '<': signed/unsigned mismatch
-c:\users\adriamc\documents\github\2d-engine\2d-engine\2d-engine\modulescenemanager.cpp(96): warning C4018: '<': signed/unsigned mismatch
-  GameObject.cpp
-c:\users\adriamc\documents\github\2d-engine\2d-engine\2d-engine\gameobject.cpp(200): warning C4018: '<': signed/unsigned mismatch
-  Generating Code...
-  Skipping... (no relevant changes detected)
-  PanelScene.cpp
-  PanelHierarchy.cpp
-  PanelDetails.cpp
-  PanelAssets.cpp
-  ModuleSceneWindow.cpp
-  ModuleInput.cpp
-  ModuleGraphics.cpp
-  ModuleEngineWindow.cpp
-  ModuleEditor.cpp
-  Engine.cpp
-  ComponentTransform.cpp
-  ComponentSpriteRenderer.cpp
+﻿     Creating library C:\Users\adriamc\Documents\GitHub\2D-Engine\2D-Engine\Debug\2D-Engine.lib and object C:\Users\adriamc\Documents\GitHub\2D-Engine\2D-Engine\Debug\2D-Engine.exp
+MSVCRTD.lib(initializers.obj) : warning LNK4098: defaultlib 'msvcrt.lib' conflicts with use of other libs; use /NODEFAULTLIB:library
+physfs.lib(physfs.obj) : warning LNK4217: locally defined symbol _sprintf imported in function _PHYSFS_setSaneConfig
   2D-Engine.vcxproj -> C:\Users\adriamc\Documents\GitHub\2D-Engine\2D-Engine\Debug\2D-Engine.exe
   2D-Engine.vcxproj -> C:\Users\adriamc\Documents\GitHub\2D-Engine\2D-Engine\Debug\2D-Engine.pdb (Full PDB)

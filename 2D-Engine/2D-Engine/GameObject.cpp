@@ -21,7 +21,7 @@ GameObject::GameObject()
 	onDestroy = false;
 }
 
-GameObject::GameObject(const GameObject & gameObject)
+GameObject::GameObject(GameObject & gameObject)
 {
 	Data data;
 	gameObject.Save(data);
@@ -240,8 +240,49 @@ void GameObject::DestroyOnLoadScene(bool destroy)
 	destroyOnLoadScene = destroy;
 }
 
-void GameObject::Save(Data & data) const
+void GameObject::Save(Data & data) 
 {
+	//Rename if name exist
+	int gameObjectCount = 1;
+	bool inParenthesis = false;
+	string str;
+	for (int i = 0; i < name.size(); i++) {
+		if (name[i] == ')') {
+			inParenthesis = false;
+			if (name[i + 1] == '\0') {
+				break;
+			}
+			else {
+				str.clear();
+			}
+		}
+		if (inParenthesis) {
+			str.push_back(name[i]);
+		}
+		if (name[i] == '(') {
+			inParenthesis = true;
+		}
+	}
+	if (atoi(str.c_str()) != 0) {
+		name.erase(name.end() - (str.length() + 2), name.end());
+		gameObjectCount = stoi(str);
+	}
+
+	map<string, int>::iterator it = engine->sceneManagerModule->sceneGameObjectsNameCounter.find(name);
+	if (it != engine->sceneManagerModule->sceneGameObjectsNameCounter.end()) {
+		if (engine->sceneManagerModule->sceneGameObjectsNameCounter[name] < gameObjectCount) {
+			engine->sceneManagerModule->sceneGameObjectsNameCounter[name] = gameObjectCount + 1;
+		}
+		else {
+			engine->sceneManagerModule->sceneGameObjectsNameCounter[name] += 1;
+		}
+		Rename(name + "(" + to_string(it->second) + ")");
+	}
+	else {
+		engine->sceneManagerModule->sceneGameObjectsNameCounter[name] = 2;
+		name += "(2)";
+	}
+
 	data.CreateSection("GameObject_" + to_string(engine->sceneManagerModule->savingIndex++));
 	data.AddString("Name", name);
 	data.AddString("Tag", tag);
@@ -271,6 +312,7 @@ void GameObject::Save(Data & data) const
 	for (list<GameObject*>::const_iterator it = childs.begin(); it != childs.end(); it++) {
 		(*it)->Save(data);
 	}
+
 }
 
 void GameObject::Load(Data & data)

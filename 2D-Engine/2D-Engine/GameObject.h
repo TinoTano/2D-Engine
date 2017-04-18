@@ -10,7 +10,7 @@ class GameObject
 {
 public:
 	GameObject();
-	GameObject(const GameObject& gameObject);
+	GameObject(GameObject& gameObject);
 	GameObject(string name);
 	GameObject(GameObject* parent);
 	virtual ~GameObject();
@@ -36,7 +36,7 @@ public:
 	void DestroyInmediate();
 	void DestroyOnLoadScene(bool destroy);
 
-	void Save(Data& data) const;
+	void Save(Data& data);
 	void Load(Data & data);
 
 private:
