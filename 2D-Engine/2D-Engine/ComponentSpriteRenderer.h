@@ -1,12 +1,15 @@
 #pragma once
 
 #include "Component.h"
+#include <SFML\Graphics.hpp>
 
 class ComponentSpriteRenderer : public Component
 {
 public:
 	ComponentSpriteRenderer(GameObject* attachedObject);
 	virtual ~ComponentSpriteRenderer();
+
+	void ChangeSprite(string path);
 
 	void OnEnable();
 	void OnDisable();

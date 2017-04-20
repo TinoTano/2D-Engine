@@ -28,6 +28,14 @@ ComponentSpriteRenderer::~ComponentSpriteRenderer()
 	delete spriteTexture;
 }
 
+void ComponentSpriteRenderer::ChangeSprite(string path)
+{
+	if (spriteTexture->loadFromFile(path)) {
+		gameObjectSprite->setTexture(*spriteTexture, true);
+		gameObject->gameObjectSprite = gameObjectSprite;
+	}
+}
+
 void ComponentSpriteRenderer::OnEnable()
 {
 }

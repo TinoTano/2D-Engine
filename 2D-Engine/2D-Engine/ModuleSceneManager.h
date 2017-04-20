@@ -17,6 +17,7 @@ public:
 	GameObject* FindGameObject(string name) const;
 	GameObject* CreateGameObject(GameObject* parent = nullptr);
 	GameObject* DuplicateGameObject(GameObject* gameObject);
+	void RenameDuplicatedGameObject(GameObject* gameObject);
 
 	void NewScene();
 	void LoadScene(string path);

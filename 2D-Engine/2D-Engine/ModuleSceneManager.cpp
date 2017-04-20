@@ -87,19 +87,35 @@ GameObject * ModuleSceneManager::CreateGameObject(GameObject * parent)
 GameObject * ModuleSceneManager::DuplicateGameObject(GameObject * gameObject)
 {
 	GameObject* ret = nullptr;
-	int gameObjectCount = 1;
 
 	if (gameObject != nullptr) {
-		ret = new GameObject(*gameObject);
+		Data data;
+		gameObject->Save(data, true);
+		for (int i = 0; i < savingIndex; i++) {
+			GameObject* go = new GameObject();
+			data.EnterSection("GameObject_" + to_string(i));
+			go->Load(data);
+			data.LeaveSection();
+			gameObjectsList.push_back(go);
+			engine->sceneWindow->drawableObjects.push_back(go);
+		}
+		data.ClearData();
+		engine->sceneManagerModule->savingIndex = 0;
 	}
 
+	return ret;
+}
+
+void ModuleSceneManager::RenameDuplicatedGameObject(GameObject * gameObject)
+{
+	int gameObjectCount = 1;
 	//Rename if name exist
 	bool inParenthesis = false;
 	string str;
-	for (int i = 0; i < ret->name.size(); i++) {
-		if (ret->name[i] == ')') {
+	for (int i = 0; i < gameObject->name.size(); i++) {
+		if (gameObject->name[i] == ')') {
 			inParenthesis = false;
-			if (ret->name[i + 1] == '\0') {
+			if (gameObject->name[i + 1] == '\0') {
 				break;
 			}
 			else {
@@ -107,34 +123,30 @@ GameObject * ModuleSceneManager::DuplicateGameObject(GameObject * gameObject)
 			}
 		}
 		if (inParenthesis) {
-			str.push_back(ret->name[i]);
+			str.push_back(gameObject->name[i]);
 		}
-		if (ret->name[i] == '(') {
+		if (gameObject->name[i] == '(') {
 			inParenthesis = true;
 		}
 	}
 	if (atoi(str.c_str()) != 0) {
-		ret->name.erase(ret->name.end() - (str.length() + 2), ret->name.end());
+		gameObject->name.erase(gameObject->name.end() - (str.length() + 2), gameObject->name.end());
 		gameObjectCount = stoi(str);
 	}
 
-	map<string, int>::iterator it = sceneGameObjectsNameCounter.find(ret->name);
+	map<string, int>::iterator it = sceneGameObjectsNameCounter.find(gameObject->name);
 	if (it != sceneGameObjectsNameCounter.end()) {
-		if (sceneGameObjectsNameCounter[ret->name] < gameObjectCount) {
-			sceneGameObjectsNameCounter[ret->name] = gameObjectCount + 1;
+		if (sceneGameObjectsNameCounter[gameObject->name] < gameObjectCount) {
+			sceneGameObjectsNameCounter[gameObject->name] = gameObjectCount + 1;
 		}
 		else {
-			sceneGameObjectsNameCounter[ret->name] += 1;
+			sceneGameObjectsNameCounter[gameObject->name] += 1;
 		}
-		ret->Rename(ret->name + "(" + to_string(it->second) + ")");
+		gameObject->Rename(gameObject->name + "(" + to_string(it->second) + ")");
 	}
 	else {
-		sceneGameObjectsNameCounter[ret->name] = 1;
+		sceneGameObjectsNameCounter[gameObject->name] = 1;
 	}
-
-	gameObjectsList.push_back(ret);
-
-	return ret;
 }
 
 void ModuleSceneManager::NewScene()
@@ -143,6 +155,8 @@ void ModuleSceneManager::NewScene()
 	gameObjectsList.clear();
 	sceneGameObjectsNameCounter.clear();
 	gameObjectsParentsNames.clear();
+	sceneRootObjects.clear();
+	selectedGameObjects.clear();
 	sceneName = "Untitled Scene";
 }
 

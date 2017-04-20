@@ -4,6 +4,8 @@
 #include "ModuleEditor.h"
 #include "Component.h"
 #include "ComponentTransform.h"
+#include "ModuleEngineWindow.h"
+#include "tinyfiledialogs.h"
 
 
 PanelDetails::PanelDetails()
@@ -26,8 +28,13 @@ void PanelDetails::DrawPanel()
 	}
 
 	if (selectedGameObject != nullptr) {
-		ImGui::Text("Name: %s", selectedGameObject->name.c_str());
+		bool gameObjectActive = selectedGameObject->isActive();
 		ImGui::SameLine();
+		if (ImGui::Checkbox("", &gameObjectActive)) {
+			selectedGameObject->SetActive(gameObjectActive);
+		}
+		ImGui::SameLine();
+		ImGui::Text("Name: %s", selectedGameObject->name.c_str());
 		ImGui::Text("Tag:");
 		ImGui::SameLine();
 		if (ImGui::SmallButton(selectedGameObject->tag.c_str())) {
@@ -146,6 +153,12 @@ void PanelDetails::DrawSpriteRendererPanel(ComponentSpriteRenderer * spriteRende
 	if (ImGui::CollapsingHeader("Sprite Renderer", ImGuiTreeNodeFlags_DefaultOpen)) {
 		sf::Sprite* sprite = spriteRenderer->gameObjectSprite;
 		ImGui::Image(*sprite, ImVec2(100.f, 100.f), sf::Color::White, sf::Color::Transparent);
-
+		if (ImGui::IsItemClicked(0)) {
+			char const * lFilterPatterns[2] = { "*.png", "*.jpg" };
+			const char* path = tinyfd_openFileDialog("Load Image...", NULL, 1, lFilterPatterns, NULL, 0);
+			if (path != NULL) {
+				spriteRenderer->ChangeSprite(path);
+			}
+		}
 	}
 }

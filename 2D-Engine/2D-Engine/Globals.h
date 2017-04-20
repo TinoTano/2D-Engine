@@ -40,4 +40,4 @@ template <class VALUE_TYPE> void SWAP(VALUE_TYPE& a, VALUE_TYPE& b)
 	b = tmp;
 }
 
-#define ASSETS_FOLDER "/Assets/"
+#define ASSETS_FOLDER "../Assets/"

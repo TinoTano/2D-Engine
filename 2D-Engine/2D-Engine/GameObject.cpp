@@ -21,27 +21,6 @@ GameObject::GameObject()
 	onDestroy = false;
 }
 
-GameObject::GameObject(GameObject & gameObject)
-{
-	Data data;
-	gameObject.Save(data);
-	AddComponent(Component::Transform);
-	AddComponent(Component::SpriteRenderer);
-	for (int i = 0; i <= engine->sceneManagerModule->savingIndex; i++) {
-		data.EnterSection("GameObject_" + to_string(i));
-		if (i == 0) {
-			Load(data);
-		}
-		else {
-			GameObject* go = new GameObject();
-			go->Load(data);
-		}
-		data.LeaveSection();
-	}
-	engine->sceneManagerModule->savingIndex = 0;
-	data.ClearData();
-}
-
 GameObject::GameObject(string name)
 {
 	this->name = name;
@@ -240,47 +219,11 @@ void GameObject::DestroyOnLoadScene(bool destroy)
 	destroyOnLoadScene = destroy;
 }
 
-void GameObject::Save(Data & data) 
+void GameObject::Save(Data & data, bool isDuplicated)
 {
-	//Rename if name exist
-	int gameObjectCount = 1;
-	bool inParenthesis = false;
-	string str;
-	for (int i = 0; i < name.size(); i++) {
-		if (name[i] == ')') {
-			inParenthesis = false;
-			if (name[i + 1] == '\0') {
-				break;
-			}
-			else {
-				str.clear();
-			}
-		}
-		if (inParenthesis) {
-			str.push_back(name[i]);
-		}
-		if (name[i] == '(') {
-			inParenthesis = true;
-		}
-	}
-	if (atoi(str.c_str()) != 0) {
-		name.erase(name.end() - (str.length() + 2), name.end());
-		gameObjectCount = stoi(str);
-	}
-
-	map<string, int>::iterator it = engine->sceneManagerModule->sceneGameObjectsNameCounter.find(name);
-	if (it != engine->sceneManagerModule->sceneGameObjectsNameCounter.end()) {
-		if (engine->sceneManagerModule->sceneGameObjectsNameCounter[name] < gameObjectCount) {
-			engine->sceneManagerModule->sceneGameObjectsNameCounter[name] = gameObjectCount + 1;
-		}
-		else {
-			engine->sceneManagerModule->sceneGameObjectsNameCounter[name] += 1;
-		}
-		Rename(name + "(" + to_string(it->second) + ")");
-	}
-	else {
-		engine->sceneManagerModule->sceneGameObjectsNameCounter[name] = 2;
-		name += "(2)";
+	string tempName = name;
+	if (isDuplicated) {
+		engine->sceneManagerModule->RenameDuplicatedGameObject(this);
 	}
 
 	data.CreateSection("GameObject_" + to_string(engine->sceneManagerModule->savingIndex++));
@@ -310,9 +253,10 @@ void GameObject::Save(Data & data)
 	
 	//Save all childs recursively
 	for (list<GameObject*>::const_iterator it = childs.begin(); it != childs.end(); it++) {
-		(*it)->Save(data);
+		(*it)->Save(data, isDuplicated);
 	}
 
+	name = tempName;
 }
 
 void GameObject::Load(Data & data)
@@ -346,4 +290,43 @@ void GameObject::Load(Data & data)
 	if (isRoot) {
 		engine->sceneManagerModule->sceneRootObjects.push_back(this);
 	}
+
+	//Store gameObject name to know the existing gameObjects when loading scene
+	int gameObjectCount = 1;
+	bool inParenthesis = false;
+	string str;
+	string tempName = name;
+	for (int i = 0; i < name.size(); i++) {
+		if (name[i] == ')') {
+			inParenthesis = false;
+			if (name[i + 1] == '\0') {
+				break;
+			}
+			else {
+				str.clear();
+			}
+		}
+		if (inParenthesis) {
+			str.push_back(name[i]);
+		}
+		if (name[i] == '(') {
+			inParenthesis = true;
+		}
+	}
+	if (atoi(str.c_str()) != 0) {
+		name.erase(name.end() - (str.length() + 2), name.end());
+		gameObjectCount = stoi(str);
+	}
+
+	map<string, int>::iterator it = engine->sceneManagerModule->sceneGameObjectsNameCounter.find(name);
+	if (it != engine->sceneManagerModule->sceneGameObjectsNameCounter.end()) {
+		if (engine->sceneManagerModule->sceneGameObjectsNameCounter[name] < gameObjectCount) {
+			engine->sceneManagerModule->sceneGameObjectsNameCounter[name] = gameObjectCount;
+		}
+	}
+	else {
+		engine->sceneManagerModule->sceneGameObjectsNameCounter[name] = 1;
+	}
+	name = tempName;
 }
+

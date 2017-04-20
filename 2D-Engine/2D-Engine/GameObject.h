@@ -10,7 +10,6 @@ class GameObject
 {
 public:
 	GameObject();
-	GameObject(GameObject& gameObject);
 	GameObject(string name);
 	GameObject(GameObject* parent);
 	virtual ~GameObject();
@@ -36,7 +35,7 @@ public:
 	void DestroyInmediate();
 	void DestroyOnLoadScene(bool destroy);
 
-	void Save(Data& data);
+	void Save(Data& data, bool isDuplicated = false);
 	void Load(Data & data);
 
 private:

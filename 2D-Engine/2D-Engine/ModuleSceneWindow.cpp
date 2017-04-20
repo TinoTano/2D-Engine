@@ -50,7 +50,9 @@ bool ModuleSceneWindow::PostUpdate()
 {
 	window->clear(sf::Color::White);
 	for (int i = 0; i < drawableObjects.size(); i++) {
-		window->draw(*drawableObjects[i]->gameObjectSprite);
+		if (drawableObjects[i]->isActive()) {
+			window->draw(*drawableObjects[i]->gameObjectSprite);
+		}
 	}
 	window->display();
 

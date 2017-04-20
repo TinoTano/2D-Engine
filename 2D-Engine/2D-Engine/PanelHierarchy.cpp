@@ -35,7 +35,7 @@ void PanelHierarchy::DrawPanel()
 							continue; //If parent will be duplicated skip this because parent will take care of childs;
 						}
 					}
-					engine->sceneWindow->drawableObjects.push_back(engine->sceneManagerModule->DuplicateGameObject(*it));
+					engine->sceneManagerModule->DuplicateGameObject(*it);
 				}
 			}
 			if (ImGui::MenuItem("Delete")) {

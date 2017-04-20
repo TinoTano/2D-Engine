@@ -18,11 +18,14 @@
     <Filter Include="GameObject">
       <UniqueIdentifier>{acbf1dd9-3267-41a3-ba54-ab516f3d3ceb}</UniqueIdentifier>
     </Filter>
-    <Filter Include="GameObject\Components">
-      <UniqueIdentifier>{53072041-63bc-407e-90fd-7732a6702bee}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Editor">
       <UniqueIdentifier>{43d565fd-ed00-4238-838b-8fa82e5a0c68}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Components">
+      <UniqueIdentifier>{53072041-63bc-407e-90fd-7732a6702bee}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resources">
+      <UniqueIdentifier>{9f285e1d-23d8-40e5-8337-6581e919cc94}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -54,7 +57,7 @@
       <Filter>GameObject</Filter>
     </ClCompile>
     <ClCompile Include="Component.cpp">
-      <Filter>GameObject\Components</Filter>
+      <Filter>Components</Filter>
     </ClCompile>
     <ClCompile Include="ModuleEditor.cpp">
       <Filter>Modules</Filter>
@@ -75,7 +78,7 @@
       <Filter>Editor</Filter>
     </ClCompile>
     <ClCompile Include="ComponentTransform.cpp">
-      <Filter>GameObject\Components</Filter>
+      <Filter>Components</Filter>
     </ClCompile>
     <ClCompile Include="SFML-2.4.2\include\imgui-1.49\imguidock.cpp">
       <Filter>ImGUI</Filter>
@@ -93,7 +96,7 @@
       <Filter>Modules</Filter>
     </ClCompile>
     <ClCompile Include="ComponentSpriteRenderer.cpp">
-      <Filter>GameObject\Components</Filter>
+      <Filter>Components</Filter>
     </ClCompile>
     <ClCompile Include="ModuleFileSystem.cpp">
       <Filter>Modules</Filter>
@@ -106,6 +109,9 @@
     </ClCompile>
     <ClCompile Include="tinyfiledialogs.c">
       <Filter>Tools</Filter>
+    </ClCompile>
+    <ClCompile Include="Resource.cpp">
+      <Filter>Resources</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -128,7 +134,7 @@
       <Filter>GameObject</Filter>
     </ClInclude>
     <ClInclude Include="Component.h">
-      <Filter>GameObject\Components</Filter>
+      <Filter>Components</Filter>
     </ClInclude>
     <ClInclude Include="ModuleEditor.h">
       <Filter>Modules</Filter>
@@ -149,7 +155,7 @@
       <Filter>Editor</Filter>
     </ClInclude>
     <ClInclude Include="ComponentTransform.h">
-      <Filter>GameObject\Components</Filter>
+      <Filter>Components</Filter>
     </ClInclude>
     <ClInclude Include="SFML-2.4.2\include\imgui-1.49\imguidock.h">
       <Filter>ImGUI</Filter>
@@ -167,7 +173,7 @@
       <Filter>Modules</Filter>
     </ClInclude>
     <ClInclude Include="ComponentSpriteRenderer.h">
-      <Filter>GameObject\Components</Filter>
+      <Filter>Components</Filter>
     </ClInclude>
     <ClInclude Include="ModuleFileSystem.h">
       <Filter>Modules</Filter>
@@ -180,6 +186,9 @@
     </ClInclude>
     <ClInclude Include="tinyfiledialogs.h">
       <Filter>Tools</Filter>
+    </ClInclude>
+    <ClInclude Include="Resource.h">
+      <Filter>Resources</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

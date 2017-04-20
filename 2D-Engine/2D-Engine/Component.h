@@ -1,7 +1,9 @@
 #pragma once
 
-#include "Engine.h"
 #include "Data.h"
+#include <string>
+
+using namespace std;
 
 class GameObject;
 

@@ -37,6 +37,7 @@
     <ClCompile Include="PanelDetails.cpp" />
     <ClCompile Include="PanelHierarchy.cpp" />
     <ClCompile Include="PanelScene.cpp" />
+    <ClCompile Include="Resource.cpp" />
     <ClCompile Include="SFML-2.4.2\include\imgui-1.49\imgui-SFML.cpp" />
     <ClCompile Include="SFML-2.4.2\include\imgui-1.49\imgui.cpp" />
     <ClCompile Include="SFML-2.4.2\include\imgui-1.49\imguidock.cpp" />
@@ -73,6 +74,7 @@
     <ClInclude Include="PanelDetails.h" />
     <ClInclude Include="PanelHierarchy.h" />
     <ClInclude Include="PanelScene.h" />
+    <ClInclude Include="Resource.h" />
     <ClInclude Include="SFML-2.4.2\include\imgui-1.49\imguidock.h" />
     <ClInclude Include="tinyfiledialogs.h" />
   </ItemGroup>
