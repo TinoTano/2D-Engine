@@ -1,5 +1,0 @@
-﻿     Creating library C:\Users\admin\Documents\GitHub\2D-Engine\2D-Engine\Debug\2D-Engine.lib and object C:\Users\admin\Documents\GitHub\2D-Engine\2D-Engine\Debug\2D-Engine.exp
-MSVCRTD.lib(initializers.obj) : warning LNK4098: defaultlib 'msvcrt.lib' conflicts with use of other libs; use /NODEFAULTLIB:library
-physfs.lib(physfs.obj) : warning LNK4217: locally defined symbol _sprintf imported in function _PHYSFS_setSaneConfig
-  2D-Engine.vcxproj -> C:\Users\admin\Documents\GitHub\2D-Engine\2D-Engine\Debug\2D-Engine.exe
-  2D-Engine.vcxproj -> C:\Users\admin\Documents\GitHub\2D-Engine\2D-Engine\Debug\2D-Engine.pdb (Full PDB)
