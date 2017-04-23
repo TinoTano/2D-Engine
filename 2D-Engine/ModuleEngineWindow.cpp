@@ -30,7 +30,7 @@ bool ModuleEngineWindow::PreUpdate()
 
 bool ModuleEngineWindow::PostUpdate()
 {
-	window->clear(sf::Color::Blue);
+	window->clear(sf::Color::Black);
 	ImGui::Render();
 	window->display();
 

@@ -21,6 +21,5 @@ public:
 public:
 	bool active;
 	string panelName;
-	bool newPanel;
 };
 

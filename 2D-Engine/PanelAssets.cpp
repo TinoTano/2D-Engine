@@ -1,29 +1,161 @@
 #include "PanelAssets.h"
-#include "Engine.h"
 #include "ModuleEditor.h"
+#include "tinyfiledialogs.h"
+#include "ModuleInput.h"
 
 PanelAssets::PanelAssets()
 {
 	active = true;
 	panelName = "Assets";
-	newPanel = false;
+	folderImage = new sf::Texture();
+	folderImage->loadFromFile("../Data/folderImage.png");
+	soundImage = new sf::Texture();
+	soundImage->loadFromFile("../Data/speaker.png");
+	textureImage = new sf::Texture();
+	textureImage->loadFromFile("../Data/picture.png");
+	spr = new sf::Sprite();
+	spr->setTexture(*textureImage);
 }
 
 
 PanelAssets::~PanelAssets()
 {
+	delete folderImage;
 }
 
 void PanelAssets::DrawPanel()
 {
-	node = 0;
-	fs::path path(ASSETS_FOLDER);
-	DrawChilds(path);
+	if (ImGui::BeginDock(panelName.c_str())) {
+		node = 0;
+		fs::path path(ASSETS_FOLDER);
+		ImGui::Spacing();
+		DrawChilds(path);
+
+		if (ImGui::IsMouseClicked(1) && ImGui::IsMouseHoveringWindow()) {
+			ImGui::OpenPopup("Assets Options");
+		}
+
+		if (!selectedFolder.empty()) {
+			if (ImGui::BeginPopup("Assets Options"))
+			{
+
+				if (ImGui::MenuItem("Create Folder")) {
+					showNewFolderWindow = true;
+				}
+				if (ImGui::MenuItem("Delete")) {
+					showDeleteAlert = true;
+				}
+				if (ImGui::MenuItem("Create C++ Script")) {
+
+				}
+				ImGui::Separator();
+				if (ImGui::MenuItem("Import Sprite")) {
+					char const * lFilterPatterns[2] = { "*.jpg", "*.png" };
+					const char* spritePath = tinyfd_openFileDialog("Select Sprite...", NULL, 2, lFilterPatterns, NULL, 0);
+					if (spritePath != NULL) {
+						fs::path oldPath(spritePath);
+						fs::path newPath(selectedFolder.string() + "\\" + oldPath.filename().string());
+						if (oldPath != newPath) {
+							fs::copy_file(oldPath, newPath);
+						}
+						else {
+							tinyfd_messageBox("Error","Open file name is NULL","ok","error",1);
+						}
+					}
+				}
+				ImGui::EndPopup();
+			}
+			if (engine->inputModule->IsKeyReleased(sf::Keyboard::Delete)) {
+				showDeleteAlert = true;
+			}
+		}
+
+		if (showNewFolderWindow && !showDeleteAlert) {
+			ImGui::SetNextWindowPos(ImVec2(ImGui::GetWindowSize().x / 2, ImGui::GetWindowSize().y / 2));
+			ImGui::SetNextWindowPosCenter();
+			ImGui::Begin("New Folder Name", &active,
+				ImGuiWindowFlags_NoFocusOnAppearing |
+				ImGuiWindowFlags_AlwaysAutoResize |
+				ImGuiWindowFlags_NoCollapse |
+				ImGuiWindowFlags_ShowBorders |
+				ImGuiWindowFlags_NoTitleBar);
+			ImGui::Spacing();
+			ImGui::Text("New Folder Name");
+			static char inputText[20];
+			ImGui::InputText("", inputText, 20);
+			ImGui::Spacing();
+			if (ImGui::Button("Confirm")) {
+				string str(inputText);
+				fs::path temp = selectedFolder;
+				if (fs::create_directory(selectedFolder += ("\\" + str))) {
+					showNewFolderWindow = false;
+				}
+				else {
+					selectedFolder = temp;
+				}
+				strcpy(inputText, "");
+			}
+			ImGui::SameLine();
+			if (ImGui::Button("Cancel")) {
+				strcpy(inputText, "");
+				showNewFolderWindow = false;
+			}
+			ImGui::End();
+		}
+
+		if (showDeleteAlert && !showNewFolderWindow) {
+			ImGui::SetNextWindowPos(ImVec2(ImGui::GetWindowSize().x / 2, ImGui::GetWindowSize().y / 2));
+			ImGui::SetNextWindowPosCenter();
+			ImGui::Begin("Delete Alert", &active,
+				ImGuiWindowFlags_NoFocusOnAppearing |
+				ImGuiWindowFlags_AlwaysAutoResize |
+				ImGuiWindowFlags_NoCollapse |
+				ImGuiWindowFlags_ShowBorders |
+				ImGuiWindowFlags_NoTitleBar);
+			ImGui::Spacing();
+			ImGui::Text("Delete %s?", selectedFolder.filename().string().c_str());
+			ImGui::Spacing();
+			if (ImGui::Button("Confirm")) {
+				fs::remove_all(selectedFolder);
+				showDeleteAlert = false;
+			}
+			ImGui::SameLine();
+			if (ImGui::Button("Cancel")) {
+				showDeleteAlert = false;
+			}
+			ImGui::End();
+		}
+	}
+	ImGui::EndDock();
+
+	////////////////////////
+	if (ImGui::BeginDock("Files")) {
+		if (!selectedFolder.empty()) {
+			for (auto & p : fs::directory_iterator(selectedFolder)) {
+				if (!fs::is_directory(p)) {
+					if (p.path().extension().string() == ".wav") {
+						ImGui::Image(*soundImage, { 13,13 }, sf::Color::White, sf::Color::Transparent);
+						ImGui::SameLine();
+					}
+					else if (p.path().extension().string() == ".png" || p.path().extension().string() == ".jpg") {
+						ImGui::Image(*textureImage, { 13,13 }, sf::Color::White, sf::Color::Transparent);
+						ImGui::SameLine();
+					}
+					ImGui::Text("%s", p.path().filename().string().c_str());
+					if (ImGui::IsItemHoveredRect()) {
+						ImGui::BeginTooltip();
+						ImGui::Image(*textureImage, sf::Color::White, sf::Color::Transparent);
+						ImGui::EndTooltip();
+						if (ImGui::IsItemClicked(0)) {
+							draggingFile = true;
+						}
+					}
+				}
+			}
+		}
+	}
+	ImGui::EndDock();
 	
-	//sprintf_s(nodeName, 30, "%s##node_%i", , node++);
-	/*for (list<Resource*>::iterator it = rootFolders.begin(); it != rootFolders.end(); it++) {
-		DrawChilds(*it);
-	}*/
 }
 
 void PanelAssets::DrawChilds(fs::path path)
@@ -44,23 +176,20 @@ void PanelAssets::DrawChilds(fs::path path)
 		}
 	}
 
-	//for (list<GameObject*>::iterator it = engine->sceneManagerModule->selectedGameObjects.begin(); it != engine->sceneManagerModule->selectedGameObjects.end(); it++) {
-	//	if (gameObject == *it) {
-	//		flag |= ImGuiTreeNodeFlags_Selected;
-	//		break;
-	//	}
-	//}
+	flag |= ImGuiTreeNodeFlags_OpenOnArrow;
 
-	if (selectedFolder == path) {
+	if (selectedFolder == path && !showDeleteAlert && !showNewFolderWindow) {
 		flag |= ImGuiTreeNodeFlags_Selected;
 	}
 
-	if (ImGui::TreeNodeEx(nodeName, flag))
+	if (ImGui::TreeNodeEx((void*)folderImage->getNativeHandle(), { 16,12 }, nodeName, flag))
 	{
-		//CheckMouseOver(gameObject);
-		if (ImGui::IsItemHoveredRect() && ImGui::IsMouseClicked(0)) {
+		float folderNameSize = ImGui::CalcTextSize(path.filename().string().c_str()).x;
+		
+		if (ImGui::IsMouseHoveringRect(ImGui::GetItemRectMin(), ImVec2(ImGui::GetItemRectMax().x + folderNameSize + 10, ImGui::GetItemRectMax().y)) && ImGui::IsMouseReleased(0)) {
 			selectedFolder = path;
 		}
+		ImGui::Spacing();
 		for (auto & p : fs::directory_iterator(path)) {
 			if (fs::is_directory(p)) {
 				DrawChilds(p);
@@ -69,13 +198,11 @@ void PanelAssets::DrawChilds(fs::path path)
 		ImGui::TreePop();
 	}
 	else {
-		//CheckMouseOver(gameObject);
-		/*if (ImGui::IsItemHoveredRect()) {
-			selectedFolder = path;
-		}*/
-	}
-}
+		float folderNameSize = ImGui::CalcTextSize(path.filename().string().c_str()).x;
 
-void PanelAssets::CheckMouseHover()
-{
+		if (ImGui::IsMouseHoveringRect(ImGui::GetItemRectMin(), ImVec2(ImGui::GetItemRectMax().x + folderNameSize + 10, ImGui::GetItemRectMax().y)) && ImGui::IsMouseReleased(0)) {
+			selectedFolder = path;
+		}
+		ImGui::Spacing();
+	}
 }

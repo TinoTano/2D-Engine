@@ -13,7 +13,7 @@ ComponentSpriteRenderer::ComponentSpriteRenderer(GameObject* attachedObject)
 	if (spriteTexture->loadFromFile(spritePath)) {
 		spriteTexture->setSmooth(true);
 		gameObjectSprite->setTexture(*spriteTexture,true);
-		gameObjectSprite->setPosition(engine->sceneWindow->window->getSize().x / 2, engine->sceneWindow->window->getSize().y / 2);
+		gameObjectSprite->setPosition((engine->sceneWindow->window->getSize().x / 2) - gameObjectSprite->getLocalBounds().width / 2, (engine->sceneWindow->window->getSize().y / 2) + gameObjectSprite->getLocalBounds().height / 2);
 		gameObjectSprite->setScale(1, -1);
 	}
 	type = SpriteRenderer;

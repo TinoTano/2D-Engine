@@ -21,11 +21,11 @@
     <Filter Include="Editor">
       <UniqueIdentifier>{43d565fd-ed00-4238-838b-8fa82e5a0c68}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Components">
-      <UniqueIdentifier>{53072041-63bc-407e-90fd-7732a6702bee}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Resources">
       <UniqueIdentifier>{9f285e1d-23d8-40e5-8337-6581e919cc94}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="GameObject\Components">
+      <UniqueIdentifier>{53072041-63bc-407e-90fd-7732a6702bee}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -57,7 +57,7 @@
       <Filter>GameObject</Filter>
     </ClCompile>
     <ClCompile Include="Component.cpp">
-      <Filter>Components</Filter>
+      <Filter>GameObject\Components</Filter>
     </ClCompile>
     <ClCompile Include="ModuleEditor.cpp">
       <Filter>Modules</Filter>
@@ -78,7 +78,7 @@
       <Filter>Editor</Filter>
     </ClCompile>
     <ClCompile Include="ComponentTransform.cpp">
-      <Filter>Components</Filter>
+      <Filter>GameObject\Components</Filter>
     </ClCompile>
     <ClCompile Include="SFML-2.4.2\include\imgui-1.49\imguidock.cpp">
       <Filter>ImGUI</Filter>
@@ -96,7 +96,7 @@
       <Filter>Modules</Filter>
     </ClCompile>
     <ClCompile Include="ComponentSpriteRenderer.cpp">
-      <Filter>Components</Filter>
+      <Filter>GameObject\Components</Filter>
     </ClCompile>
     <ClCompile Include="Data.cpp">
       <Filter>Tools</Filter>
@@ -131,7 +131,7 @@
       <Filter>GameObject</Filter>
     </ClInclude>
     <ClInclude Include="Component.h">
-      <Filter>Components</Filter>
+      <Filter>GameObject\Components</Filter>
     </ClInclude>
     <ClInclude Include="ModuleEditor.h">
       <Filter>Modules</Filter>
@@ -152,7 +152,7 @@
       <Filter>Editor</Filter>
     </ClInclude>
     <ClInclude Include="ComponentTransform.h">
-      <Filter>Components</Filter>
+      <Filter>GameObject\Components</Filter>
     </ClInclude>
     <ClInclude Include="SFML-2.4.2\include\imgui-1.49\imguidock.h">
       <Filter>ImGUI</Filter>
@@ -170,7 +170,7 @@
       <Filter>Modules</Filter>
     </ClInclude>
     <ClInclude Include="ComponentSpriteRenderer.h">
-      <Filter>Components</Filter>
+      <Filter>GameObject\Components</Filter>
     </ClInclude>
     <ClInclude Include="Data.h">
       <Filter>Tools</Filter>

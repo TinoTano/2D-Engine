@@ -6,7 +6,6 @@ Panel::Panel()
 {
 	active = true;
 	panelName = "";
-	newPanel = false;
 }
 
 Panel::~Panel()

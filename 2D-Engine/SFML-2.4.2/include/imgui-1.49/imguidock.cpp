@@ -997,7 +997,7 @@ namespace ImGui {
 		}
 
 
-		bool begin(const char* label, bool* opened, ImGuiWindowFlags extra_flags, const ImVec2& default_size)
+		bool begin(const char* label, bool noTab, bool* opened, ImGuiWindowFlags extra_flags, const ImVec2& default_size)
 		{
 			ImGuiDockSlot next_slot = m_next_dock_slot;
 			m_next_dock_slot = ImGuiDockSlot_Tab;
@@ -1076,17 +1076,21 @@ namespace ImGui {
 
 			splits();
 
-			PushStyleColor(ImGuiCol_Border, ImVec4(0, 0, 0, 0));
-			float tabbar_height = GetTextLineHeightWithSpacing();
-			if (tabbar(dock.getFirstTab(), opened != NULL))
-			{
-				fillLocation(dock);
-				*opened = false;
-			}
+			PushStyleColor(ImGuiCol_Border, ImVec4(255, 255, 255, 0));
 			ImVec2 pos = dock.pos;
 			ImVec2 size = dock.size;
-			pos.y += tabbar_height + GetStyle().WindowPadding.y;
-			size.y -= tabbar_height + GetStyle().WindowPadding.y;
+
+			if (!noTab) {
+				float tabbar_height = GetTextLineHeightWithSpacing();
+				if (tabbar(dock.getFirstTab(), opened != NULL))
+				{
+					fillLocation(dock);
+					*opened = false;
+				}
+
+				pos.y += tabbar_height + GetStyle().WindowPadding.y;
+				size.y -= tabbar_height + GetStyle().WindowPadding.y;
+			}
 
 			SetCursorScreenPos(pos);
 			ImGuiWindowFlags flags = ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize |
@@ -1165,7 +1169,7 @@ namespace ImGui {
 			for (int i = 0; i < m_docks.size(); ++i) {
 				Dock& dock = *m_docks[i];
 				data.CreateSection("Dock_" + to_string(i));
-				data.AddString("label", dock.parent ? (dock.label[0] == '\0' ? "DOCK" : dock.label) : "ROOT");
+				data.AddString("label", dock.parent ? (dock.label[0] == '\0' ? "DOCK" : dock.label) : dock.status == Status_Float ? dock.label : "ROOT");
 				data.AddInt("pos_X", (int)dock.pos.x);
 				data.AddInt("pos_Y", (int)dock.pos.y);
 				data.AddInt("size_X", (int)dock.size.x);
@@ -1179,10 +1183,14 @@ namespace ImGui {
 				data.AddInt("child1", getDockIndex(dock.children[1]));
 				data.AddInt("prev_tab", getDockIndex(dock.prev_tab));
 				data.AddInt("next_tab", getDockIndex(dock.next_tab));
-				data.AddInt("parent", getDockIndex(dock.parent));
+				if (dock.parent == nullptr && &dock != getRootDock()) {
+					data.AddInt("parent", getDockIndex(getRootDock()));
+				}
+				else {
+					data.AddInt("parent", getDockIndex(dock.parent));
+				}
 				data.CloseSection();
 			}
-
 			data.SaveAsBinary("../Data/Editor_Layout");
 		}
 
@@ -1230,7 +1238,7 @@ namespace ImGui {
 					m_docks[i]->size.y = data.GetInt("size_Y");
 					data.LeaveSection();
 
-					tryDockToStoredLocation(*m_docks[i]);
+					//tryDockToStoredLocation(*m_docks[i]);
 				}
 			}
 		}
@@ -1271,9 +1279,9 @@ namespace ImGui {
 	}
 
 
-	bool BeginDock(const char* label, bool* opened, ImGuiWindowFlags extra_flags, const ImVec2& default_size)
+	bool BeginDock(const char* label, bool noTab, bool* opened, ImGuiWindowFlags extra_flags, const ImVec2& default_size)
 	{
-		return g_dock.begin(label, opened, extra_flags, default_size);
+		return g_dock.begin(label, noTab, opened, extra_flags, default_size);
 	}
 
 

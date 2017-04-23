@@ -727,7 +727,7 @@ ImGuiStyle::ImGuiStyle()
     Alpha                   = 1.0f;             // Global alpha applies to everything in ImGui
     WindowPadding           = ImVec2(8,8);      // Padding within a window
     WindowMinSize           = ImVec2(32,32);    // Minimum window size
-    WindowRounding          = 9.0f;             // Radius of window corners rounding. Set to 0.0f to have rectangular windows
+    WindowRounding          = 0.0f;             // Radius of window corners rounding. Set to 0.0f to have rectangular windows
     WindowTitleAlign        = ImGuiAlign_Left;  // Alignment for title bar text
     ChildWindowRounding     = 0.0f;             // Radius of child window corners rounding. Set to 0.0f to have rectangular child windows
     FramePadding            = ImVec2(4,3);      // Padding within a framed rectangle (used by most widgets)
@@ -747,49 +747,62 @@ ImGuiStyle::ImGuiStyle()
     AntiAliasedShapes       = true;             // Enable anti-aliasing on filled shapes (rounded rectangles, circles, etc.)
     CurveTessellationTol    = 1.25f;            // Tessellation tolerance. Decrease for highly tessellated curves (higher quality, more polygons), increase to reduce quality.
 
-    Colors[ImGuiCol_Text]                   = ImVec4(0.90f, 0.90f, 0.90f, 1.00f);
-    Colors[ImGuiCol_TextDisabled]           = ImVec4(0.60f, 0.60f, 0.60f, 1.00f);
-    Colors[ImGuiCol_WindowBg]               = ImVec4(0.00f, 0.00f, 0.00f, 0.70f);
-    Colors[ImGuiCol_ChildWindowBg]          = ImVec4(0.00f, 0.00f, 0.00f, 0.00f);
-    Colors[ImGuiCol_PopupBg]                = ImVec4(0.05f, 0.05f, 0.10f, 0.90f);
-    Colors[ImGuiCol_Border]                 = ImVec4(0.70f, 0.70f, 0.70f, 0.65f);
+	static int hue = 140;
+	static float col_main_sat = 180.f / 255.f;
+	static float col_main_val = 161.f / 255.f;
+	static float col_area_sat = 124.f / 255.f;
+	static float col_area_val = 100.f / 255.f;
+	static float col_back_sat = 59.f / 255.f;
+	static float col_back_val = 40.f / 255.f;
+
+	ImVec4 col_text = ImColor::HSV(hue / 255.f, 20.f / 255.f, 235.f / 255.f);
+	ImVec4 col_main = ImColor::HSV(hue / 255.f, col_main_sat, col_main_val);
+	ImVec4 col_back = ImColor::HSV(hue / 255.f, col_back_sat, col_back_val);
+	ImVec4 col_area = ImColor::HSV(hue / 255.f, col_area_sat, col_area_val);
+
+    Colors[ImGuiCol_Text]                   = ImVec4(col_text.x, col_text.y, col_text.z, 1.00f);
+    Colors[ImGuiCol_TextDisabled]           = ImVec4(col_text.x, col_text.y, col_text.z, 0.58f);
+    Colors[ImGuiCol_WindowBg]               = ImVec4(col_back.x, col_back.y, col_back.z, 1.00f);
+    Colors[ImGuiCol_ChildWindowBg]          = ImVec4(col_area.x, col_area.y, col_area.z, 0.00f);
+    Colors[ImGuiCol_PopupBg]                = ImVec4(col_back.x, col_back.y, col_back.z, 1.00f);
+    Colors[ImGuiCol_Border]                 = ImVec4(col_text.x, col_text.y, col_text.z, 0.30f);
     Colors[ImGuiCol_BorderShadow]           = ImVec4(0.00f, 0.00f, 0.00f, 0.00f);
-    Colors[ImGuiCol_FrameBg]                = ImVec4(0.80f, 0.80f, 0.80f, 0.30f);   // Background of checkbox, radio button, plot, slider, text input
-    Colors[ImGuiCol_FrameBgHovered]         = ImVec4(0.90f, 0.80f, 0.80f, 0.40f);
-    Colors[ImGuiCol_FrameBgActive]          = ImVec4(0.90f, 0.65f, 0.65f, 0.45f);
-    Colors[ImGuiCol_TitleBg]                = ImVec4(0.27f, 0.27f, 0.54f, 0.83f);
-    Colors[ImGuiCol_TitleBgCollapsed]       = ImVec4(0.40f, 0.40f, 0.80f, 0.20f);
-    Colors[ImGuiCol_TitleBgActive]          = ImVec4(0.32f, 0.32f, 0.63f, 0.87f);
-    Colors[ImGuiCol_MenuBarBg]              = ImVec4(0.40f, 0.40f, 0.55f, 0.80f);
-    Colors[ImGuiCol_ScrollbarBg]            = ImVec4(0.20f, 0.25f, 0.30f, 0.60f);
-    Colors[ImGuiCol_ScrollbarGrab]          = ImVec4(0.40f, 0.40f, 0.80f, 0.30f);
-    Colors[ImGuiCol_ScrollbarGrabHovered]   = ImVec4(0.40f, 0.40f, 0.80f, 0.40f);
-    Colors[ImGuiCol_ScrollbarGrabActive]    = ImVec4(0.80f, 0.50f, 0.50f, 0.40f);
-    Colors[ImGuiCol_ComboBg]                = ImVec4(0.20f, 0.20f, 0.20f, 0.99f);
-    Colors[ImGuiCol_CheckMark]              = ImVec4(0.90f, 0.90f, 0.90f, 0.50f);
-    Colors[ImGuiCol_SliderGrab]             = ImVec4(1.00f, 1.00f, 1.00f, 0.30f);
-    Colors[ImGuiCol_SliderGrabActive]       = ImVec4(0.80f, 0.50f, 0.50f, 1.00f);
-    Colors[ImGuiCol_Button]                 = ImVec4(0.67f, 0.40f, 0.40f, 0.60f);
-    Colors[ImGuiCol_ButtonHovered]          = ImVec4(0.67f, 0.40f, 0.40f, 1.00f);
-    Colors[ImGuiCol_ButtonActive]           = ImVec4(0.80f, 0.50f, 0.50f, 1.00f);
-    Colors[ImGuiCol_Header]                 = ImVec4(0.40f, 0.40f, 0.90f, 0.45f);
-    Colors[ImGuiCol_HeaderHovered]          = ImVec4(0.45f, 0.45f, 0.90f, 0.80f);
-    Colors[ImGuiCol_HeaderActive]           = ImVec4(0.53f, 0.53f, 0.87f, 0.80f);
-    Colors[ImGuiCol_Column]                 = ImVec4(0.50f, 0.50f, 0.50f, 1.00f);
-    Colors[ImGuiCol_ColumnHovered]          = ImVec4(0.70f, 0.60f, 0.60f, 1.00f);
-    Colors[ImGuiCol_ColumnActive]           = ImVec4(0.90f, 0.70f, 0.70f, 1.00f);
-    Colors[ImGuiCol_ResizeGrip]             = ImVec4(1.00f, 1.00f, 1.00f, 0.30f);
-    Colors[ImGuiCol_ResizeGripHovered]      = ImVec4(1.00f, 1.00f, 1.00f, 0.60f);
-    Colors[ImGuiCol_ResizeGripActive]       = ImVec4(1.00f, 1.00f, 1.00f, 0.90f);
-    Colors[ImGuiCol_CloseButton]            = ImVec4(0.50f, 0.50f, 0.90f, 0.50f);
-    Colors[ImGuiCol_CloseButtonHovered]     = ImVec4(0.70f, 0.70f, 0.90f, 0.60f);
-    Colors[ImGuiCol_CloseButtonActive]      = ImVec4(0.70f, 0.70f, 0.70f, 1.00f);
-    Colors[ImGuiCol_PlotLines]              = ImVec4(1.00f, 1.00f, 1.00f, 1.00f);
-    Colors[ImGuiCol_PlotLinesHovered]       = ImVec4(0.90f, 0.70f, 0.00f, 1.00f);
-    Colors[ImGuiCol_PlotHistogram]          = ImVec4(0.90f, 0.70f, 0.00f, 1.00f);
-    Colors[ImGuiCol_PlotHistogramHovered]   = ImVec4(1.00f, 0.60f, 0.00f, 1.00f);
-    Colors[ImGuiCol_TextSelectedBg]         = ImVec4(0.00f, 0.00f, 1.00f, 0.35f);
-    Colors[ImGuiCol_ModalWindowDarkening]   = ImVec4(0.20f, 0.20f, 0.20f, 0.35f);
+    Colors[ImGuiCol_FrameBg]                = ImVec4(col_area.x, col_area.y, col_area.z, 1.00f);  // Background of checkbox, radio button, plot, slider, text input
+    Colors[ImGuiCol_FrameBgHovered]         = ImVec4(col_main.x, col_main.y, col_main.z, 0.68f);
+    Colors[ImGuiCol_FrameBgActive]          = ImVec4(col_main.x, col_main.y, col_main.z, 1.00f);
+	Colors[ImGuiCol_TitleBg]				= ImVec4(col_main.x, col_main.y, col_main.z, 0.45f);
+	Colors[ImGuiCol_TitleBgCollapsed]		= ImVec4(col_main.x, col_main.y, col_main.z, 0.35f);
+	Colors[ImGuiCol_TitleBgActive]			= ImVec4(col_main.x, col_main.y, col_main.z, 0.78f);
+	Colors[ImGuiCol_MenuBarBg]				= ImVec4(1.00f, 1.00f, 1.00f, 1.00f);
+	Colors[ImGuiCol_ScrollbarBg]			= ImVec4(col_area.x, col_area.y, col_area.z, 1.00f);
+	Colors[ImGuiCol_ScrollbarGrab]			= ImVec4(col_main.x, col_main.y, col_main.z, 0.31f);
+	Colors[ImGuiCol_ScrollbarGrabHovered]	= ImVec4(col_main.x, col_main.y, col_main.z, 0.78f);
+	Colors[ImGuiCol_ScrollbarGrabActive]	= ImVec4(col_main.x, col_main.y, col_main.z, 1.00f);
+	Colors[ImGuiCol_ComboBg]				= ImVec4(col_area.x, col_area.y, col_area.z, 1.00f);
+	Colors[ImGuiCol_CheckMark]				= ImVec4(col_main.x, col_main.y, col_main.z, 0.80f);
+	Colors[ImGuiCol_SliderGrab]				= ImVec4(col_main.x, col_main.y, col_main.z, 0.24f);
+	Colors[ImGuiCol_SliderGrabActive]		= ImVec4(col_main.x, col_main.y, col_main.z, 1.00f);
+	Colors[ImGuiCol_Button]					= ImVec4(col_main.x, col_main.y, col_main.z, 0.44f);
+	Colors[ImGuiCol_ButtonHovered]			= ImVec4(col_main.x, col_main.y, col_main.z, 0.86f);
+	Colors[ImGuiCol_ButtonActive]			= ImVec4(col_main.x, col_main.y, col_main.z, 1.00f);
+	Colors[ImGuiCol_Header]					= ImVec4(col_main.x, col_main.y, col_main.z, 0.76f);
+	Colors[ImGuiCol_HeaderHovered]			= ImVec4(col_main.x, col_main.y, col_main.z, 0.86f);
+	Colors[ImGuiCol_HeaderActive]			= ImVec4(col_main.x, col_main.y, col_main.z, 1.00f);
+	Colors[ImGuiCol_Column]					= ImVec4(col_text.x, col_text.y, col_text.z, 0.32f);
+	Colors[ImGuiCol_ColumnHovered]			= ImVec4(col_text.x, col_text.y, col_text.z, 0.78f);
+	Colors[ImGuiCol_ColumnActive]			= ImVec4(col_text.x, col_text.y, col_text.z, 1.00f);
+	Colors[ImGuiCol_ResizeGrip]				= ImVec4(col_main.x, col_main.y, col_main.z, 0.20f);
+	Colors[ImGuiCol_ResizeGripHovered]		= ImVec4(col_main.x, col_main.y, col_main.z, 0.78f);
+	Colors[ImGuiCol_ResizeGripActive]		= ImVec4(col_main.x, col_main.y, col_main.z, 1.00f);
+	Colors[ImGuiCol_CloseButton]			= ImVec4(col_text.x, col_text.y, col_text.z, 0.16f);
+	Colors[ImGuiCol_CloseButtonHovered]		= ImVec4(col_text.x, col_text.y, col_text.z, 0.39f);
+	Colors[ImGuiCol_CloseButtonActive]		= ImVec4(col_text.x, col_text.y, col_text.z, 1.00f);
+	Colors[ImGuiCol_PlotLines]				= ImVec4(col_text.x, col_text.y, col_text.z, 0.63f);
+	Colors[ImGuiCol_PlotLinesHovered]		= ImVec4(col_main.x, col_main.y, col_main.z, 1.00f);
+	Colors[ImGuiCol_PlotHistogram]			= ImVec4(col_text.x, col_text.y, col_text.z, 0.63f);
+	Colors[ImGuiCol_PlotHistogramHovered]	= ImVec4(col_main.x, col_main.y, col_main.z, 1.00f);
+	Colors[ImGuiCol_TextSelectedBg]			= ImVec4(col_main.x, col_main.y, col_main.z, 0.43f);
+	Colors[ImGuiCol_ModalWindowDarkening]	= ImVec4(0.20f, 0.20f, 0.20f, 0.35f);
 }
 
 ImGuiIO::ImGuiIO()
@@ -5821,12 +5834,12 @@ bool ImGui::TreeNodeBehaviorIsOpen(ImGuiID id, ImGuiTreeNodeFlags flags)
     return is_open;
 }
 
-bool ImGui::TreeNodeBehavior(ImGuiID id, ImGuiTreeNodeFlags flags, const char* label, const char* label_end)
+bool ImGui::TreeNodeBehavior(ImGuiID id, ImGuiTreeNodeFlags flags, const char* label, const char* label_end, ImTextureID texture, ImVec2& size)
 {
     ImGuiWindow* window = GetCurrentWindow();
     if (window->SkipItems)
         return false;
-
+	ImVec2 textImagePos = { 0, 0 };
     ImGuiContext& g = *GImGui;
     const ImGuiStyle& style = g.Style;
     const bool display_frame = (flags & ImGuiTreeNodeFlags_Framed) != 0;
@@ -5848,9 +5861,9 @@ bool ImGui::TreeNodeBehavior(ImGuiID id, ImGuiTreeNodeFlags flags, const char* l
     }
 
     const float text_offset_x = (g.FontSize + (display_frame ? padding.x*3 : padding.x*2));   // Collapser arrow width + Spacing
-    const float text_width = g.FontSize + (label_size.x > 0.0f ? label_size.x + padding.x*2 : 0.0f);   // Include collapser
+    const float text_width = 10 + g.FontSize + (label_size.x > 0.0f ? label_size.x + padding.x*2 : 0.0f);   // Include collapser
     ItemSize(ImVec2(text_width, frame_height), text_base_offset_y);
-
+	
     // For regular tree nodes, we arbitrary allow to click past 2 worth of ItemSpacing
     // (Ideally we'd want to add a flag for the user to specify we want want the hit test to be done up to the right side of the content or not)
     const ImRect interact_bb = display_frame ? bb : ImRect(bb.Min.x, bb.Min.y, bb.Min.x + text_width + style.ItemSpacing.x*2, bb.Max.y);
@@ -5890,11 +5903,17 @@ bool ImGui::TreeNodeBehavior(ImGuiID id, ImGuiTreeNodeFlags flags, const char* l
     // Render
     const ImU32 col = GetColorU32((held && hovered) ? ImGuiCol_HeaderActive : hovered ? ImGuiCol_HeaderHovered : ImGuiCol_Header);
     const ImVec2 text_pos = bb.Min + ImVec2(text_offset_x, padding.y + text_base_offset_y);
+
     if (display_frame)
     {
         // Framed type
         RenderFrame(bb.Min, bb.Max, col, true, style.FrameRounding);
         RenderCollapseTriangle(bb.Min + padding + ImVec2(0.0f, text_base_offset_y), is_open, 1.0f, true);
+		if (texture != nullptr) {
+			SameLine(-1, text_pos.x - 5);
+			Image(texture, size);
+			textImagePos = { size.x + 7,0 };
+		}
         if (g.LogEnabled)
         {
             // NB: '##' is normally used to hide text (as a library-wide feature), so we need to specify the text range to make sure the ## aren't stripped out here.
@@ -5917,11 +5936,17 @@ bool ImGui::TreeNodeBehavior(ImGuiID id, ImGuiTreeNodeFlags flags, const char* l
 
         if (flags & ImGuiTreeNodeFlags_Bullet)
             RenderBullet(bb.Min + ImVec2(text_offset_x * 0.5f, g.FontSize*0.50f + text_base_offset_y));
-        else if (!(flags & ImGuiTreeNodeFlags_Leaf))
-            RenderCollapseTriangle(bb.Min + ImVec2(padding.x, g.FontSize*0.15f + text_base_offset_y), is_open, 0.70f, false);
+		else if (!(flags & ImGuiTreeNodeFlags_Leaf)) {
+			RenderCollapseTriangle(bb.Min + ImVec2(padding.x, g.FontSize*0.15f + text_base_offset_y), is_open, 0.70f, false);
+		}
         if (g.LogEnabled)
             LogRenderedText(text_pos, ">");
-        RenderText(text_pos, label, label_end, false);
+		if (texture != nullptr) {
+			SameLine(-1, text_pos.x - 5);
+			Image(texture, size);
+			textImagePos = { size.x + 7,0 };
+		}
+        RenderText(text_pos + textImagePos, label, label_end, false);
     }
 
     if (is_open && !(flags & ImGuiTreeNodeFlags_NoTreePushOnOpen))
@@ -5970,6 +5995,15 @@ bool ImGui::TreeNodeEx(const char* label, ImGuiTreeNodeFlags flags)
         return false;
 
     return TreeNodeBehavior(window->GetID(label), flags, label, NULL);
+}
+
+bool ImGui::TreeNodeEx(ImTextureID texture, ImVec2 size, const char* label, ImGuiTreeNodeFlags flags)
+{
+	ImGuiWindow* window = GetCurrentWindow();
+	if (window->SkipItems)
+		return false;
+
+	return TreeNodeBehavior(window->GetID(label), flags, label, NULL, texture, size);
 }
 
 bool ImGui::TreeNodeExV(const char* str_id, ImGuiTreeNodeFlags flags, const char* fmt, va_list args)
@@ -7158,6 +7192,199 @@ void ImGui::ProgressBar(float fraction, const ImVec2& size_arg, const char* over
     ImVec2 overlay_size = CalcTextSize(overlay, NULL);
     if (overlay_size.x > 0.0f)
         RenderTextClipped(ImVec2(ImClamp(fill_br.x + style.ItemSpacing.x, bb.Min.x, bb.Max.x - overlay_size.x - style.ItemInnerSpacing.x), bb.Min.y), bb.Max, overlay, NULL, &overlay_size, ImGuiAlign_Left|ImGuiAlign_VCenter, &bb.Min, &bb.Max);
+}
+
+bool ImGui::ColorPicker(float* col, bool alphabar)
+{
+	// https://github.com/ocornut/imgui/issues/346
+	const float EDGE_SIZE = 200;
+	const ImVec2 SV_PICKER_SIZE = ImVec2(EDGE_SIZE, EDGE_SIZE);
+	const float SPACING = ImGui::GetStyle().ItemInnerSpacing.x;
+	const float HUE_PICKER_WIDTH = 20.f;
+	const float CROSSHAIR_SIZE = 7.0f;
+
+	bool value_changed = false;
+
+	ImDrawList* draw_list = ImGui::GetWindowDrawList();
+
+	ImVec2 picker_pos = ImGui::GetCursorScreenPos();
+
+	float hue, saturation, value;
+	ImGui::ColorConvertRGBtoHSV(col[0], col[1], col[2], hue, saturation, value);
+
+	ImColor colors[] = { ImColor(255, 0, 0),
+		ImColor(255, 255, 0),
+		ImColor(0, 255, 0),
+		ImColor(0, 255, 255),
+		ImColor(0, 0, 255),
+		ImColor(255, 0, 255),
+		ImColor(255, 0, 0) };
+
+	for (int i = 0; i < 6; ++i)
+	{
+		draw_list->AddRectFilledMultiColor(ImVec2(picker_pos.x + SV_PICKER_SIZE.x + SPACING,
+			picker_pos.y + i * (SV_PICKER_SIZE.y / 6)),
+			ImVec2(picker_pos.x + SV_PICKER_SIZE.x + SPACING + HUE_PICKER_WIDTH,
+				picker_pos.y + (i + 1) * (SV_PICKER_SIZE.y / 6)),
+			colors[i],
+			colors[i],
+			colors[i + 1],
+			colors[i + 1]);
+	}
+
+	draw_list->AddLine(ImVec2(picker_pos.x + SV_PICKER_SIZE.x + SPACING - 2,
+		picker_pos.y + hue * SV_PICKER_SIZE.y),
+		ImVec2(picker_pos.x + SV_PICKER_SIZE.x + SPACING + 2 + HUE_PICKER_WIDTH,
+			picker_pos.y + hue * SV_PICKER_SIZE.y),
+		ImColor(255, 255, 255));
+
+	if (alphabar)
+	{
+		float alpha = col[3];
+
+		draw_list->AddRectFilledMultiColor(
+			ImVec2(picker_pos.x + SV_PICKER_SIZE.x + 2 * SPACING + HUE_PICKER_WIDTH, picker_pos.y),
+			ImVec2(picker_pos.x + SV_PICKER_SIZE.x + 2 * SPACING + 2 * HUE_PICKER_WIDTH,
+				picker_pos.y + SV_PICKER_SIZE.y),
+			ImColor(0, 0, 0),
+			ImColor(0, 0, 0),
+			ImColor(255, 255, 255),
+			ImColor(255, 255, 255));
+
+		draw_list->AddLine(
+			ImVec2(picker_pos.x + SV_PICKER_SIZE.x + 2 * (SPACING - 2) + HUE_PICKER_WIDTH,
+				picker_pos.y + alpha * SV_PICKER_SIZE.y),
+			ImVec2(picker_pos.x + SV_PICKER_SIZE.x + 2 * (SPACING + 2) + 2 * HUE_PICKER_WIDTH,
+				picker_pos.y + alpha * SV_PICKER_SIZE.y),
+			ImColor(255.f - alpha, 255.f, 255.f));
+	}
+
+
+	ImVec4 cHueValue(1, 1, 1, 1);
+	ImGui::ColorConvertHSVtoRGB(hue, 1, 1, cHueValue.x, cHueValue.y, cHueValue.z);
+	ImU32 oHueColor = ImGui::ColorConvertFloat4ToU32(cHueValue);
+
+	draw_list->AddRectFilledMultiColor(ImVec2(picker_pos.x, picker_pos.y),
+		ImVec2(picker_pos.x + SV_PICKER_SIZE.x, picker_pos.y + SV_PICKER_SIZE.y),
+		0xffffFFFF,
+		oHueColor,
+		oHueColor,
+		0xffFFffFF);
+
+	draw_list->AddRectFilledMultiColor(ImVec2(picker_pos.x, picker_pos.y),
+		ImVec2(picker_pos.x + SV_PICKER_SIZE.x, picker_pos.y + SV_PICKER_SIZE.y),
+		0x00000000,
+		0x00000000,
+		0xff000000,
+		0xff000000);
+
+	float x = saturation * SV_PICKER_SIZE.x;
+	float y = (1 - value) * SV_PICKER_SIZE.y;
+	ImVec2 p(picker_pos.x + x, picker_pos.y + y);
+	draw_list->AddLine(
+		ImVec2(p.x - CROSSHAIR_SIZE, p.y), ImVec2(p.x - 2, p.y), ImColor(255, 255, 255));
+	draw_list->AddLine(
+		ImVec2(p.x + CROSSHAIR_SIZE, p.y), ImVec2(p.x + 2, p.y), ImColor(255, 255, 255));
+	draw_list->AddLine(
+		ImVec2(p.x, p.y + CROSSHAIR_SIZE), ImVec2(p.x, p.y + 2), ImColor(255, 255, 255));
+	draw_list->AddLine(
+		ImVec2(p.x, p.y - CROSSHAIR_SIZE), ImVec2(p.x, p.y - 2), ImColor(255, 255, 255));
+
+	ImGui::InvisibleButton("saturation_value_selector", SV_PICKER_SIZE);
+
+	if (ImGui::IsItemActive() && ImGui::GetIO().MouseDown[0])
+	{
+		ImVec2 mouse_pos_in_canvas = ImVec2(
+			ImGui::GetIO().MousePos.x - picker_pos.x, ImGui::GetIO().MousePos.y - picker_pos.y);
+
+		if (mouse_pos_in_canvas.x < 0)
+			mouse_pos_in_canvas.x = 0;
+		else if (mouse_pos_in_canvas.x >= SV_PICKER_SIZE.x - 1)
+			mouse_pos_in_canvas.x = SV_PICKER_SIZE.x - 1;
+
+		if (mouse_pos_in_canvas.y < 0)
+			mouse_pos_in_canvas.y = 0;
+		else if (mouse_pos_in_canvas.y >= SV_PICKER_SIZE.y - 1)
+			mouse_pos_in_canvas.y = SV_PICKER_SIZE.y - 1;
+
+		value = 1 - (mouse_pos_in_canvas.y / (SV_PICKER_SIZE.y - 1));
+		saturation = mouse_pos_in_canvas.x / (SV_PICKER_SIZE.x - 1);
+		value_changed = true;
+	}
+
+	ImGui::SetCursorScreenPos(ImVec2(picker_pos.x + SPACING + SV_PICKER_SIZE.x, picker_pos.y));
+	ImGui::InvisibleButton("hue_selector", ImVec2(HUE_PICKER_WIDTH, SV_PICKER_SIZE.y));
+
+	if (ImGui::GetIO().MouseDown[0] && (ImGui::IsItemHovered() || ImGui::IsItemActive()))
+	{
+		ImVec2 mouse_pos_in_canvas = ImVec2(
+			ImGui::GetIO().MousePos.x - picker_pos.x, ImGui::GetIO().MousePos.y - picker_pos.y);
+
+		if (mouse_pos_in_canvas.y < 0)
+			mouse_pos_in_canvas.y = 0;
+		else if (mouse_pos_in_canvas.y >= SV_PICKER_SIZE.y - 1)
+			mouse_pos_in_canvas.y = SV_PICKER_SIZE.y - 1;
+
+		hue = mouse_pos_in_canvas.y / (SV_PICKER_SIZE.y - 1);
+		value_changed = true;
+	}
+
+	if (alphabar)
+	{
+		ImGui::SetCursorScreenPos(
+			ImVec2(picker_pos.x + SPACING * 2 + HUE_PICKER_WIDTH + SV_PICKER_SIZE.x, picker_pos.y));
+		ImGui::InvisibleButton("alpha_selector", ImVec2(HUE_PICKER_WIDTH, SV_PICKER_SIZE.y));
+
+		if (ImGui::GetIO().MouseDown[0] && (ImGui::IsItemHovered() || ImGui::IsItemActive()))
+		{
+			ImVec2 mouse_pos_in_canvas = ImVec2(
+				ImGui::GetIO().MousePos.x - picker_pos.x, ImGui::GetIO().MousePos.y - picker_pos.y);
+
+			if (mouse_pos_in_canvas.y < 0)
+				mouse_pos_in_canvas.y = 0;
+			else if (mouse_pos_in_canvas.y >= SV_PICKER_SIZE.y - 1)
+				mouse_pos_in_canvas.y = SV_PICKER_SIZE.y - 1;
+
+			float alpha = mouse_pos_in_canvas.y / (SV_PICKER_SIZE.y - 1);
+			col[3] = alpha;
+			value_changed = true;
+		}
+	}
+
+	ImColor color = ImColor::HSV(hue >= 1 ? hue - 10 * 1e-6f : hue,
+		saturation > 0 ? saturation : 10 * 1e-6f,
+		value > 0 ? value : 1e-6f);
+	col[0] = color.Value.x;
+	col[1] = color.Value.y;
+	col[2] = color.Value.z;
+
+	bool widget_used;
+	ImGui::PushItemWidth((alphabar ? SPACING + HUE_PICKER_WIDTH : 0) + SV_PICKER_SIZE.x + SPACING +
+		HUE_PICKER_WIDTH - 2 * ImGui::GetStyle().FramePadding.x);
+	widget_used = alphabar ? ImGui::ColorEdit4("", col) : ImGui::ColorEdit3("", col);
+	ImGui::PopItemWidth();
+
+	float new_hue, new_sat, new_val;
+	ImGui::ColorConvertRGBtoHSV(col[0], col[1], col[2], new_hue, new_sat, new_val);
+	if (new_hue <= 0 && hue > 0)
+	{
+		if (new_val <= 0 && value != new_val)
+		{
+			color = ImColor::HSV(hue, saturation, new_val <= 0 ? value * 0.5f : new_val);
+			col[0] = color.Value.x;
+			col[1] = color.Value.y;
+			col[2] = color.Value.z;
+		}
+		else if (new_sat <= 0)
+		{
+			color = ImColor::HSV(hue, new_sat <= 0 ? saturation * 0.5f : new_sat, new_val);
+			col[0] = color.Value.x;
+			col[1] = color.Value.y;
+			col[2] = color.Value.z;
+		}
+	}
+
+	return value_changed | widget_used;
 }
 
 bool ImGui::Checkbox(const char* label, bool* v)

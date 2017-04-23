@@ -14,6 +14,7 @@ public:
 	bool PreUpdate();
 	bool PostUpdate();
 	bool CleanUp();
+	void Resize(uint width, uint height);
 
 public:
 	sf::RenderTexture* window;

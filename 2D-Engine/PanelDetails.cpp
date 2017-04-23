@@ -12,7 +12,6 @@ PanelDetails::PanelDetails()
 {
 	active = true;
 	panelName = "Details";
-	newPanel = true;
 }
 
 
@@ -22,82 +21,86 @@ PanelDetails::~PanelDetails()
 
 void PanelDetails::DrawPanel()
 {
-	GameObject* selectedGameObject = nullptr;
-	if (engine->sceneManagerModule->selectedGameObjects.size() == 1) {
-		selectedGameObject = engine->sceneManagerModule->selectedGameObjects.front();
-	}
+	if (ImGui::BeginDock(panelName.c_str())) {
+		GameObject* selectedGameObject = nullptr;
+		if (engine->sceneManagerModule->selectedGameObjects.size() == 1) {
+			selectedGameObject = engine->sceneManagerModule->selectedGameObjects.front();
+		}
 
-	if (selectedGameObject != nullptr) {
-		bool gameObjectActive = selectedGameObject->isActive();
-		ImGui::SameLine();
-		if (ImGui::Checkbox("", &gameObjectActive)) {
-			selectedGameObject->SetActive(gameObjectActive);
-		}
-		ImGui::SameLine();
-		ImGui::Text("Name: %s", selectedGameObject->name.c_str());
-		ImGui::Text("Tag:");
-		ImGui::SameLine();
-		if (ImGui::SmallButton(selectedGameObject->tag.c_str())) {
-			ImGui::OpenPopup("Tags");
-		}
-		if (ImGui::BeginPopup("Tags")) {
-			for (int i = 0; i < 5; i++) {
-				string name = "tag" + to_string(i);
-				if (ImGui::MenuItem(name.c_str())) {
-					selectedGameObject->tag = name;
-				}
+		if (selectedGameObject != nullptr) {
+			bool gameObjectActive = selectedGameObject->isActive();
+			ImGui::SameLine();
+			if (ImGui::Checkbox("", &gameObjectActive)) {
+				selectedGameObject->SetActive(gameObjectActive);
 			}
-			ImGui::EndPopup();
-		}
-		ImGui::SameLine();
-		ImGui::Text("Layer:");
-		ImGui::SameLine();
-		if (ImGui::SmallButton(selectedGameObject->layer.c_str())) {
-			ImGui::OpenPopup("Layers");
-		}
-		if (ImGui::BeginPopup("Layers")) {
-			for (int i = 0; i < 5; i++) {
-				string name = "layer" + to_string(i);
-				if (ImGui::MenuItem(name.c_str())) {
-					selectedGameObject->layer = name;
-				}
+			ImGui::SameLine();
+			ImGui::Text("Name: %s", selectedGameObject->name.c_str());
+			ImGui::Text("Tag:");
+			ImGui::SameLine();
+			if (ImGui::SmallButton(selectedGameObject->tag.c_str())) {
+				ImGui::OpenPopup("Tags");
 			}
-			ImGui::EndPopup();
-		}
-		ImGui::Spacing();
-		ImGui::Separator();
-		ImGui::Spacing();
-
-		for (list<Component*>::iterator it = selectedGameObject->componentsList.begin(); it != selectedGameObject->componentsList.end(); it++) {
-			DrawComponent((*it));
+			if (ImGui::BeginPopup("Tags")) {
+				for (int i = 0; i < 5; i++) {
+					string name = "tag" + to_string(i);
+					if (ImGui::MenuItem(name.c_str())) {
+						selectedGameObject->tag = name;
+					}
+				}
+				ImGui::EndPopup();
+			}
+			ImGui::SameLine();
+			ImGui::Text("Layer:");
+			ImGui::SameLine();
+			if (ImGui::SmallButton(selectedGameObject->layer.c_str())) {
+				ImGui::OpenPopup("Layers");
+			}
+			if (ImGui::BeginPopup("Layers")) {
+				for (int i = 0; i < 5; i++) {
+					string name = "layer" + to_string(i);
+					if (ImGui::MenuItem(name.c_str())) {
+						selectedGameObject->layer = name;
+					}
+				}
+				ImGui::EndPopup();
+			}
+			ImGui::Spacing();
 			ImGui::Separator();
 			ImGui::Spacing();
-		}
 
-		if (ImGui::Button("Add Component")) {
-			ImGui::OpenPopup("Components");
-		}
-		if (ImGui::BeginPopup("Components"))
-		{
-			if (ImGui::MenuItem("Transform")) {
-				if (selectedGameObject->GetComponent(Component::Transform) == nullptr) {
-					selectedGameObject->AddComponent(Component::Transform);
-				}
-			}
-			if (ImGui::MenuItem("RigidBody")) {
-				if (selectedGameObject->GetComponent(Component::RigidBody) == nullptr) {
-					selectedGameObject->AddComponent(Component::RigidBody);
-				}
-			}
-			if (ImGui::MenuItem("SpriteRenderer")) {
-				if (selectedGameObject->GetComponent(Component::SpriteRenderer) == nullptr) {
-					selectedGameObject->AddComponent(Component::SpriteRenderer);
-				}
+			for (list<Component*>::iterator it = selectedGameObject->componentsList.begin(); it != selectedGameObject->componentsList.end(); it++) {
+				DrawComponent((*it));
+				ImGui::Separator();
+				ImGui::Spacing();
 			}
 
-			ImGui::EndPopup();
+			if (ImGui::Button("Add Component")) {
+				ImGui::OpenPopup("Components");
+			}
+			if (ImGui::BeginPopup("Components"))
+			{
+				if (ImGui::MenuItem("Transform")) {
+					if (selectedGameObject->GetComponent(Component::Transform) == nullptr) {
+						selectedGameObject->AddComponent(Component::Transform);
+					}
+				}
+				if (ImGui::MenuItem("RigidBody")) {
+					if (selectedGameObject->GetComponent(Component::RigidBody) == nullptr) {
+						selectedGameObject->AddComponent(Component::RigidBody);
+					}
+				}
+				if (ImGui::MenuItem("SpriteRenderer")) {
+					if (selectedGameObject->GetComponent(Component::SpriteRenderer) == nullptr) {
+						selectedGameObject->AddComponent(Component::SpriteRenderer);
+					}
+				}
+
+				ImGui::EndPopup();
+			}
 		}
 	}
+
+	ImGui::EndDock();
 }
 
 void PanelDetails::DrawComponent(Component* component)

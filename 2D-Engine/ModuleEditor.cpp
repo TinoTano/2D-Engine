@@ -125,9 +125,7 @@ bool ModuleEditor::Update(float deltaTime)
 	for (vector<Panel*>::iterator it = editorPanels.begin(); it != editorPanels.end(); it++) {
 		if ((*it)->IsActive())
 		{
-			ImGui::BeginDock((*it)->panelName.c_str());
 			(*it)->DrawPanel();
-			ImGui::EndDock();
 		}
 	}
 	ImGui::EndDockspace();
@@ -143,7 +141,6 @@ bool ModuleEditor::CleanUp()
 		RELEASE(*it);
 
 	editorPanels.clear();
-
 	ImGui::SaveDocks();
 	ImGui::SFML::Shutdown();
 	return true;

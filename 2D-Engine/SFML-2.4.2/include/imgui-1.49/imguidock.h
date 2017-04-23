@@ -46,7 +46,7 @@ namespace ImGui {
 	IMGUI_API void EndDockspace();
 	IMGUI_API void ShutdownDock();
 	IMGUI_API void SetNextDock(ImGuiDockSlot slot);
-	IMGUI_API bool BeginDock(const char* label, bool* opened = NULL, ImGuiWindowFlags extra_flags = 0, const ImVec2& default_size = ImVec2(-1, -1));
+	IMGUI_API bool BeginDock(const char* label, bool noTab = false, bool* opened = NULL, ImGuiWindowFlags extra_flags = 0, const ImVec2& default_size = ImVec2(-1, -1));
 	IMGUI_API void EndDock();
 	IMGUI_API void SetDockActive();
 	IMGUI_API void DockDebugWindow();
