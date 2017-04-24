@@ -45,6 +45,9 @@ bool ModuleEditor::Update(float deltaTime)
 	if (ImGui::BeginMainMenuBar())
 	{
 		bool selected = false;
+		ImGuiStyle& style = ImGui::GetStyle();
+		ImVec4 previusColor = style.Colors[ImGuiCol_Text];
+		style.Colors[ImGuiCol_Text] = ImVec4(0.00f, 0.00f, 0.00f, 1.00f);
 		if (ImGui::BeginMenu("File"))
 		{
 			if (ImGui::MenuItem("New Scene")) {
@@ -99,9 +102,12 @@ bool ModuleEditor::Update(float deltaTime)
 			ImGui::EndMenu();
 		}
 		ImGui::EndMainMenuBar();
+		style.Colors[ImGuiCol_Text] = previusColor;
 	}
 
-	ImGui::SetNextWindowSize(ImGui::GetIO().DisplaySize);
+	ImVec2 displaySize = ImGui::GetIO().DisplaySize;
+	displaySize.y -= 10;
+	ImGui::SetNextWindowSize(displaySize);
 	ImGui::SetNextWindowPos(ImVec2(0,20));
 	ImGui::Begin("PanelEditor", NULL, ImVec2(0, 0), 1.0f, ImGuiWindowFlags_NoMove | 
 		ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoResize | 

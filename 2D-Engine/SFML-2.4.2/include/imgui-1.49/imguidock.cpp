@@ -1087,7 +1087,6 @@ namespace ImGui {
 					fillLocation(dock);
 					*opened = false;
 				}
-
 				pos.y += tabbar_height + GetStyle().WindowPadding.y;
 				size.y -= tabbar_height + GetStyle().WindowPadding.y;
 			}

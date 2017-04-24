@@ -15,7 +15,7 @@ PanelConsole::~PanelConsole()
 
 void PanelConsole::DrawPanel()
 {
-	if (ImGui::BeginDock(panelName.c_str())) {
+	if (ImGui::BeginDock(panelName.c_str(), false, false, ImGuiWindowFlags_HorizontalScrollbar)) {
 		if (ImGui::Button("Clear")) Clear();
 		ImGui::SameLine();
 		bool copy = ImGui::Button("Copy");

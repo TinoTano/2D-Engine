@@ -21,7 +21,7 @@ PanelDetails::~PanelDetails()
 
 void PanelDetails::DrawPanel()
 {
-	if (ImGui::BeginDock(panelName.c_str())) {
+	if (ImGui::BeginDock(panelName.c_str(), false, false, ImGuiWindowFlags_HorizontalScrollbar)) {
 		GameObject* selectedGameObject = nullptr;
 		if (engine->sceneManagerModule->selectedGameObjects.size() == 1) {
 			selectedGameObject = engine->sceneManagerModule->selectedGameObjects.front();
@@ -161,6 +161,22 @@ void PanelDetails::DrawSpriteRendererPanel(ComponentSpriteRenderer * spriteRende
 			const char* path = tinyfd_openFileDialog("Load Image...", NULL, 1, lFilterPatterns, NULL, 0);
 			if (path != NULL) {
 				spriteRenderer->ChangeSprite(path);
+			}
+		}
+		if (ImGui::Checkbox("Flip x", &flipX)) {
+			if (flipX) {
+				sprite->setTextureRect(sf::IntRect(sprite->getTextureRect().width, sprite->getTextureRect().top != 0 ? sprite->getTextureRect().top : 0, -sprite->getTextureRect().width, sprite->getTextureRect().height));
+			}
+			else {
+				sprite->setTextureRect(sf::IntRect(0, sprite->getTextureRect().top != 0 ? sprite->getTextureRect().top : 0, -sprite->getTextureRect().width, sprite->getTextureRect().height));
+			}
+		}
+		if (ImGui::Checkbox("Flip y", &flipY)) {
+			if (flipY) {
+				sprite->setTextureRect(sf::IntRect(sprite->getTextureRect().left != 0 ? sprite->getTextureRect().left : 0, sprite->getTextureRect().height, sprite->getTextureRect().width, -sprite->getTextureRect().height));
+			}
+			else {
+				sprite->setTextureRect(sf::IntRect(sprite->getTextureRect().left != 0 ? sprite->getTextureRect().left : 0, 0, sprite->getTextureRect().width, -sprite->getTextureRect().height));
 			}
 		}
 	}

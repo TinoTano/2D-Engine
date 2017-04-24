@@ -25,7 +25,7 @@ PanelAssets::~PanelAssets()
 
 void PanelAssets::DrawPanel()
 {
-	if (ImGui::BeginDock(panelName.c_str())) {
+	if (ImGui::BeginDock(panelName.c_str(), false, false, ImGuiWindowFlags_HorizontalScrollbar)) {
 		node = 0;
 		fs::path path(ASSETS_FOLDER);
 		ImGui::Spacing();
@@ -129,26 +129,30 @@ void PanelAssets::DrawPanel()
 	ImGui::EndDock();
 
 	////////////////////////
-	if (ImGui::BeginDock("Files")) {
+	if (ImGui::BeginDock("Files", false, false, ImGuiWindowFlags_HorizontalScrollbar)) {
 		if (!selectedFolder.empty()) {
 			for (auto & p : fs::directory_iterator(selectedFolder)) {
 				if (!fs::is_directory(p)) {
 					if (p.path().extension().string() == ".wav") {
 						ImGui::Image(*soundImage, { 13,13 }, sf::Color::White, sf::Color::Transparent);
 						ImGui::SameLine();
+						ImGui::Text("%s", p.path().filename().string().c_str());
 					}
 					else if (p.path().extension().string() == ".png" || p.path().extension().string() == ".jpg") {
 						ImGui::Image(*textureImage, { 13,13 }, sf::Color::White, sf::Color::Transparent);
 						ImGui::SameLine();
-					}
-					ImGui::Text("%s", p.path().filename().string().c_str());
-					if (ImGui::IsItemHoveredRect()) {
-						ImGui::BeginTooltip();
-						ImGui::Image(*textureImage, sf::Color::White, sf::Color::Transparent);
-						ImGui::EndTooltip();
-						if (ImGui::IsItemClicked(0)) {
-							draggingFile = true;
+						ImGui::Text("%s", p.path().filename().string().c_str());
+						if (ImGui::IsItemHoveredRect()) {
+							ImGui::BeginTooltip();
+							ImGui::Image(*textureImage, sf::Color::White, sf::Color::Transparent);
+							ImGui::EndTooltip();
+							if (ImGui::IsItemClicked(0)) {
+								draggingFile = true;
+							}
 						}
+					}
+					else {
+						ImGui::Text("%s", p.path().filename().string().c_str());
 					}
 				}
 			}

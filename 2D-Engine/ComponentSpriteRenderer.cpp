@@ -9,7 +9,7 @@ ComponentSpriteRenderer::ComponentSpriteRenderer(GameObject* attachedObject)
 	gameObjectSprite = new sf::Sprite();
 	spriteTexture = new sf::Texture();
 	gameObject = attachedObject;
-	spritePath = "C:/Users/admin/Documents/FreedomTGC/Card Template/EpicIcon.png";
+	spritePath = "../Assets/sdgregrebird1.png";
 	if (spriteTexture->loadFromFile(spritePath)) {
 		spriteTexture->setSmooth(true);
 		gameObjectSprite->setTexture(*spriteTexture,true);

@@ -19,7 +19,7 @@ PanelHierarchy::~PanelHierarchy()
 
 void PanelHierarchy::DrawPanel()
 {
-	if (ImGui::BeginDock(panelName.c_str())) {
+	if (ImGui::BeginDock(panelName.c_str(), false, false, ImGuiWindowFlags_HorizontalScrollbar)) {
 		node = 0;
 		if (ImGui::IsMouseClicked(1) && ImGui::IsMouseHoveringWindow()) {
 			ImGui::OpenPopup("GameObject Options");

@@ -17,5 +17,9 @@ public:
 	void DrawTransformPanel(ComponentTransform* transform);
 	void DrawSpriteRendererPanel(ComponentSpriteRenderer* spriteRenderer);
 
+private:
+	bool flipX = false;
+	bool flipY = false;
+
 };
 
