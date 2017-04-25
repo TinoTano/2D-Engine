@@ -2,6 +2,7 @@
 #include "ModuleGraphics.h"
 #include "Engine.h"
 #include "ModuleSceneWindow.h"
+#include "ComponentTransform.h"
 
 
 ComponentSpriteRenderer::ComponentSpriteRenderer(GameObject* attachedObject)
@@ -15,6 +16,8 @@ ComponentSpriteRenderer::ComponentSpriteRenderer(GameObject* attachedObject)
 		gameObjectSprite->setTexture(*spriteTexture,true);
 		gameObjectSprite->setPosition((engine->sceneWindow->window->getSize().x / 2) - gameObjectSprite->getLocalBounds().width / 2, (engine->sceneWindow->window->getSize().y / 2) + gameObjectSprite->getLocalBounds().height / 2);
 		gameObjectSprite->setScale(1, -1);
+		ComponentTransform* transform = (ComponentTransform*)gameObject->GetComponent(Transform);
+		transform->SetInitialPosition(gameObjectSprite->getPosition());
 	}
 	type = SpriteRenderer;
 	gameObject->gameObjectSprite = gameObjectSprite;

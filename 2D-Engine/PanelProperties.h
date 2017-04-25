@@ -6,11 +6,11 @@
 #include "ComponentTransform.h"
 #include "ComponentSpriteRenderer.h"
 
-class PanelDetails : public Panel
+class PanelProperties : public Panel
 {
 public:
-	PanelDetails();
-	virtual ~PanelDetails();
+	PanelProperties();
+	virtual ~PanelProperties();
 
 	void DrawPanel();
 	void DrawComponent(Component* component);

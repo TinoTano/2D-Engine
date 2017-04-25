@@ -3,7 +3,7 @@
 #include "Module.h"
 #include "Panel.h"
 #include "PanelAssets.h"
-#include "PanelDetails.h"
+#include "PanelProperties.h"
 #include "PanelHierarchy.h"
 #include "PanelScene.h"
 #include "PanelConsole.h"
@@ -23,11 +23,12 @@ public:
 private:
 	PanelHierarchy* hierarchyPanel = nullptr;
 	PanelAssets* assetsPanel = nullptr;
-	PanelDetails* detailsPanel = nullptr;
+	PanelProperties* propertiesPanel = nullptr;
 	PanelScene* scenePanel = nullptr;
 	PanelConsole* consolePanel = nullptr;
 
 public:
 	vector<Panel*> editorPanels;
+	ImFont* font = nullptr;
 };
 

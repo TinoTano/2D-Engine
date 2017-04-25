@@ -5909,11 +5909,11 @@ bool ImGui::TreeNodeBehavior(ImGuiID id, ImGuiTreeNodeFlags flags, const char* l
         // Framed type
         RenderFrame(bb.Min, bb.Max, col, true, style.FrameRounding);
         RenderCollapseTriangle(bb.Min + padding + ImVec2(0.0f, text_base_offset_y), is_open, 1.0f, true);
-		if (texture != nullptr) {
-			SameLine(-1, text_pos.x - 5);
-			Image(texture, size);
-			textImagePos = { size.x + 7,0 };
-		}
+		//if (texture != nullptr) {
+		//	SameLine(-1, text_pos.x - 5);
+		//	Image(texture, size);
+		//	textImagePos = { size.x + 7,0 };
+		//}
         if (g.LogEnabled)
         {
             // NB: '##' is normally used to hide text (as a library-wide feature), so we need to specify the text range to make sure the ## aren't stripped out here.
@@ -5941,11 +5941,11 @@ bool ImGui::TreeNodeBehavior(ImGuiID id, ImGuiTreeNodeFlags flags, const char* l
 		}
         if (g.LogEnabled)
             LogRenderedText(text_pos, ">");
-		if (texture != nullptr) {
-			SameLine(-1, text_pos.x - 5);
-			Image(texture, size);
-			textImagePos = { size.x + 7,0 };
-		}
+		//if (texture != nullptr) {
+		//	SameLine(-1, text_pos.x - 5);
+		//	Image(texture, size);
+		//	textImagePos = { size.x + 7,0 };
+		//}
         RenderText(text_pos + textImagePos, label, label_end, false);
     }
 

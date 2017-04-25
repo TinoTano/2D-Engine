@@ -3,7 +3,7 @@
 #include "ModuleEngineWindow.h"
 #include "PanelHierarchy.h"
 #include "PanelAssets.h"
-#include "PanelDetails.h"
+#include "PanelProperties.h"
 #include "PanelScene.h"
 #include "ModuleSceneWindow.h"
 #include "ModuleSceneManager.h"
@@ -21,12 +21,14 @@ ModuleEditor::~ModuleEditor()
 
 bool ModuleEditor::Awake()
 {
-	
+	ImGuiIO& io = ImGui::GetIO();
+	io.Fonts->AddFontDefault();
+	font = io.Fonts->AddFontFromFileTTF("../Data/OpenSans-Semibold.ttf", 18);
 	ImGui::SFML::Init(*(engine->engineWindow->window), NULL);
 	engine->engineWindow->window->resetGLStates();
 	editorPanels.push_back(hierarchyPanel = new PanelHierarchy());
 	editorPanels.push_back(assetsPanel = new PanelAssets());
-	editorPanels.push_back(detailsPanel = new PanelDetails());
+	editorPanels.push_back(propertiesPanel = new PanelProperties());
 	editorPanels.push_back(scenePanel = new PanelScene());
 	editorPanels.push_back(consolePanel = new PanelConsole());
 	ImGui::LoadDocks();
@@ -41,7 +43,7 @@ bool ModuleEditor::PreUpdate() {
 bool ModuleEditor::Update(float deltaTime)
 {
 	bool ret = true;
-
+	ImGui::PushFont(font);
 	if (ImGui::BeginMainMenuBar())
 	{
 		bool selected = false;
@@ -136,6 +138,7 @@ bool ModuleEditor::Update(float deltaTime)
 	}
 	ImGui::EndDockspace();
 	ImGui::End();
+	ImGui::PopFont();
 	return ret;
 }
 

@@ -15,12 +15,12 @@ public:
 	bool PostUpdate();
 	bool CleanUp();
 	void Resize(uint width, uint height);
-	void Draw();
 
 public:
-	sf::RenderTexture* window;
+	sf::RenderTexture* window = nullptr;
 	deque<GameObject*> drawableObjects;
 	sf::Vector2i windowSize;
 	string windowName;
+	map<int,vector<float>> layers;
 };
 

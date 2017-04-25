@@ -1,4 +1,4 @@
-#include "PanelDetails.h"
+#include "PanelProperties.h"
 #include "Engine.h"
 #include "ModuleSceneManager.h"
 #include "ModuleEditor.h"
@@ -8,18 +8,18 @@
 #include "tinyfiledialogs.h"
 
 
-PanelDetails::PanelDetails()
+PanelProperties::PanelProperties()
 {
 	active = true;
-	panelName = "Details";
+	panelName = "Properties";
 }
 
 
-PanelDetails::~PanelDetails()
+PanelProperties::~PanelProperties()
 {
 }
 
-void PanelDetails::DrawPanel()
+void PanelProperties::DrawPanel()
 {
 	if (ImGui::BeginDock(panelName.c_str(), false, false, ImGuiWindowFlags_HorizontalScrollbar)) {
 		GameObject* selectedGameObject = nullptr;
@@ -103,7 +103,7 @@ void PanelDetails::DrawPanel()
 	ImGui::EndDock();
 }
 
-void PanelDetails::DrawComponent(Component* component)
+void PanelProperties::DrawComponent(Component* component)
 {
 	switch (component->type)
 	{
@@ -132,7 +132,7 @@ void PanelDetails::DrawComponent(Component* component)
 	}
 }
 
-void PanelDetails::DrawTransformPanel(ComponentTransform * transform)
+void PanelProperties::DrawTransformPanel(ComponentTransform * transform)
 {
 	if (ImGui::CollapsingHeader("Transform", ImGuiTreeNodeFlags_DefaultOpen)) {
 		sf::Vector3f position = transform->position;
@@ -151,7 +151,7 @@ void PanelDetails::DrawTransformPanel(ComponentTransform * transform)
 	}
 }
 
-void PanelDetails::DrawSpriteRendererPanel(ComponentSpriteRenderer * spriteRenderer)
+void PanelProperties::DrawSpriteRendererPanel(ComponentSpriteRenderer * spriteRenderer)
 {
 	if (ImGui::CollapsingHeader("Sprite Renderer", ImGuiTreeNodeFlags_DefaultOpen)) {
 		sf::Sprite* sprite = spriteRenderer->gameObjectSprite;

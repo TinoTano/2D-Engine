@@ -33,7 +33,7 @@
     <ClCompile Include="Panel.cpp" />
     <ClCompile Include="PanelAssets.cpp" />
     <ClCompile Include="PanelConsole.cpp" />
-    <ClCompile Include="PanelDetails.cpp" />
+    <ClCompile Include="PanelProperties.cpp" />
     <ClCompile Include="PanelHierarchy.cpp" />
     <ClCompile Include="PanelScene.cpp" />
     <ClCompile Include="Resource.cpp" />
@@ -69,7 +69,7 @@
     <ClInclude Include="Panel.h" />
     <ClInclude Include="PanelAssets.h" />
     <ClInclude Include="PanelConsole.h" />
-    <ClInclude Include="PanelDetails.h" />
+    <ClInclude Include="PanelProperties.h" />
     <ClInclude Include="PanelHierarchy.h" />
     <ClInclude Include="PanelScene.h" />
     <ClInclude Include="Resource.h" />

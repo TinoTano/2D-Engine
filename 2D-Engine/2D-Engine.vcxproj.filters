@@ -74,9 +74,6 @@
     <ClCompile Include="PanelAssets.cpp">
       <Filter>Editor</Filter>
     </ClCompile>
-    <ClCompile Include="PanelDetails.cpp">
-      <Filter>Editor</Filter>
-    </ClCompile>
     <ClCompile Include="ComponentTransform.cpp">
       <Filter>GameObject\Components</Filter>
     </ClCompile>
@@ -109,6 +106,9 @@
     </ClCompile>
     <ClCompile Include="Resource.cpp">
       <Filter>Resources</Filter>
+    </ClCompile>
+    <ClCompile Include="PanelProperties.cpp">
+      <Filter>Editor</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -148,9 +148,6 @@
     <ClInclude Include="PanelAssets.h">
       <Filter>Editor</Filter>
     </ClInclude>
-    <ClInclude Include="PanelDetails.h">
-      <Filter>Editor</Filter>
-    </ClInclude>
     <ClInclude Include="ComponentTransform.h">
       <Filter>GameObject\Components</Filter>
     </ClInclude>
@@ -183,6 +180,9 @@
     </ClInclude>
     <ClInclude Include="Resource.h">
       <Filter>Resources</Filter>
+    </ClInclude>
+    <ClInclude Include="PanelProperties.h">
+      <Filter>Editor</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

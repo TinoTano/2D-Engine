@@ -21,7 +21,6 @@ void PanelScene::DrawPanel()
 		if ((uint)ImGui::GetWindowSize().x - 13 != engine->sceneWindow->window->getSize().x || (uint)ImGui::GetWindowSize().y - 15 != engine->sceneWindow->window->getSize().y) {
 			engine->sceneWindow->Resize((uint)ImGui::GetWindowSize().x - 13, (uint)ImGui::GetWindowSize().y - 15);
 		}
-		engine->sceneWindow->Draw();
 		ImGui::Image(engine->sceneWindow->window->getTexture(), sf::Color::White, sf::Color::Transparent);
 	}
 	

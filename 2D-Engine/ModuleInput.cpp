@@ -34,8 +34,6 @@ bool ModuleInput::PreUpdate()
 			break;
 
 		case sf::Event::Resized:
-			//engine->engineWindow->window->setView(sf::View(sf::FloatRect(0, 0, event.size.width, event.size.height)));
-			//engine->sceneWindow->window->setView
 			break;
 
 		case sf::Event::LostFocus:

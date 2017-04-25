@@ -11,6 +11,7 @@ public:
 	void SetPosition(sf::Vector3f position);
 	void SetRotation(float degree);
 	void SetScale(sf::Vector2f scale);
+	void SetInitialPosition(sf::Vector2f pos);
 
 	void OnEnable();
 	void OnDisable();

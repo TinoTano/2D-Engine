@@ -7,7 +7,7 @@
 ComponentTransform::ComponentTransform(GameObject* attachedObject)
 {
 	type = Transform;
-	position = sf::Vector3f(engine->sceneWindow->window->getSize().x / 2, engine->sceneWindow->window->getSize().y / 2, 0);
+	position = { 0,0,0 };
 	rotation = 0;
 	scale = { 1,1 };
 	gameObject = attachedObject;
@@ -36,6 +36,11 @@ void ComponentTransform::SetScale(sf::Vector2f scale)
 {
 	gameObject->gameObjectSprite->setScale(scale);
 	this->scale = scale;
+}
+
+void ComponentTransform::SetInitialPosition(sf::Vector2f pos)
+{
+	position = sf::Vector3f(pos.x, pos.y, 0);
 }
 
 void ComponentTransform::OnEnable()
