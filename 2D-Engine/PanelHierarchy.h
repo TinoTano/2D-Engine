@@ -18,5 +18,6 @@ private:
 	uint node = 0;
 	char nodeName[30];
 	bool showRenameError = false;
+	GameObject* openGameObjectNode = nullptr;
 };
 

@@ -64,10 +64,7 @@ GameObject * ModuleSceneManager::FindGameObject(string name) const
 GameObject * ModuleSceneManager::CreateGameObject(GameObject * parent)
 {
 	GameObject* ret = new GameObject(parent);
-	if (parent != nullptr) {
-		ret->isRoot = false;
-	}
-	else {
+	if (parent == nullptr) {
 		sceneRootObjects.push_back(ret);
 	}
 

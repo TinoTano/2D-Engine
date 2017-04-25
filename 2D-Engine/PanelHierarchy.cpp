@@ -4,6 +4,7 @@
 #include "ModuleSceneManager.h"
 #include "ModuleInput.h"
 #include "ModuleSceneWindow.h"
+#include "PanelConsole.h"
 
 
 PanelHierarchy::PanelHierarchy()
@@ -51,6 +52,7 @@ void PanelHierarchy::DrawPanel()
 						GameObject* parent = nullptr;
 						parent = engine->sceneManagerModule->selectedGameObjects.front();
 						engine->sceneWindow->drawableObjects.push_back(engine->sceneManagerModule->CreateGameObject(parent));
+						openGameObjectNode = parent;
 					}
 				}
 				ImGui::Separator();
@@ -133,14 +135,17 @@ void PanelHierarchy::DrawChilds(GameObject* gameObject)
 			break;
 		}
 	}
-
+	flag |= ImGuiTreeNodeFlags_OpenOnArrow;
+	if (openGameObjectNode == gameObject) {
+		ImGui::SetNextTreeNodeOpen(true);
+		openGameObjectNode = nullptr;
+	}
 	if (ImGui::TreeNodeEx(nodeName, flag))
 	{
 		CheckMouseOver(gameObject);
 		for (list<GameObject*>::iterator it = gameObject->childs.begin(); it != gameObject->childs.end(); ++it) {
 			DrawChilds(*it);
 		}
-
 		ImGui::TreePop();
 	}
 	else {

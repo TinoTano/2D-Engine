@@ -22,38 +22,25 @@ ComponentTransform::~ComponentTransform()
 
 void ComponentTransform::SetPosition(sf::Vector3f position)
 {
-	//gameObject->gameObjectSprite->setPosition(sf::Vector2f(position.x, position.y));
-	//gameObject->positionZ = position.z;
-	//if (isParent) {
-	//	globalPosition = position;
-	//	for (list<GameObject*>::iterator it = gameObject->childs.begin(); it != gameObject->childs.end(); it++) {
-	//		ComponentTransform* transform = (ComponentTransform*)(*it)->GetComponent(Transform);
-	//		sf::Vector3f pos(globalPosition - transform->globalPosition);
-	//		pos.z = transform->globalPosition.z;
-	//		if ((*it)->parent != nullptr) {
-	//			isParent = true;
-	//		}
-	//		else {
-	//			isParent = false;
-	//		}
-	//		transform->SetPosition(pos, isParent);
-	//	}
-	//}
-	//else {
-	//	localPosition = position;
-	//}
 
-	if (gameObject->parent == nullptr) {
+	if (gameObject->isRoot) {
 		gameObject->gameObjectSprite->setPosition(sf::Vector2f(position.x, position.y));
 		gameObject->positionZ = position.z;
 		globalPosition = localPosition = position;
 	}
 	else {
-		//gameObject->gameObjectSprite->setPosition(sf::Vector2f(position.x, position.y));
-		//gameObject->positionZ = position.z;
 		ComponentTransform* transform = (ComponentTransform*)gameObject->parent->GetComponent(Transform);
 		globalPosition = transform->globalPosition + localPosition;
 		localPosition = position;
+		gameObject->gameObjectSprite->setPosition(sf::Vector2f(globalPosition.x, globalPosition.y));
+		gameObject->positionZ = globalPosition.z;
+	}
+
+	if (gameObject->childs.size() > 0) {
+		for (list<GameObject*>::iterator it = gameObject->childs.begin(); it != gameObject->childs.end(); it++) {
+			ComponentTransform* transform = (ComponentTransform*)(*it)->GetComponent(Transform);
+			transform->SetPosition(transform->localPosition);
+		}
 	}
 }
 
@@ -72,6 +59,13 @@ void ComponentTransform::SetScale(sf::Vector2f scale)
 void ComponentTransform::SetInitialPosition(sf::Vector2f pos)
 {
 	globalPosition = sf::Vector3f(pos.x, pos.y, 0);
+	if (gameObject->isRoot) {
+		localPosition = globalPosition;
+	}
+	else {
+		ComponentTransform* transform = (ComponentTransform*)gameObject->parent->GetComponent(Transform);
+		localPosition = sf::Vector3f(pos.x - transform->globalPosition.x, pos.y - transform->globalPosition.y, 0);
+	}
 }
 
 void ComponentTransform::OnEnable()
@@ -93,8 +87,8 @@ void ComponentTransform::Save(Data & data) const
 
 void ComponentTransform::Load(Data & data)
 {
-	SetGlobalPosition(data.GetVector3Float("Global_Position"));
-	SetLocalPosition(data.GetVector3Float("Local_Position"));
+	//SetGlobalPosition(data.GetVector3Float("Global_Position"));
+	//SetLocalPosition(data.GetVector3Float("Local_Position"));
 	SetRotation(rotation = data.GetFloat("Rotation"));
 	SetScale(data.GetVector2Float("Scale"));
 }

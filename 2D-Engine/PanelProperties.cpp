@@ -136,7 +136,7 @@ void PanelProperties::DrawTransformPanel(ComponentTransform * transform)
 {
 	if (ImGui::CollapsingHeader("Transform", ImGuiTreeNodeFlags_DefaultOpen)) {
 		sf::Vector3f position;
-		if (transform->gameObject->parent != nullptr) {
+		if (transform->gameObject->parent == nullptr) {
 			position = transform->globalPosition;
 		}
 		else {

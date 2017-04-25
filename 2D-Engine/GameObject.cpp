@@ -14,11 +14,11 @@ GameObject::GameObject()
 	activeInScene = true;
 	destroyOnLoadScene = false;
 	parent = nullptr;
-	AddComponent(Component::Transform);
-	AddComponent(Component::SpriteRenderer);
 	positionZ = 0;
 	isRoot = true;
 	onDestroy = false;
+	AddComponent(Component::Transform);
+	AddComponent(Component::SpriteRenderer);
 }
 
 GameObject::GameObject(string name)
@@ -29,11 +29,11 @@ GameObject::GameObject(string name)
 	destroyOnLoadScene = false;
 	tag = "None";
 	layer = "None";
-	AddComponent(Component::Transform);
-	AddComponent(Component::SpriteRenderer);
 	positionZ = 0;
 	isRoot = true;
 	onDestroy = false;
+	AddComponent(Component::Transform);
+	AddComponent(Component::SpriteRenderer);
 }
 
 GameObject::GameObject(GameObject * parent)
@@ -44,11 +44,16 @@ GameObject::GameObject(GameObject * parent)
 	activeInScene = true;
 	destroyOnLoadScene = false;
 	SetParent(parent);
+	positionZ = 0;
+	if (parent == nullptr) {
+		isRoot = true;
+	}
+	else {
+		isRoot = false;
+	}
+	onDestroy = false;
 	AddComponent(Component::Transform);
 	AddComponent(Component::SpriteRenderer);
-	positionZ = 0;
-	isRoot = true;
-	onDestroy = false;
 }
 
 
