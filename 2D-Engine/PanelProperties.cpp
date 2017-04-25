@@ -135,7 +135,13 @@ void PanelProperties::DrawComponent(Component* component)
 void PanelProperties::DrawTransformPanel(ComponentTransform * transform)
 {
 	if (ImGui::CollapsingHeader("Transform", ImGuiTreeNodeFlags_DefaultOpen)) {
-		sf::Vector3f position = transform->position;
+		sf::Vector3f position;
+		if (transform->gameObject->parent != nullptr) {
+			position = transform->globalPosition;
+		}
+		else {
+			position = transform->localPosition;
+		}
 		float rotation = transform->rotation;
 		sf::Vector2f scale = transform->scale;
 

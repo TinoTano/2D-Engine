@@ -20,7 +20,8 @@ public:
 	void Load(Data& data);
 
 public:
-	sf::Vector3f position;
+	sf::Vector3f globalPosition;
+	sf::Vector3f localPosition;
 	float rotation;
 	sf::Vector2f scale;
 };
