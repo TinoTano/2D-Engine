@@ -15,13 +15,19 @@ public:
 	bool CleanUp();
 
 	GameObject* FindGameObject(string name) const;
+	GameObject* FindGameObjectInverse(string name) const;
 	GameObject* CreateGameObject(GameObject* parent = nullptr);
 	GameObject* DuplicateGameObject(GameObject* gameObject);
-	void RenameDuplicatedGameObject(GameObject* gameObject);
+	void RenameDuplicatedGameObject(GameObject* gameObject, bool justIncrease = false);
 
 	void NewScene();
 	void LoadScene(string path);
 	void SaveScene(string path) const;
+
+	void StartGame();
+	void PauseGame();
+	void UnPauseGame();
+	void StopGame();
 
 public:
 	list<GameObject*> selectedGameObjects;

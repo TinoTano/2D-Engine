@@ -1,0 +1,16 @@
+#include "#H_FILENAME#.h"
+
+//Initialize values
+#CLASS_NAME#::#CLASS_NAME#(){
+
+}
+
+//Called when game starts or spawned
+void #CLASS_NAME#::Start(){
+
+}
+
+//Called every frame
+void #CLASS_NAME#::Update(float deltaTime){
+
+}

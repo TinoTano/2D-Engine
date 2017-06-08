@@ -10,18 +10,20 @@ ComponentSpriteRenderer::ComponentSpriteRenderer(GameObject* attachedObject)
 	gameObjectSprite = new sf::Sprite();
 	spriteTexture = new sf::Texture();
 	gameObject = attachedObject;
-	spritePath = "../Assets/sdgregrebird1.png";
+	spritePath = "../Assets/bird1.png";
 	if (spriteTexture->loadFromFile(spritePath)) {
 		spriteTexture->setSmooth(true);
 		gameObjectSprite->setTexture(*spriteTexture,true);
-		gameObjectSprite->setPosition((engine->sceneWindow->window->getSize().x / 2) - gameObjectSprite->getLocalBounds().width / 2, (engine->sceneWindow->window->getSize().y / 2) + gameObjectSprite->getLocalBounds().height / 2);
-		gameObjectSprite->setScale(1, -1);
+		gameObjectSprite->setPosition((engine->sceneWindow->window->getSize().x / 2), (engine->sceneWindow->window->getSize().y / 2));
+		gameObjectSprite->setOrigin(gameObjectSprite->getLocalBounds().width / 2, gameObjectSprite->getLocalBounds().height / 2);
 		ComponentTransform* transform = (ComponentTransform*)gameObject->GetComponent(Transform);
 		transform->SetInitialPosition(gameObjectSprite->getPosition());
 	}
 	type = SpriteRenderer;
 	gameObject->gameObjectSprite = gameObjectSprite;
 	name = "SpriteRenderer";
+	isFlippedX = false;
+	isFlippedY = false;
 }
 
 
@@ -31,12 +33,18 @@ ComponentSpriteRenderer::~ComponentSpriteRenderer()
 	delete spriteTexture;
 }
 
-void ComponentSpriteRenderer::ChangeSprite(string path)
+bool ComponentSpriteRenderer::ChangeSprite(string path)
 {
+	bool ret = false;
 	if (spriteTexture->loadFromFile(path)) {
+		spriteTexture->setSmooth(true);
 		gameObjectSprite->setTexture(*spriteTexture, true);
+		gameObjectSprite->setOrigin(gameObjectSprite->getLocalBounds().width / 2, gameObjectSprite->getLocalBounds().height / 2);
 		gameObject->gameObjectSprite = gameObjectSprite;
+		spritePath = path;
+		ret = true;
 	}
+	return ret;
 }
 
 void ComponentSpriteRenderer::OnEnable()

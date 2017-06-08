@@ -5,6 +5,8 @@
 #include "Component.h"
 #include "ComponentTransform.h"
 #include "ComponentSpriteRenderer.h"
+#include "ComponentScript.h"
+#include <afx.h>
 
 class PanelProperties : public Panel
 {
@@ -16,10 +18,11 @@ public:
 	void DrawComponent(Component* component);
 	void DrawTransformPanel(ComponentTransform* transform);
 	void DrawSpriteRendererPanel(ComponentSpriteRenderer* spriteRenderer);
+	void DrawScriptPanel(ComponentScript* script);
+	bool ScriptHasChanged(string path);
+	void UpdateScript(ComponentScript * script);
 
 private:
-	bool flipX = false;
-	bool flipY = false;
-
+	map<string, CTime> scriptsChangesData;
 };
 

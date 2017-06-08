@@ -22,5 +22,7 @@ public:
 	sf::Vector2i windowSize;
 	string windowName;
 	map<int,vector<float>> layers;
+	sf::Vector2f windowPos;
+	float zoomValue = 0;
 };
 

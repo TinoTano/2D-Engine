@@ -1,0 +1,15 @@
+#pragma once
+
+// #include "" here i have to place the base class
+
+class #CLASS_NAME# {
+public:
+	//Initialize values
+	#CLASS_NAME#();
+	
+	//Called when game starts or spawned
+	void Start();
+	
+	//Called every frame
+	void Update(float deltaTime);
+}

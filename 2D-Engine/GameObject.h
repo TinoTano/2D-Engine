@@ -14,13 +14,13 @@ public:
 	GameObject(GameObject* parent);
 	virtual ~GameObject();
 
-	void AddComponent(Component::ComponentType component);
+	Component* AddComponent(Component::ComponentType component);
 	Component* GetComponent(Component::ComponentType component);
 	void SetActive(bool active);
 	bool isActive();
 	GameObject* Instantiate(GameObject objectToClone, GameObject* parent);
 	void SetParent(GameObject* parent);
-	void SetParentByName(string name);
+	void SetParentByName(string name, bool isPrefab = false);
 	GameObject* GetParent() const;
 
 	void Rename(string name);
@@ -36,7 +36,7 @@ public:
 	void DestroyOnLoadScene(bool destroy);
 
 	void Save(Data& data, bool isDuplicated = false);
-	void Load(Data & data);
+	void Load(Data & data, bool isPrefab = false);
 
 private:
 	bool destroyOnLoadScene;

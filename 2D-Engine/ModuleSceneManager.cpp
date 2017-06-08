@@ -61,6 +61,16 @@ GameObject * ModuleSceneManager::FindGameObject(string name) const
 	return nullptr;
 }
 
+GameObject * ModuleSceneManager::FindGameObjectInverse(string name) const
+{
+	for (int i = gameObjectsList.size() - 1; i >= 0; i--) {
+		if (gameObjectsList[i]->name == name) {
+			return gameObjectsList[i];
+		}
+	}
+	return nullptr;
+}
+
 GameObject * ModuleSceneManager::CreateGameObject(GameObject * parent)
 {
 	GameObject* ret = new GameObject(parent);
@@ -68,16 +78,9 @@ GameObject * ModuleSceneManager::CreateGameObject(GameObject * parent)
 		sceneRootObjects.push_back(ret);
 	}
 
-	//Rename if name exist
-	map<string, int>::iterator it = sceneGameObjectsNameCounter.find(ret->name);
-	if (it != sceneGameObjectsNameCounter.end()) {
-		sceneGameObjectsNameCounter[ret->name] += 1;
-		ret->Rename(ret->name + "(" + to_string(it->second) + ")");
-	}
-	else {
-		sceneGameObjectsNameCounter[ret->name] = 1;
-	}
+	RenameDuplicatedGameObject(ret);
 	gameObjectsList.push_back(ret);
+	engine->sceneWindow->drawableObjects.push_back(ret);
 	return ret;
 }
 
@@ -95,6 +98,9 @@ GameObject * ModuleSceneManager::DuplicateGameObject(GameObject * gameObject)
 			data.LeaveSection();
 			gameObjectsList.push_back(go);
 			engine->sceneWindow->drawableObjects.push_back(go);
+			if (i == 0) { //return the first object (parent)
+				ret = go; 
+			}
 		}
 		data.ClearData();
 		engine->sceneManagerModule->savingIndex = 0;
@@ -103,7 +109,8 @@ GameObject * ModuleSceneManager::DuplicateGameObject(GameObject * gameObject)
 	return ret;
 }
 
-void ModuleSceneManager::RenameDuplicatedGameObject(GameObject * gameObject)
+//If justIncrease == true. The gameObjects won't be rename but the name counter will increase
+void ModuleSceneManager::RenameDuplicatedGameObject(GameObject * gameObject, bool justIncrease)
 {
 	int gameObjectCount = 1;
 	//Rename if name exist
@@ -133,8 +140,8 @@ void ModuleSceneManager::RenameDuplicatedGameObject(GameObject * gameObject)
 
 	map<string, int>::iterator it = sceneGameObjectsNameCounter.find(gameObject->name);
 	if (it != sceneGameObjectsNameCounter.end()) {
-		if (sceneGameObjectsNameCounter[gameObject->name] < gameObjectCount) {
-			sceneGameObjectsNameCounter[gameObject->name] = gameObjectCount + 1;
+		if (sceneGameObjectsNameCounter[gameObject->name] < gameObjectCount && !justIncrease) {
+			sceneGameObjectsNameCounter[gameObject->name] = gameObjectCount;
 		}
 		else {
 			sceneGameObjectsNameCounter[gameObject->name] += 1;
@@ -142,7 +149,13 @@ void ModuleSceneManager::RenameDuplicatedGameObject(GameObject * gameObject)
 		gameObject->Rename(gameObject->name + "(" + to_string(it->second) + ")");
 	}
 	else {
-		sceneGameObjectsNameCounter[gameObject->name] = 1;
+		if (gameObjectCount > 1) {
+			sceneGameObjectsNameCounter[gameObject->name] = gameObjectCount;
+			gameObject->Rename(gameObject->name + "(" + to_string(gameObjectCount) + ")");
+		}
+		else {
+			sceneGameObjectsNameCounter[gameObject->name] = 1;
+		}
 	}
 }
 
@@ -154,7 +167,7 @@ void ModuleSceneManager::NewScene()
 	gameObjectsParentsNames.clear();
 	sceneRootObjects.clear();
 	selectedGameObjects.clear();
-	sceneName = "Untitled Scene";
+	engine->engineWindow->SetSceneName("Untitled Scene");
 }
 
 void ModuleSceneManager::LoadScene(string  path)

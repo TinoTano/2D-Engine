@@ -2,19 +2,34 @@
 #include "ModuleEditor.h"
 #include "tinyfiledialogs.h"
 #include "ModuleInput.h"
+#include "ModuleSceneWindow.h"
+#include "ModuleSceneManager.h"
 
 PanelAssets::PanelAssets()
 {
 	active = true;
 	panelName = "Assets";
-	folderImage = new sf::Texture();
-	folderImage->loadFromFile("../Data/folderImage.png");
+	//folderImage = new sf::Texture();
+	//folderImage->loadFromFile("../Data/folderImage.png");
 	soundImage = new sf::Texture();
 	soundImage->loadFromFile("../Data/speaker.png");
 	textureImage = new sf::Texture();
 	textureImage->loadFromFile("../Data/picture.png");
 	spr = new sf::Sprite();
 	spr->setTexture(*textureImage);
+
+	assetsPath = ASSETS_FOLDER;
+	if (!fs::exists(assetsPath)) {
+		if (fs::create_directory(ASSETS_FOLDER)) {
+			assetsPath = ASSETS_FOLDER;
+		}
+		else {
+			LOG_ERROR("Assets folder is not found and can't create new folder");
+			return;
+		}
+	}
+	selectedFolder = assetsPath;
+	FillAssetsLists();
 }
 
 
@@ -26,27 +41,34 @@ PanelAssets::~PanelAssets()
 void PanelAssets::DrawPanel()
 {
 	if (ImGui::BeginDock(panelName.c_str(), false, false, ImGuiWindowFlags_HorizontalScrollbar)) {
+		ImGui::Columns(2);
 		node = 0;
-		fs::path path(ASSETS_FOLDER);
 		ImGui::Spacing();
-		DrawChilds(path);
+		DrawChilds(assetsPath);
 
 		if (ImGui::IsMouseClicked(1) && ImGui::IsMouseHoveringWindow()) {
+			ImGui::SetNextWindowPos(ImGui::GetMousePos());
 			ImGui::OpenPopup("Assets Options");
 		}
 
 		if (!selectedFolder.empty()) {
 			if (ImGui::BeginPopup("Assets Options"))
 			{
-
 				if (ImGui::MenuItem("Create Folder")) {
 					showNewFolderWindow = true;
 				}
-				if (ImGui::MenuItem("Delete")) {
-					showDeleteAlert = true;
+				if (selectedFolder.filename().string() != "Assets") {
+					if (ImGui::MenuItem("Delete")) {
+						fs::remove_all(selectedFolder);
+					}
 				}
-				if (ImGui::MenuItem("Create C++ Script")) {
-
+				/*if (ImGui::MenuItem("Create C++ Script")) {
+					showNewScriptWindow = true;
+					scriptType = hScript;
+				}*/
+				if (ImGui::MenuItem("Create Lua Script")) {
+					showNewScriptWindow = true;
+					scriptType = luaScript;
 				}
 				ImGui::Separator();
 				if (ImGui::MenuItem("Import Sprite")) {
@@ -55,22 +77,24 @@ void PanelAssets::DrawPanel()
 					if (spritePath != NULL) {
 						fs::path oldPath(spritePath);
 						fs::path newPath(selectedFolder.string() + "\\" + oldPath.filename().string());
-						if (oldPath != newPath) {
-							fs::copy_file(oldPath, newPath);
+						if (!fs::exists(newPath)) {
+							if (oldPath != newPath) {
+								fs::copy_file(oldPath, newPath);
+							}
+							else {
+								tinyfd_messageBox("Error", "Open file name is NULL", "ok", "error", 1);
+							}
 						}
 						else {
-							tinyfd_messageBox("Error","Open file name is NULL","ok","error",1);
+							tinyfd_messageBox("Error", "A file with this name exist in current folder", "ok", "error", 1);
 						}
 					}
 				}
 				ImGui::EndPopup();
 			}
-			if (engine->inputModule->IsKeyReleased(sf::Keyboard::Delete)) {
-				showDeleteAlert = true;
-			}
 		}
 
-		if (showNewFolderWindow && !showDeleteAlert) {
+		if (showNewFolderWindow && !showNewScriptWindow) {
 			ImGui::SetNextWindowPos(ImVec2(ImGui::GetWindowSize().x / 2, ImGui::GetWindowSize().y / 2));
 			ImGui::SetNextWindowPosCenter();
 			ImGui::Begin("New Folder Name", &active,
@@ -103,63 +127,208 @@ void PanelAssets::DrawPanel()
 			ImGui::End();
 		}
 
-		if (showDeleteAlert && !showNewFolderWindow) {
+		if (showNewScriptWindow && !showNewFolderWindow) {
 			ImGui::SetNextWindowPos(ImVec2(ImGui::GetWindowSize().x / 2, ImGui::GetWindowSize().y / 2));
 			ImGui::SetNextWindowPosCenter();
-			ImGui::Begin("Delete Alert", &active,
+			ImGui::Begin("New Script Name", &active,
 				ImGuiWindowFlags_NoFocusOnAppearing |
 				ImGuiWindowFlags_AlwaysAutoResize |
 				ImGuiWindowFlags_NoCollapse |
 				ImGuiWindowFlags_ShowBorders |
 				ImGuiWindowFlags_NoTitleBar);
 			ImGui::Spacing();
-			ImGui::Text("Delete %s?", selectedFolder.filename().string().c_str());
+			ImGui::Text("New Script Name");
+			static char inputText[30];
+			ImGui::InputText("", inputText, 30);
 			ImGui::Spacing();
 			if (ImGui::Button("Confirm")) {
-				fs::remove_all(selectedFolder);
-				showDeleteAlert = false;
+				string str(inputText);
+				if (!str.empty()) {
+					str.erase(std::remove(str.begin(), str.end(), ' '), str.end());
+					CreateScript(hScript, inputText);
+					strcpy(inputText, "");
+					showNewScriptWindow = false;
+				}
 			}
 			ImGui::SameLine();
 			if (ImGui::Button("Cancel")) {
-				showDeleteAlert = false;
+				strcpy(inputText, "");
+				showNewScriptWindow = false;
 			}
 			ImGui::End();
 		}
-	}
-	ImGui::EndDock();
 
-	////////////////////////
-	if (ImGui::BeginDock("Files", false, false, ImGuiWindowFlags_HorizontalScrollbar)) {
-		if (!selectedFolder.empty()) {
-			for (auto & p : fs::directory_iterator(selectedFolder)) {
-				if (!fs::is_directory(p)) {
-					if (p.path().extension().string() == ".wav") {
-						ImGui::Image(*soundImage, { 13,13 }, sf::Color::White, sf::Color::Transparent);
-						ImGui::SameLine();
-						ImGui::Text("%s", p.path().filename().string().c_str());
-					}
-					else if (p.path().extension().string() == ".png" || p.path().extension().string() == ".jpg") {
-						ImGui::Image(*textureImage, { 13,13 }, sf::Color::White, sf::Color::Transparent);
-						ImGui::SameLine();
-						ImGui::Text("%s", p.path().filename().string().c_str());
-						if (ImGui::IsItemHoveredRect()) {
-							ImGui::BeginTooltip();
-							ImGui::Image(*textureImage, sf::Color::White, sf::Color::Transparent);
-							ImGui::EndTooltip();
-							if (ImGui::IsItemClicked(0)) {
-								draggingFile = true;
+		ImGui::NextColumn();
+
+		if (ImGui::BeginChild("Files", ImVec2(0,0), false, ImGuiWindowFlags_HorizontalScrollbar)) {
+			if (!selectedFolder.empty()) {
+				for (auto & p : fs::directory_iterator(selectedFolder)) {
+					if (!fs::is_directory(p)) {
+						if (p.path().extension().string() == ".wav") {
+							ImGui::Image(*soundImage, { 16,16 }, sf::Color::White, sf::Color::Transparent);
+							ImGui::SameLine();
+							bool selected = false;
+							if (p.path() == selectedFilePath) {
+								if (engine->sceneManagerModule->selectedGameObjects.empty()) {
+									selected = true;
+								}
+								else {
+									selectedFilePath.clear();
+								}
+							}
+							ImGui::Selectable(p.path().filename().string().c_str(), &selected, 0, { 0,0 }, false);
+							if (ImGui::IsItemHoveredRect()) {
+								if (ImGui::IsItemClicked(0) || ImGui::IsItemClicked(1) && !fileOptionsOpen) {
+									selectedFilePath = p.path();
+									engine->sceneManagerModule->selectedGameObjects.clear();
+									if (ImGui::IsItemClicked(1)) {
+										ImGui::SetNextWindowPos(ImGui::GetMousePos());
+										ImGui::OpenPopup("File Options");
+										fileOptionsOpen = true;
+									}
+								}
+							}
+						}
+						else if (p.path().extension().string() == ".png" || p.path().extension().string() == ".jpg") {
+							ImGui::Image(*textureImage, { 16,16 }, sf::Color::White, sf::Color::Transparent);
+							ImGui::SameLine();
+							bool selected = false;
+							if (p.path() == selectedFilePath) {
+								if (engine->sceneManagerModule->selectedGameObjects.empty()) {
+									selected = true;
+								}
+								else {
+									selectedFilePath.clear();
+								}
+							}
+							ImGui::Selectable(p.path().filename().string().c_str(), &selected, 0, { 0,0 }, false);
+							if (ImGui::IsItemHoveredRect()) {
+								if (!fileOptionsOpen && !engine->editorModule->dragData.hasData) {
+									ImGui::BeginTooltip();
+									if (toolTiptexture.loadFromFile(p.path().string())) {
+										toolTiptexture.setSmooth(true);
+										ImGui::Image(toolTiptexture, { 50,50 }, sf::Color::White, sf::Color::Transparent);
+									}
+									ImGui::EndTooltip();
+								}
+								if (ImGui::IsItemClicked(0) || ImGui::IsItemClicked(1) && !fileOptionsOpen) {
+									selectedFilePath = p.path();
+									engine->sceneManagerModule->selectedGameObjects.clear();
+									if (ImGui::IsItemClicked(1)) {
+										ImGui::SetNextWindowPos(ImGui::GetMousePos());
+										ImGui::OpenPopup("File Options");
+										fileOptionsOpen = true;
+									}
+									else {
+										if (!engine->editorModule->dragData.hasData) {
+											engine->editorModule->dragData.fromPanel = "Files";
+											engine->editorModule->dragData.path = p.path().string();
+											engine->editorModule->dragData.extension = p.path().extension().string();
+											engine->editorModule->dragData.name = p.path().filename().replace_extension().string();
+											engine->editorModule->dragData.hasData = true;
+											engine->editorModule->dragData.dragSprite.setTexture(toolTiptexture, true);
+											engine->editorModule->dragData.dragSprite.setOrigin(engine->editorModule->dragData.dragSprite.getLocalBounds().width / 2, engine->editorModule->dragData.dragSprite.getLocalBounds().height / 2);
+										}
+									}
+								}
+							}
+						}
+						else if (p.path().extension().string() == ".prefab") {
+							bool selected = false;
+							if (p.path() == selectedFilePath) {
+								if (engine->sceneManagerModule->selectedGameObjects.empty()) {
+									selected = true;
+								}
+								else {
+									selectedFilePath.clear();
+								}
+							}
+							ImGui::Selectable(p.path().filename().string().c_str(), &selected, 0, { 0,0 }, false);
+							if (ImGui::IsItemHoveredRect()) {
+								if (ImGui::IsItemClicked(0) || ImGui::IsItemClicked(1) && !fileOptionsOpen) {
+									selectedFilePath = p.path();
+									engine->sceneManagerModule->selectedGameObjects.clear();
+									if (ImGui::IsItemClicked(1)) {
+										ImGui::SetNextWindowPos(ImGui::GetMousePos());
+										ImGui::OpenPopup("File Options");
+										fileOptionsOpen = true;
+									}
+									else {
+										if (!engine->editorModule->dragData.hasData) {
+											engine->editorModule->dragData.fromPanel = "Files";
+											engine->editorModule->dragData.path = p.path().string();
+											engine->editorModule->dragData.extension = p.path().extension().string();
+											engine->editorModule->dragData.name = p.path().filename().replace_extension().string();
+											engine->editorModule->dragData.hasData = true;
+										}
+									}
+								}
+							}
+						}
+						else {
+							bool selected = false;
+							if (p.path() == selectedFilePath) selected = true;
+							ImGui::Selectable(p.path().filename().string().c_str(), &selected, 0, { 0,0 }, false);
+							if (ImGui::IsItemClicked(0) || ImGui::IsItemClicked(1) && !fileOptionsOpen) {
+								selectedFilePath = p.path();
+								engine->sceneManagerModule->selectedGameObjects.clear();
+								if (ImGui::IsItemClicked(1)) {
+									ImGui::SetNextWindowPos(ImGui::GetMousePos());
+									ImGui::OpenPopup("File Options");
+									fileOptionsOpen = true;
+								}
 							}
 						}
 					}
-					else {
-						ImGui::Text("%s", p.path().filename().string().c_str());
+				}
+				if (ImGui::IsMouseHoveringWindow()) {
+					if (ImGui::IsMouseReleased(0) && engine->editorModule->dragData.hasData) {
+						if (engine->editorModule->dragData.fromPanel == "Hierarchy") {
+							Data data;
+							engine->editorModule->draggingGameObject->Save(data);
+							data.AddInt("GameObjectsCount", engine->sceneManagerModule->savingIndex);
+							data.SaveAsBinary(selectedFolder.string() + "\\" + engine->editorModule->draggingGameObject->name + ".prefab");
+							engine->sceneManagerModule->savingIndex = 0;
+							engine->editorModule->draggingGameObject = nullptr;
+						}
+						engine->editorModule->dragData.clearData();
 					}
 				}
 			}
+
+			if (ImGui::BeginPopup("File Options"))
+			{
+				if (ImGui::MenuItem("Rename")) {
+					fileOptionsOpen = false;
+				}
+				if (ImGui::MenuItem("Delete")) {
+					fs::remove(selectedFilePath);
+					fileOptionsOpen = false;
+				}
+
+				ImGui::EndPopup();
+			}
+			else {
+				fileOptionsOpen = false;
+			}
 		}
+		ImGui::EndChild();
 	}
 	ImGui::EndDock();
+
 	
+	
+}
+
+void PanelAssets::FillAssetsLists()
+{
+	for (auto & p : fs::recursive_directory_iterator(assetsPath)) {
+		if (!fs::is_directory(p)) {
+			if (p.path().extension().string() == ".h" || p.path().extension().string() == ".cs" || p.path().extension().string() == ".lua" || p.path().extension().string() == ".js") {
+				engine->editorModule->scriptList.push_back(new fs::path(p.path()));
+			}
+		}
+	}
 }
 
 void PanelAssets::DrawChilds(fs::path path)
@@ -182,18 +351,15 @@ void PanelAssets::DrawChilds(fs::path path)
 
 	flag |= ImGuiTreeNodeFlags_OpenOnArrow;
 
-	if (selectedFolder == path && !showDeleteAlert && !showNewFolderWindow) {
+	if (selectedFolder == path && !showNewFolderWindow) {
 		flag |= ImGuiTreeNodeFlags_Selected;
 	}
 
-	if (ImGui::TreeNodeEx((void*)folderImage->getNativeHandle(), { 16,12 }, nodeName, flag))
+	if (ImGui::TreeNodeEx(nodeName, flag))
 	{
-		float folderNameSize = ImGui::CalcTextSize(path.filename().string().c_str()).x;
-		
-		if (ImGui::IsMouseHoveringRect(ImGui::GetItemRectMin(), ImVec2(ImGui::GetItemRectMax().x + folderNameSize + 10, ImGui::GetItemRectMax().y)) && ImGui::IsMouseReleased(0)) {
+		if (ImGui::IsItemClicked(0) || ImGui::IsItemClicked(1)) {
 			selectedFolder = path;
 		}
-		ImGui::Spacing();
 		for (auto & p : fs::directory_iterator(path)) {
 			if (fs::is_directory(p)) {
 				DrawChilds(p);
@@ -202,11 +368,68 @@ void PanelAssets::DrawChilds(fs::path path)
 		ImGui::TreePop();
 	}
 	else {
-		float folderNameSize = ImGui::CalcTextSize(path.filename().string().c_str()).x;
-
-		if (ImGui::IsMouseHoveringRect(ImGui::GetItemRectMin(), ImVec2(ImGui::GetItemRectMax().x + folderNameSize + 10, ImGui::GetItemRectMax().y)) && ImGui::IsMouseReleased(0)) {
+		if (ImGui::IsItemClicked(0) || ImGui::IsItemClicked(1)) {
 			selectedFolder = path;
 		}
-		ImGui::Spacing();
 	}
+}
+
+void PanelAssets::CreateScript(ScripType type, string scriptName)
+{
+	ifstream inFile;
+	string newFileName;
+
+	switch (type) {
+	case cppScript:
+		inFile.open(CPP_TEMPLATE_FILE_PATH);
+		newFileName = scriptName + ".cpp";
+		break;
+	case hScript:
+		inFile.open(H_TEMPLATE_FILE_PATH);
+		newFileName = scriptName + ".h";
+		break;
+	case csScript:
+		newFileName = scriptName + ".cs";
+		break;
+	case jsScript:
+		newFileName = scriptName + ".js";
+		break;
+	case luaScript:
+		inFile.open(LUA_TEMPLATE_FILE_PATH);
+		newFileName = scriptName + ".lua";
+		break;
+	}
+
+	if (inFile.is_open()) {
+		stringstream strStream;
+		strStream << inFile.rdbuf();//read the file
+		string str = strStream.str();//str holds the content of the file
+
+		if (str.empty())
+			return;
+		size_t start_pos = 0;
+		string headerNameTemplate = "#H_FILENAME#";
+		if ((start_pos = str.find(headerNameTemplate, start_pos)) != std::string::npos) {
+			str.replace(start_pos, headerNameTemplate.length(), scriptName);
+		}
+		start_pos = 0;
+		string classNameTemplate = "#CLASS_NAME#";
+		while ((start_pos = str.find(classNameTemplate, start_pos)) != std::string::npos) {
+			str.replace(start_pos, classNameTemplate.length(), scriptName);
+			start_pos += scriptName.length();
+		}
+
+		inFile.close();
+
+		ofstream outputFile(selectedFolder.string() + "\\" + newFileName);
+		outputFile << str;
+		outputFile.close();
+
+		engine->editorModule->scriptList.push_back(new fs::path(selectedFolder.string() + "\\" + newFileName));
+
+		if (type == hScript) {
+			CreateScript(cppScript, scriptName);
+		}
+	}
+	
 }

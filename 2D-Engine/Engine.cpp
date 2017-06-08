@@ -77,6 +77,54 @@ bool Engine::PostUpdate()
 	return ret;
 }
 
+void Engine::Play()
+{
+	if (state == OnStop) {
+		state = OnPlay;
+	}
+}
+
+void Engine::Pause()
+{
+	if (state == OnPlay) {
+		state = OnPause;
+	}
+}
+
+void Engine::UnPause()
+{
+	if (state == OnPause) {
+		state = OnPlay;
+	}
+}
+
+void Engine::Stop()
+{
+	if (state == OnPlay || state == OnPause) {
+		state = OnStop;
+	}
+}
+
+bool Engine::IsPlaying()
+{
+	return state == OnPlay;
+}
+
+bool Engine::IsPaused()
+{
+	return state == OnPause;
+}
+
+bool Engine::IsStopped()
+{
+	return state == OnStop;
+}
+
+void Engine::QuitEngine()
+{
+	quit = true;
+}
+
 float Engine::GetFPS() const
 {
 	return FPS;

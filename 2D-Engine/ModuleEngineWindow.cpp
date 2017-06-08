@@ -1,12 +1,12 @@
 #include "ModuleEngineWindow.h"
 #include "Engine.h"
 #include "ModuleSceneWindow.h"
+#include "ModuleSceneManager.h"
 
 ModuleEngineWindow::ModuleEngineWindow()
 {
 	moduleName = "Engine Window";
 	windowName = "2D Engine - Untitled Scene";
-	window = nullptr;
 }
 
 
@@ -48,4 +48,5 @@ bool ModuleEngineWindow::CleanUp()
 void ModuleEngineWindow::SetSceneName(string name)
 {
 	window->setTitle("2D Engine - " + name);
+	engine->sceneManagerModule->sceneName = name;
 }

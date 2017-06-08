@@ -6,6 +6,7 @@ PanelConsole::PanelConsole()
 {
 	active = true;
 	panelName = "Console";
+	UpdateLabels();
 }
 
 
@@ -16,31 +17,36 @@ PanelConsole::~PanelConsole()
 void PanelConsole::DrawPanel()
 {
 	if (ImGui::BeginDock(panelName.c_str(), false, false, ImGuiWindowFlags_HorizontalScrollbar)) {
-		if (ImGui::Button("Clear")) Clear();
+		if (ImGui::Button(logsLabel.c_str())) {
+			showLogs = !showLogs;
+		}
 		ImGui::SameLine();
-		bool copy = ImGui::Button("Copy");
+		if (ImGui::Button(warningsLabel.c_str())) {
+			showWarnings = !showWarnings;
+		}
 		ImGui::SameLine();
-		Filter.Draw("Filter", -100.0f);
+		if (ImGui::Button(errorsLabel.c_str())) {
+			showErrors = !showErrors;
+		}
+		ImGui::SameLine();
+		if (ImGui::Button("Clear")) {
+			Clear();
+		}
+
 		ImGui::Separator();
 		ImGui::BeginChild("scrolling");
 		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 1));
-		if (copy) ImGui::LogToClipboard();
 
-		if (Filter.IsActive())
-		{
-			const char* buf_begin = Buf.begin();
-			const char* line = buf_begin;
-			for (int line_no = 0; line != NULL; line_no++)
-			{
-				const char* line_end = (line_no < LineOffsets.Size) ? buf_begin + LineOffsets[line_no] : NULL;
-				if (Filter.PassFilter(line, line_end))
-					ImGui::TextUnformatted(line, line_end);
-				line = line_end && line_end[1] ? line_end + 1 : NULL;
+		for (int i = 0; i < messageList.size(); i++) {
+			if (showErrors && messageList[i].find("Error") != string::npos) {
+				ImGui::TextColored(errorTextColor, "%s", messageList[i].c_str());
 			}
-		}
-		else
-		{
-			ImGui::TextUnformatted(Buf.begin());
+			else if (showWarnings && messageList[i].find("Warning") != string::npos) {
+				ImGui::TextColored(warningTextColor, "%s", messageList[i].c_str());
+			}
+			else if (showLogs && messageList[i].find("Log") != string::npos){
+				ImGui::Text("%s", messageList[i].c_str());
+			}
 		}
 
 		if (ScrollToBottom)
@@ -54,18 +60,54 @@ void PanelConsole::DrawPanel()
 
 void PanelConsole::Clear()
 {
-	Buf.clear(); LineOffsets.clear();
+	messageList.clear();
+	logs = 0;
+	warnings = 0;
+	errors = 0;
+	UpdateLabels();
 }
 
-void PanelConsole::AddLog(const char* fmt, ...) IM_PRINTFARGS(2)
+void PanelConsole::UpdateLabels()
 {
-	int old_size = Buf.size();
-	va_list args;
-	va_start(args, fmt);
-	Buf.appendv(fmt, args);
-	va_end(args);
-	for (int new_size = Buf.size(); old_size < new_size; old_size++)
-		if (Buf[old_size] == '\n')
-			LineOffsets.push_back(old_size);
+	errorsLabel = "Errors (" + to_string(errors) + ")";
+	warningsLabel = "Warnings (" + to_string(warnings) + ")";
+	logsLabel = "Logs (" + to_string(logs) + ")";
+}
+
+void PanelConsole::AddLog(string log, bool isError, bool isWarning)
+{
+	string logPrefix;
+
+	if (isError) {
+		logPrefix += " [Error]  ";
+		if (errors < 99) {
+			errors++;
+		}
+		else {
+			messageList.erase(messageList.begin());
+		}
+	}
+	else if (isWarning) {
+		logPrefix += " [Warning]  ";
+		if (warnings < 99) {
+			warnings++;
+		}
+		else {
+			messageList.erase(messageList.begin());
+		}
+	}
+	else {
+		logPrefix += " [Log]  ";
+		if (logs < 99) {
+			logs++;
+		}
+		else {
+			messageList.erase(messageList.begin());
+		}
+	}
+	
+	logPrefix += log;
+	messageList.push_back(logPrefix);
 	ScrollToBottom = true;
+	UpdateLabels();
 }

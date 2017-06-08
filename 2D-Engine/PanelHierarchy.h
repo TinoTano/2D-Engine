@@ -15,9 +15,13 @@ public:
 	
 private:
 	bool showRenameWindow = false;
-	uint node = 0;
 	char nodeName[30];
 	bool showRenameError = false;
 	GameObject* openGameObjectNode = nullptr;
+	GameObject* gameObjectToRename = nullptr;
+	float renameWindowY;
+	bool b = false;
+	int i = 0;
+	int i2 = 0;
 };
 

@@ -13,6 +13,11 @@ class ModuleSceneManager;
 class Engine
 {
 public:
+
+	enum EngineState {
+		OnPlay, OnPause, OnStop
+	};
+
 	Engine();
 	~Engine();
 
@@ -23,6 +28,16 @@ public:
 	bool PreUpdate();
 	bool DoUpdate();
 	bool PostUpdate();
+
+	void Play();
+	void Pause();
+	void UnPause();
+	void Stop();
+	bool IsPlaying();
+	bool IsPaused();
+	bool IsStopped();
+
+	void QuitEngine();
 	
 	float GetFPS()const;
 
@@ -34,8 +49,6 @@ public:
 	ModuleAudio* audioModule = nullptr;
 	ModuleEditor* editorModule = nullptr;
 	ModuleSceneManager* sceneManagerModule = nullptr;
-
-	bool quit = false;
 	sf::Time time;
 
 private:
@@ -43,6 +56,8 @@ private:
 	sf::Clock clock;
 	float deltaTime;
 	float FPS;
+	EngineState state = EngineState::OnStop;
+	bool quit = false;
 };
 
 extern Engine* engine;

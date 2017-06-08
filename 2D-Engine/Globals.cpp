@@ -1,11 +1,8 @@
 #include "Globals.h"
-
-#define WIN32_MEAN_AND_LEAN
-#include <windows.h>   // we only really need this for OutDebugString :(
-#include <stdio.h>
 #include "Engine.h"
+#include "ModuleEditor.h"
 
-void _log(const char file[], int line, const char* format, ...)
+void Log(const char file[], const char function[], int line, bool isWarning, bool isError, const char* format, ...)
 {
 	static char tmp_string[4096];
 	static char tmp_string2[4096];
@@ -15,6 +12,15 @@ void _log(const char file[], int line, const char* format, ...)
 	va_start(ap, format);
 	vsprintf_s(tmp_string, 4096, format, ap);
 	va_end(ap);
-	sprintf_s(tmp_string2, 4096, "\n%s(%d) : %s", file, line, tmp_string);
-	OutputDebugString(tmp_string2);
+	sprintf_s(tmp_string2, 4096, "%s\n At: %s => %s() => Line: %d.", tmp_string, file, function, line);
+	
+	if (isWarning) {
+		engine->editorModule->PrintWarningLog(tmp_string2);
+	}
+	else if (isWarning) {
+		engine->editorModule->PrintErrorLog(tmp_string2);
+	}
+	else {
+		engine->editorModule->PrintLog(tmp_string2);
+	}
 }

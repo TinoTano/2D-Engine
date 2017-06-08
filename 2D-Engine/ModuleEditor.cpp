@@ -23,13 +23,13 @@ bool ModuleEditor::Awake()
 {
 	ImGuiIO& io = ImGui::GetIO();
 	io.Fonts->AddFontDefault();
-	font = io.Fonts->AddFontFromFileTTF("../Data/OpenSans-Semibold.ttf", 18);
+	font = io.Fonts->AddFontFromFileTTF("../Data/OpenSans-Semibold.ttf", 16);
 	ImGui::SFML::Init(*(engine->engineWindow->window), NULL);
 	engine->engineWindow->window->resetGLStates();
-	editorPanels.push_back(hierarchyPanel = new PanelHierarchy());
-	editorPanels.push_back(assetsPanel = new PanelAssets());
-	editorPanels.push_back(propertiesPanel = new PanelProperties());
 	editorPanels.push_back(scenePanel = new PanelScene());
+	editorPanels.push_back(assetsPanel = new PanelAssets());
+	editorPanels.push_back(hierarchyPanel = new PanelHierarchy());
+	editorPanels.push_back(propertiesPanel = new PanelProperties());
 	editorPanels.push_back(consolePanel = new PanelConsole());
 	ImGui::LoadDocks();
 	return true;
@@ -50,8 +50,10 @@ bool ModuleEditor::Update(float deltaTime)
 		ImGuiStyle& style = ImGui::GetStyle();
 		ImVec4 previusColor = style.Colors[ImGuiCol_Text];
 		style.Colors[ImGuiCol_Text] = ImVec4(0.00f, 0.00f, 0.00f, 1.00f);
+		ImGui::SetWindowFontScale(1.1f);
 		if (ImGui::BeginMenu("File"))
 		{
+			style.Colors[ImGuiCol_Text] = ImVec4(1.00f, 1.00f, 1.00f, 1.00f);
 			if (ImGui::MenuItem("New Scene")) {
 				engine->sceneManagerModule->NewScene();
 			}
@@ -80,28 +82,32 @@ bool ModuleEditor::Update(float deltaTime)
 							getChar = true;
 						}
 					}
+					engine->engineWindow->SetSceneName(newSceneName);
 					engine->sceneManagerModule->SaveScene(path);
 					engine->sceneManagerModule->savingIndex = 0;
-					engine->engineWindow->SetSceneName(newSceneName);
 				}
 			}
 			if (ImGui::MenuItem("Exit")) {
-				engine->quit = true;
+				engine->QuitEngine();
 			}
 
 			ImGui::EndMenu();
+			style.Colors[ImGuiCol_Text] = ImVec4(0.00f, 0.00f, 0.00f, 1.00f);
 		}
-
+		
 		if (ImGui::BeginMenu("Windows"))
 		{
+			style.Colors[ImGuiCol_Text] = ImVec4(1.00f, 1.00f, 1.00f, 1.00f);
 			//ImGui::MenuItem("Animator", "1", true);
 			ImGui::EndMenu();
+			style.Colors[ImGuiCol_Text] = ImVec4(0.00f, 0.00f, 0.00f, 1.00f);
 		}
-
+	
 		if (ImGui::BeginMenu("Help"))
 		{
-
+			style.Colors[ImGuiCol_Text] = ImVec4(1.00f, 1.00f, 1.00f, 1.00f);
 			ImGui::EndMenu();
+			style.Colors[ImGuiCol_Text] = ImVec4(0.00f, 0.00f, 0.00f, 1.00f);
 		}
 		ImGui::EndMainMenuBar();
 		style.Colors[ImGuiCol_Text] = previusColor;
@@ -128,6 +134,9 @@ bool ModuleEditor::Update(float deltaTime)
 	
 	}
 
+	/*ImGui::SameLine();
+	ImGui::Text("%f", engine->GetFPS());*/
+
 	ImGui::Separator();
 	ImGui::BeginDockspace();
 	for (vector<Panel*>::iterator it = editorPanels.begin(); it != editorPanels.end(); it++) {
@@ -153,4 +162,25 @@ bool ModuleEditor::CleanUp()
 	ImGui::SaveDocks();
 	ImGui::SFML::Shutdown();
 	return true;
+}
+
+void ModuleEditor::PrintLog(string log)
+{
+	if (consolePanel != nullptr) {
+		consolePanel->AddLog(log);
+	}
+}
+
+void ModuleEditor::PrintWarningLog(string log)
+{
+	if (consolePanel != nullptr) {
+		consolePanel->AddLog(log, false, true);
+	}
+}
+
+void ModuleEditor::PrintErrorLog(string log)
+{
+	if (consolePanel != nullptr) {
+		consolePanel->AddLog(log, true, false);
+	}
 }

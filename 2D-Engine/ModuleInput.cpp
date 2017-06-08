@@ -30,7 +30,7 @@ bool ModuleInput::PreUpdate()
 			// window closed
 		case sf::Event::Closed:
 			engine->engineWindow->window->close();
-			engine->quit = true;
+			engine->QuitEngine();
 			break;
 
 		case sf::Event::Resized:

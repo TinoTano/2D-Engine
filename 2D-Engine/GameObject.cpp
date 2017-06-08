@@ -3,6 +3,7 @@
 #include "Engine.h"
 #include "ComponentTransform.h"
 #include "ComponentSpriteRenderer.h"
+#include "ComponentScript.h"
 #include "ModuleSceneWindow.h"
 #include "Data.h"
 
@@ -72,7 +73,7 @@ GameObject::~GameObject()
 	}
 }
 
-void GameObject::AddComponent(Component::ComponentType componentType)
+Component* GameObject::AddComponent(Component::ComponentType componentType)
 {
 
 	Component* component = nullptr;
@@ -98,10 +99,13 @@ void GameObject::AddComponent(Component::ComponentType componentType)
 	case Component::Animator:
 		break;
 	case Component::Script:
+		componentsList.push_back(component = new ComponentScript(this));
 		break;
 	default:
 		break;
 	}
+	
+	return component;
 }
 
 void GameObject::SetActive(bool active)
@@ -148,9 +152,14 @@ void GameObject::SetParent(GameObject* parent)
 	engine->sceneManagerModule->sceneRootObjects.remove(this);
 }
 
-void GameObject::SetParentByName(string name)
+void GameObject::SetParentByName(string name, bool isPrefab)
 {
-	SetParent(engine->sceneManagerModule->FindGameObject(name));
+	if (isPrefab) {
+		SetParent(engine->sceneManagerModule->FindGameObjectInverse(name));
+	}
+	else {
+		SetParent(engine->sceneManagerModule->FindGameObject(name));
+	}
 }
 
 GameObject * GameObject::GetParent() const
@@ -188,6 +197,10 @@ void GameObject::OnDestroy()
 	}
 	if (parent != nullptr && !parent->onDestroy) {
 		parent->childs.remove(this);
+	}
+	vector<GameObject*>::iterator it = find(engine->sceneManagerModule->gameObjectsList.begin(), engine->sceneManagerModule->gameObjectsList.end(), this);
+	if (it != engine->sceneManagerModule->gameObjectsList.end()) {
+		engine->sceneManagerModule->gameObjectsList.erase(it);
 	}
 }
 
@@ -264,7 +277,7 @@ void GameObject::Save(Data & data, bool isDuplicated)
 	name = tempName;
 }
 
-void GameObject::Load(Data & data)
+void GameObject::Load(Data & data, bool isPrefab)
 {
 	name = data.GetString("Name");
 	tag = data.GetString("Tag");
@@ -288,7 +301,7 @@ void GameObject::Load(Data & data)
 	data.LeaveSection();
 	string parentName = data.GetString("ParentName");
 	if (parentName != "NULL") {
-		SetParentByName(parentName);
+		SetParentByName(parentName, isPrefab);
 	}
 	positionZ = data.GetFloat("PositionZ");
 	isRoot = data.GetBool("IsRoot");
@@ -296,42 +309,44 @@ void GameObject::Load(Data & data)
 		engine->sceneManagerModule->sceneRootObjects.push_back(this);
 	}
 
-	//Store gameObject name to know the existing gameObjects when loading scene
-	int gameObjectCount = 1;
-	bool inParenthesis = false;
-	string str;
-	string tempName = name;
-	for (int i = 0; i < name.size(); i++) {
-		if (name[i] == ')') {
-			inParenthesis = false;
-			if (name[i + 1] == '\0') {
-				break;
+	if (!isPrefab) {
+		//Store gameObject name to know the existing gameObjects when loading scene
+		int gameObjectCount = 1;
+		bool inParenthesis = false;
+		string str;
+		string tempName = name;
+		for (int i = 0; i < name.size(); i++) {
+			if (name[i] == ')') {
+				inParenthesis = false;
+				if (name[i + 1] == '\0') {
+					break;
+				}
+				else {
+					str.clear();
+				}
 			}
-			else {
-				str.clear();
+			if (inParenthesis) {
+				str.push_back(name[i]);
+			}
+			if (name[i] == '(') {
+				inParenthesis = true;
 			}
 		}
-		if (inParenthesis) {
-			str.push_back(name[i]);
+		if (atoi(str.c_str()) != 0) {
+			name.erase(name.end() - (str.length() + 2), name.end());
+			gameObjectCount = stoi(str);
 		}
-		if (name[i] == '(') {
-			inParenthesis = true;
-		}
-	}
-	if (atoi(str.c_str()) != 0) {
-		name.erase(name.end() - (str.length() + 2), name.end());
-		gameObjectCount = stoi(str);
-	}
 
-	map<string, int>::iterator it = engine->sceneManagerModule->sceneGameObjectsNameCounter.find(name);
-	if (it != engine->sceneManagerModule->sceneGameObjectsNameCounter.end()) {
-		if (engine->sceneManagerModule->sceneGameObjectsNameCounter[name] < gameObjectCount) {
-			engine->sceneManagerModule->sceneGameObjectsNameCounter[name] = gameObjectCount;
+		map<string, int>::iterator it = engine->sceneManagerModule->sceneGameObjectsNameCounter.find(name);
+		if (it != engine->sceneManagerModule->sceneGameObjectsNameCounter.end()) {
+			if (engine->sceneManagerModule->sceneGameObjectsNameCounter[name] < gameObjectCount) {
+				engine->sceneManagerModule->sceneGameObjectsNameCounter[name] = gameObjectCount;
+			}
 		}
+		else {
+			engine->sceneManagerModule->sceneGameObjectsNameCounter[name] = 1;
+		}
+		name = tempName;
 	}
-	else {
-		engine->sceneManagerModule->sceneGameObjectsNameCounter[name] = 1;
-	}
-	name = tempName;
+	
 }
-

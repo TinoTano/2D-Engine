@@ -27,6 +27,9 @@
     <Filter Include="GameObject\Components">
       <UniqueIdentifier>{53072041-63bc-407e-90fd-7732a6702bee}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Scripting">
+      <UniqueIdentifier>{9bf1e37f-29ae-4772-b6e1-c4a2a3903ffb}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -110,6 +113,15 @@
     <ClCompile Include="PanelProperties.cpp">
       <Filter>Editor</Filter>
     </ClCompile>
+    <ClCompile Include="LuaScript.cpp">
+      <Filter>Scripting</Filter>
+    </ClCompile>
+    <ClCompile Include="Script.cpp">
+      <Filter>Scripting</Filter>
+    </ClCompile>
+    <ClCompile Include="ComponentScript.cpp">
+      <Filter>GameObject\Components</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Engine.h">
@@ -183,6 +195,15 @@
     </ClInclude>
     <ClInclude Include="PanelProperties.h">
       <Filter>Editor</Filter>
+    </ClInclude>
+    <ClInclude Include="LuaScript.h">
+      <Filter>Scripting</Filter>
+    </ClInclude>
+    <ClInclude Include="Script.h">
+      <Filter>Scripting</Filter>
+    </ClInclude>
+    <ClInclude Include="ComponentScript.h">
+      <Filter>GameObject\Components</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

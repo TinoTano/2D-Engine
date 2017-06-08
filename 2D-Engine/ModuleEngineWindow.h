@@ -15,7 +15,7 @@ public:
 	void SetSceneName(string name);
 
 public:
-	sf::RenderWindow* window;
+	sf::RenderWindow* window = nullptr;
 
 private:
 	string windowName;

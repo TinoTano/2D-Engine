@@ -9,7 +9,7 @@ public:
 	ComponentSpriteRenderer(GameObject* attachedObject);
 	virtual ~ComponentSpriteRenderer();
 
-	void ChangeSprite(string path);
+	bool ChangeSprite(string path);
 
 	void OnEnable();
 	void OnDisable();
@@ -21,5 +21,7 @@ public:
 	sf::Sprite* gameObjectSprite;
 	sf::Texture* spriteTexture;
 	string spritePath;
+	bool isFlippedX;
+	bool isFlippedY;
 };
 
