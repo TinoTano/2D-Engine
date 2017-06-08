@@ -14,7 +14,7 @@ Personal 2D Engine for my own games and learning purposes.
 * Assets browser.
 * Scene view.
 * Game object components.
-* Scripting system using lua. (Working on this)
+* Scripting system using lua.
 
 ## Future tasks
 
