@@ -3,13 +3,13 @@ Personal 2D Engine for my own games and learning purposes.
 
 ![](http://i68.tinypic.com/snp729.jpg)
 
-## Functional
+## Fully functional
 
 * Create/Delete/Duplicate/Rename GameObjects.
 * Save/Load Scenes.
 * Console.
 
-## Work in progress
+## Half functional - Work in progress
 
 * Assets browser.
 * Scene view.
