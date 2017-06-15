@@ -8,6 +8,7 @@ Personal 2D Engine for my own games and learning purposes.
 * Create/Delete/Duplicate/Rename GameObjects.
 * Save/Load Scenes.
 * Console.
+* Sprites animation.
 
 ## Half functional - Work in progress
 
@@ -18,7 +19,6 @@ Personal 2D Engine for my own games and learning purposes.
 
 ## Future tasks
 
-* Sprites animation.
 * Collisions.
 * Particles.
 * Audio.
@@ -27,11 +27,11 @@ Personal 2D Engine for my own games and learning purposes.
 
 ## 3rd party libraries
 
-* [SFML](https://www.sfml-dev.org/)
-* [cereal](http://uscilab.github.io/cereal/index.html)
-* [ImGui](https://github.com/ocornut/imgui)
+* [SFML-2.4.2](https://www.sfml-dev.org/)
+* [cereal-1.2.2](http://uscilab.github.io/cereal/index.html)
+* [imgui-1.49](https://github.com/ocornut/imgui)
 * [tinyfiledialogs](https://sourceforge.net/projects/tinyfiledialogs/)
-* [lua](https://www.lua.org/)
+* [lua-5.3](https://www.lua.org/)
 
 ## Thanks to
 
