@@ -9,5 +9,8 @@ public:
 	virtual ~PanelScene();
 	
 	void DrawPanel();
+
+private:
+	sf::Vector2f storedSceneSize;
 };
 

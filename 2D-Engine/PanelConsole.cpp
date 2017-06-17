@@ -47,6 +47,9 @@ void PanelConsole::DrawPanel()
 			else if (showLogs && messageList[i].find("Log") != string::npos){
 				ImGui::Text("%s", messageList[i].c_str());
 			}
+			else {
+				ImGui::Text("");
+			}
 		}
 
 		if (ScrollToBottom)
@@ -108,6 +111,7 @@ void PanelConsole::AddLog(string log, bool isError, bool isWarning)
 	
 	logPrefix += log;
 	messageList.push_back(logPrefix);
+	messageList.push_back("");
 	ScrollToBottom = true;
 	UpdateLabels();
 }

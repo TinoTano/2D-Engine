@@ -30,6 +30,7 @@ private:
 	sf::Texture* folderImage = nullptr;
 	sf::Texture* soundImage = nullptr;
 	sf::Texture* textureImage = nullptr;
+	sf::Texture* luaScriptImage = nullptr;
 	string filePanel;
 	ImVec4 color;
 	sf::Sprite* spr = nullptr;

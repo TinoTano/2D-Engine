@@ -2,6 +2,7 @@
 
 #include <string>
 #include <list>
+#include "Globals.h"
 
 using namespace std;
 
@@ -9,17 +10,20 @@ class Resource
 {
 public:
 	enum ResourceType {
-		Texture, Scene, Audio, Animation, Prefab, Script
+		spriteResource, sceneResource, animationResource, prefabResource, scriptResource, soundResource, musicResource, unknown
 	};
 public:
 	Resource();
 	virtual ~Resource();
 
 	Resource::ResourceType GetType() const;
+	string GetName() const;
+	string GetPath() const;
 
 public:
-	ResourceType resourceType;
+	ResourceType resourceType = unknown;
 	string name;
-	list<Resource*> childs;
+	string path;
+	UID uid = 0;
 };
 

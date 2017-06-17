@@ -3,9 +3,13 @@
 #include "ComponentTransform.h"
 #include "ComponentSpriteRenderer.h"
 #include "ComponentScript.h"
+#include "ComponentAnimation.h"
 #include "Component.h"
 #include "ModuleSceneManager.h"
 #include "Engine.h"
+#include "ModuleInput.h"
+#include "ResourceAnimation.h"
+#include "ComponentAudio.h"
 
 bool LuaScript::insideFunction = false;
 
@@ -32,12 +36,23 @@ bool LuaScript::InitScript(const char* code, GameObject * container)
 	RegisterAPI(luaState);
 
 	if (luaL_loadstring(luaState, code) == 0) {
+		lua_newtable(luaState);
+		lua_pushstring(luaState, "Type");
+		lua_pushstring(luaState, "GameObject");
+		lua_settable(luaState, -3);
+		lua_pushstring(luaState, "Data");
 		lua_pushlightuserdata(luaState, container);
+		lua_settable(luaState, -3);
 		lua_setglobal(luaState, "this");
 		ret = LuaUtils::CallFunction(luaState, NULL);
 		if (ret) {
 			hasStartFunction = LuaUtils::FunctionExist(luaState, "Start");
 			hasUpdateFunction = LuaUtils::FunctionExist(luaState, "Update");
+			hasOnCollisionEnter = LuaUtils::FunctionExist(luaState, "OnCollisionEnter");
+			hasOnCollisionStay = LuaUtils::FunctionExist(luaState, "OnCollisionStay");
+			hasOnCollisionExit = LuaUtils::FunctionExist(luaState, "OnCollisionExit");
+			hasOnEnable = LuaUtils::FunctionExist(luaState, "OnEnable");
+			hasOnDisable = LuaUtils::FunctionExist(luaState, "OnDisable");
 			insideFunction = true;
 		}
 	}
@@ -61,8 +76,49 @@ void LuaScript::UpdateScript(float deltaTime)
 	}
 }
 
+void LuaScript::OnCollisionEnter()
+{
+	if (luaState && hasOnCollisionEnter) {
+		LuaUtils::CallFunction(luaState, "OnCollisionEnter");
+	}
+}
+
+void LuaScript::OnCollisionStay()
+{
+	if (luaState && hasOnCollisionStay) {
+		LuaUtils::CallFunction(luaState, "OnCollisionStay");
+	}
+}
+
+void LuaScript::OnCollisionExit()
+{
+	if (luaState && hasOnCollisionExit) {
+		LuaUtils::CallFunction(luaState, "OnCollisionExit");
+	}
+}
+
+void LuaScript::OnEnable()
+{
+	if (luaState && hasOnEnable) {
+		LuaUtils::CallFunction(luaState, "OnEnable");
+	}
+}
+
+void LuaScript::OnDisable()
+{
+	if (luaState && hasOnDisable) {
+		LuaUtils::CallFunction(luaState, "OnDisable");
+	}
+}
+
 void LuaScript::CallFunction(const char * function)
 {
+	if (LuaUtils::FunctionExist(luaState, function)) {
+		LuaUtils::CallFunction(luaState, function);
+	}
+	else {
+		LOG_WARNING("Trying to call non-existent function %s", function);
+	}
 }
 
 void LuaScript::SetIntProperty(const char* propertyName, int value)
@@ -209,16 +265,31 @@ void LuaScript::SetGameObjectProperty(const char* propertyName, GameObject * val
 	bool exists = false;
 
 	lua_getglobal(luaState, propertyName);
-	if (lua_islightuserdata(luaState, lua_gettop(luaState)))
+
+	if (lua_istable(luaState, lua_gettop(luaState)))
 	{
-		exists = true;
+		lua_pushstring(luaState, "Type");
+		lua_gettable(luaState, -2);
+		if (lua_isstring(luaState, -1)) {
+			string str = lua_tostring(luaState, -1);
+			if (str == "GameObject")
+			{
+				exists = true;
+			}
+		}
 	}
 
 	lua_pop(luaState, 1);
 
 	if (exists)
 	{
+		lua_newtable(luaState);
+		lua_pushstring(luaState, "Type");
+		lua_pushstring(luaState, "GameObject");
+		lua_settable(luaState, -3);
+		lua_pushstring(luaState, "Data");
 		lua_pushlightuserdata(luaState, value);
+		lua_settable(luaState, -3);
 		lua_setglobal(luaState, propertyName); // setglobal pops the stack for us
 	}
 	else
@@ -232,9 +303,20 @@ GameObject * LuaScript::GetGameObjectProperty(const char* propertyName)
 	GameObject* ret = nullptr;
 	lua_getglobal(luaState, propertyName);
 
-	if (lua_islightuserdata(luaState, lua_gettop(luaState)))
+	if (lua_istable(luaState, lua_gettop(luaState)))
 	{
-		ret = (GameObject*)lua_touserdata(luaState, -1); // -1 = top of stack
+		lua_pushstring(luaState, "Type");
+		lua_gettable(luaState, -2);
+		if (lua_isstring(luaState, -1)) {
+			string str = lua_tostring(luaState, -1);
+			if (str == "GameObject")
+			{
+				lua_pop(luaState, 1);
+				lua_pushstring(luaState, "Data");
+				lua_gettable(luaState, -2);
+				ret = (GameObject*)lua_touserdata(luaState, -1);
+			}
+		}
 	}
 	else
 	{
@@ -735,15 +817,19 @@ int LuaScript::PrintToLog(lua_State * luaState)
 		else if (lua_isnumber(luaState, ArgIndex)) {
 			message += to_string(lua_tonumber(luaState, ArgIndex));
 		}
-		else if (lua_islightuserdata(luaState, ArgIndex)) {
-			ComponentSpriteRenderer* renderer = (ComponentSpriteRenderer*)lua_touserdata(luaState, ArgIndex);
-			if (renderer != nullptr) {
-				int i = 0;
+		else if (lua_istable(luaState, ArgIndex)) {
+			lua_pushstring(luaState, "Type");
+			lua_gettable(luaState, -2);
+			if (lua_isstring(luaState, -1)) {
+				string str = lua_tostring(luaState, -1);
+				if (str == "GameObject") {
+					message += "GameObject!";
+				}
 			}
-			message += "Renderer component";
 		}
 		else {
-			message += "Don't recognise print function argument type";
+			LOG_ERROR("Don't recognise print function argument type");
+			return 0;
 		}
 	}
 	LOG("%s", message.c_str());
@@ -756,12 +842,11 @@ void LuaScript::RegisterAPI(lua_State* luaState)
 	{
 		{ "SetActive", SetGameObjectActive },
 		{ "IsActive", IsGameObjectActive },
-		{ "GetLocalPosition", GetGameObjectLocalPosition },
-		{ "SetLocalPosition", SetGameObjectLocalPosition },
-		{ "GetGlobalPosition", GetGameObjectGlobalPosition },
-		{ "SetGlobalPosition", SetGameObjectGlobalPosition },
-		{ "GetComponent", GetGameObjectComponent },
-		{ "AddComponent", AddGameObjectComponent },
+		{ "GetPosition", GetGameObjectPosition },
+		{ "SetPosition", SetGameObjectPosition },
+		{ "GetWorldPosition", GetGameObjectGlobalPosition },
+		/*{ "GetComponent", GetGameObjectComponent },
+		{ "AddComponent", AddGameObjectComponent },*/
 		{ "GetLayer", GetGameObjectLayer },
 		{ "SetLayer", SetGameObjectLayer },
 		{ "GetName", GetGameObjectName },
@@ -775,23 +860,32 @@ void LuaScript::RegisterAPI(lua_State* luaState)
 		{ "GetChildByIndex", GetGameObjectChildByIndex },
 		{ "ChildsCount", GetGameObjectChildsCount },
 		{ "FindGameObject", FindGameObject },
-		{ "SetSprite", SetGameObjectSprite },
-		{ "GetSprite", GetGameObjectSprite},
 		{ "Destroy", DestroyGameObject },
+		{ "FlipSpriteX", FlipGameObjectSpriteX },
+		{ "FlipSpriteY", FlipGameObjectSpriteY },
+		{ "TintSprite", TintGameObjectSprite },
+		{ "GetSpriteLocalBounds", GetGameObjectSpriteLocalBounds },
+		{ "GetSpriteGlobalBounds", GetGameObjectSpriteGlobalBounds },
+		{ "IsAnimationPlaying", IsGameObjectAnimationPlaying },
+		{ "PlayAnimation", PlayGameObjectAnimation },
+		{ "StopAnimation", StopGameObjectAnimation },
+		{ "PauseAnimation", PauseGameObjectAnimation },
+		{ "IsAnimationFinished", IsGameObjectAnimationFinished },
+		{ "PlaySound", PlayGameObjectSound },
+		{ "StopSound", StopGameObjectSound },
+		{ "PauseSound", PauseGameObjectSound },
+		{ "GetSoundState", GetGameObjectSoundState },
+		{ "SetSoundVolume", SetGameObjectSoundVolume },
+		{ "SetSoundPitch", SetGameObjectSoundPitch },
+		{ "PlayMusic", PlayGameObjectMusic },
+		{ "StopMusic", StopGameObjectMusic },
+		{ "PauseMusic", PauseGameObjectMusic },
+		{ "GetMusicState", GetGameObjectMusicState },
+		{ "SetMusicVolume", SetGameObjectMusicVolume },
+		{ "SetMusicPitch", SetGameObjectMusicPitch },
 		{ NULL, NULL }
 	};
 	LuaUtils::RegisterLibrary(luaState, GameObject, "gameObject");
-
-	luaL_Reg Sprite[] =
-	{
-		{"FlipX", FlipSpriteX},
-		{"FlipY", FlipSpriteY},
-		{"Tint", TintSprite},
-		{"GetLocalBounds", GetSpriteLocalBounds},
-		{"GetGlobalBounds", GetSpriteGlobalBounds},
-		{NULL, NULL}
-	};
-	LuaUtils::RegisterLibrary(luaState, Sprite, "sprite");
 
 	luaL_Reg Math[] = 
 	{
@@ -801,9 +895,21 @@ void LuaScript::RegisterAPI(lua_State* luaState)
 		{NULL, NULL}
 	};
 	LuaUtils::RegisterLibrary(luaState, Math, "math");
+
+	luaL_Reg Input[] =
+	{
+		{ "IsKeyPressed", IsKeyPressed },
+		{ "IsKeyReleased", IsKeyReleased },
+		{ "IsKeyRepeated", IsKeyRepeated },
+		{ "IsMouseButtonPressed", IsMouseButtonPressed },
+		{ "IsMouseButtonReleased", IsMouseButtonReleased },
+		{ "IsMouseButtonRepeated", IsMouseButtonRepeated },
+		{ NULL, NULL }
+	};
+	LuaUtils::RegisterLibrary(luaState, Input, "input");
 }
 
-/////////////// GameObject API //////////////////
+/////////////// GameObject //////////////////
 
 int LuaScript::IsGameObjectActive(lua_State * luaState)
 {
@@ -813,13 +919,28 @@ int LuaScript::IsGameObjectActive(lua_State * luaState)
 		return 0;
 	}
 	else {
-		if (lua_islightuserdata(luaState, 1)) {
-			GameObject* go = (GameObject*)lua_touserdata(luaState, 1);
-			if (go == nullptr) {
-				LOG_WARNING("IsActive() GameObject argument is nil!");
-				return 0;
+		if (lua_istable(luaState, 1)) {
+			lua_pushstring(luaState, "Type");
+			lua_gettable(luaState, -2);
+			if (lua_isstring(luaState, -1)) {
+				string str = lua_tostring(luaState, -1);
+				if (str == "GameObject")
+				{
+					lua_pop(luaState, 1);
+					lua_pushstring(luaState, "Data");
+					lua_gettable(luaState, -2);
+					GameObject* go = (GameObject*)lua_touserdata(luaState, -1);
+					if (go == nullptr) {
+						LOG_WARNING("IsActive() GameObject argument is nil!");
+						return 0;
+					}
+					lua_pushboolean(luaState, (int)go->isActive());
+				}
+				else {
+					LOG_WARNING("IsActive() GameObject argument is not a GameObject!");
+					return 0;
+				}
 			}
-			lua_pushboolean(luaState, go->isActive());
 		}
 		else {
 			LOG_WARNING("IsActive() GameObject argument is not a GameObject!");
@@ -831,154 +952,207 @@ int LuaScript::IsGameObjectActive(lua_State * luaState)
 
 int LuaScript::SetGameObjectActive(lua_State * luaState)
 {
-	int arguments = lua_gettop(luaState);
-	if (arguments != 2) {
-		LOG_WARNING("SetActive(GameObject, bool) takes 2 arguments!");
-	}
-	else {
-		if (lua_islightuserdata(luaState, 1)) {
-			GameObject* go = (GameObject*)lua_touserdata(luaState, 1);
-			if (go == nullptr) {
-				LOG_WARNING("SetActive() GameObject argument is nil!");
-			}
-			else {
-				if (lua_isboolean(luaState, 2)) {
-					bool active = lua_toboolean(luaState, 2);
-					go->SetActive(active);
-				}
-				else {
-					LOG_WARNING("SetActive() bool argument is not a boolean!");
-				}
-			}
+	if (insideFunction) {
+		int arguments = lua_gettop(luaState);
+		if (arguments != 2) {
+			LOG_WARNING("SetActive(GameObject, bool) takes 2 arguments!");
 		}
 		else {
-			LOG_WARNING("SetActive() GameObject argument is not a GameObject!");
+			if (lua_istable(luaState, 1)) {
+				lua_pushstring(luaState, "Type");
+				lua_gettable(luaState, -3);
+				if (lua_isstring(luaState, -1)) {
+					string str = lua_tostring(luaState, -1);
+					if (str == "GameObject")
+					{
+						lua_pop(luaState, 1);
+						lua_pushstring(luaState, "Data");
+						lua_gettable(luaState, -3);
+						GameObject* go = (GameObject*)lua_touserdata(luaState, -1);
+						if (go == nullptr) {
+							LOG_WARNING("SetActive() GameObject argument is nil!");
+						}
+						else {
+							if (lua_isboolean(luaState, 2)) {
+								bool active = lua_toboolean(luaState, 2);
+								go->SetActive(active);
+							}
+							else {
+								LOG_WARNING("SetActive() bool argument is not a boolean!");
+							}
+						}
+					}
+					else {
+						LOG_WARNING("SetActive() GameObject argument is not a GameObject!");
+					}
+				}
+			}
+			else {
+				LOG_WARNING("SetActive() GameObject argument is not a GameObject!");
+			}
 		}
+	}
+	else {
+		LOG_WARNING("SetActive() cannot be called outside Main functions!");
 	}
 	return 0;
 }
 
-int LuaScript::GetGameObjectLocalPosition(lua_State * luaState)
+int LuaScript::GetGameObjectPosition(lua_State * luaState)
 {
 	int arguments = lua_gettop(luaState);
 	if (arguments != 1) {
-		LOG_WARNING("GetLocalPosition(GameObject) takes 1 argument!");
+		LOG_WARNING("GetPosition(GameObject) takes 1 argument!");
 		return 0;
 	}
 	else {
-		if (lua_islightuserdata(luaState, 1)) {
-			GameObject* go = (GameObject*)lua_touserdata(luaState, 1);
-			if (go == nullptr) {
-				LOG_WARNING("GetLocalPosition() GameObject argument is nil!");
-				return 0;
+		if (lua_istable(luaState, 1)) {
+			lua_pushstring(luaState, "Type");
+			lua_gettable(luaState, -2);
+			if (lua_isstring(luaState, -1)) {
+				string str = lua_tostring(luaState, -1);
+				if (str == "GameObject")
+				{
+					lua_pop(luaState, 1);
+					lua_pushstring(luaState, "Data");
+					lua_gettable(luaState, -2);
+					GameObject* go = (GameObject*)lua_touserdata(luaState, -1);
+					if (go == nullptr) {
+						LOG_WARNING("GetPosition() GameObject argument is nil!");
+						return 0;
+					}
+					ComponentTransform* transform = (ComponentTransform*)go->GetComponent(ComponentTransform::Transform);
+					if (transform == nullptr) {
+						LOG_ERROR("GetPosition() failed to get component transform");
+						return 0;
+					}
+					lua_newtable(luaState);
+					lua_pushnumber(luaState, transform->GetLocalPosition().x);
+					lua_rawseti(luaState, -2, 1);
+					lua_pushnumber(luaState, transform->GetLocalPosition().y);
+					lua_rawseti(luaState, -2, 2);
+					lua_pushnumber(luaState, transform->GetLocalPosition().z);
+					lua_rawseti(luaState, -2, 3);
+				}
+				else {
+					LOG_WARNING("GetPosition() GameObject argument is not a GameObject!");
+					return 0;
+				}
 			}
-			ComponentTransform* transform = (ComponentTransform*)go->GetComponent(ComponentTransform::Transform);
-			if (transform == nullptr) {
-				LOG_WARNING("GetLocalPosition() failed to get component transform");
-				return 0;
-			}
-			lua_newtable(luaState);
-			lua_pushnumber(luaState, transform->GetLocalPosition().x);
-			lua_rawseti(luaState, -2, 1);
-			lua_pushnumber(luaState, transform->GetLocalPosition().y);
-			lua_rawseti(luaState, -2, 2);
-			lua_pushnumber(luaState, transform->GetLocalPosition().z);
-			lua_rawseti(luaState, -2, 3);
 		}
 		else {
-			LOG_WARNING("GetLocalPosition() GameObject argument is not a GameObject!");
+			LOG_WARNING("GetPosition() GameObject argument is not a GameObject!");
 			return 0;
 		}
 	}
 	return 1;
 }
 
-int LuaScript::SetGameObjectLocalPosition(lua_State * luaState)
+int LuaScript::SetGameObjectPosition(lua_State * luaState)
 {
 	int arguments = lua_gettop(luaState);
 	if (arguments != 2) {
-		LOG_WARNING("SetLocalPosition(GameObject, Vector3) takes 2 arguments!");
+		LOG_WARNING("SetPosition(GameObject, Vector3) takes 2 arguments!");
 	}
 	else {
-		if (lua_islightuserdata(luaState, 1)) {
-			GameObject* go = (GameObject*)lua_touserdata(luaState, 1);
-			if (go == nullptr) {
-				LOG_WARNING("SetLocalPosition() GameObject argument is nil!");
-			}
-			else {
-				if (lua_istable(luaState, 2)) {
-					ComponentTransform* transform = (ComponentTransform*)go->GetComponent(ComponentTransform::Transform);
-					if (transform == nullptr) {
-						LOG_WARNING("SetLocalPosition() failed to get component transform");
+		if (lua_istable(luaState, 1)) {
+			lua_pushstring(luaState, "Type");
+			lua_gettable(luaState, -3);
+			if (lua_isstring(luaState, -1)) {
+				string str = lua_tostring(luaState, -1);
+				if (str == "GameObject")
+				{
+					lua_pop(luaState, 1);
+					lua_pushstring(luaState, "Data");
+					lua_gettable(luaState, -3);
+					GameObject* go = (GameObject*)lua_touserdata(luaState, -1);
+					if (go == nullptr) {
+						LOG_WARNING("SetPosition() GameObject argument is nil!");
 					}
 					else {
-						if (lua_rawlen(luaState, 2) == 3) {
-							sf::Vector3f v3;
-							lua_pushinteger(luaState, 1);
-							lua_gettable(luaState, -2);
-							if (lua_isnumber(luaState, -1)) {
-								v3.x = lua_tonumber(luaState, -1);
+						lua_pop(luaState, 1);
+						if (lua_istable(luaState, 2)) {
+							ComponentTransform* transform = (ComponentTransform*)go->GetComponent(ComponentTransform::Transform);
+							if (transform == nullptr) {
+								LOG_ERROR("SetPosition() failed to get component transform");
 							}
 							else {
-								LOG_WARNING("SetLocalPosition() value 'x' is not a number");
-							}
-							lua_pop(luaState, 1);
+								if (lua_rawlen(luaState, 2) == 3) {
+									sf::Vector3f v3;
+									lua_pushinteger(luaState, 1);
+									lua_gettable(luaState, -2);
+									if (lua_isnumber(luaState, -1)) {
+										v3.x = lua_tonumber(luaState, -1);
+									}
+									else {
+										LOG_WARNING("SetPosition() value 'x' is not a number");
+									}
+									lua_pop(luaState, 1);
 
-							lua_pushinteger(luaState, 2);
-							lua_gettable(luaState, -2);
-							if (lua_isnumber(luaState, -1)) {
-								v3.y = lua_tonumber(luaState, -1);
-							}
-							else {
-								LOG_WARNING("SetLocalPosition() value 'y' is not a number");
-							}
-							lua_pop(luaState, 1);
+									lua_pushinteger(luaState, 2);
+									lua_gettable(luaState, -2);
+									if (lua_isnumber(luaState, -1)) {
+										v3.y = lua_tonumber(luaState, -1);
+									}
+									else {
+										LOG_WARNING("SetPosition() value 'y' is not a number");
+									}
+									lua_pop(luaState, 1);
 
-							lua_pushinteger(luaState, 3);
-							lua_gettable(luaState, -2);
-							if (lua_isnumber(luaState, -1)) {
-								v3.z = lua_tonumber(luaState, -1);
+									lua_pushinteger(luaState, 3);
+									lua_gettable(luaState, -2);
+									if (lua_isnumber(luaState, -1)) {
+										v3.z = lua_tonumber(luaState, -1);
+									}
+									else {
+										LOG_WARNING("SetPosition() value 'z' is not a number");
+									}
+									lua_pop(luaState, 1);
+									transform->SetPosition(v3, false);
+								}
+								else if (lua_rawlen(luaState, 2) == 2) {
+									sf::Vector2f v2;
+									lua_pushinteger(luaState, 1);
+									lua_gettable(luaState, -2);
+									if (lua_isnumber(luaState, -1)) {
+										v2.x = lua_tonumber(luaState, -1);
+									}
+									else {
+										LOG_WARNING("SetPosition() value 'x' is not a number");
+									}
+									lua_pop(luaState, 1);
+
+									lua_pushinteger(luaState, 2);
+									lua_gettable(luaState, -2);
+									if (lua_isnumber(luaState, -1)) {
+										v2.y = lua_tonumber(luaState, -1);
+									}
+									else {
+										LOG_WARNING("SetPosition() value 'y' is not a number");
+									}
+									lua_pop(luaState, 1);
+									transform->SetPosition(v2, false);
+								}
+								else {
+									LOG_WARNING("SetPosition() Vector3 argument is not a Vector3!");
+									return 0;
+								}
 							}
-							else {
-								LOG_WARNING("SetLocalPosition() value 'z' is not a number");
-							}
-							lua_pop(luaState, 1);
-							transform->SetPosition(v3, false);
 						}
-						else if (lua_rawlen(luaState, 2) == 2) {
-							sf::Vector2f v2;
-							lua_pushinteger(luaState, 1);
-							lua_gettable(luaState, -2);
-							if (lua_isnumber(luaState, -1)) {
-								v2.x = lua_tonumber(luaState, -1);
-							}
-							else {
-								LOG_WARNING("SetLocalPosition() value 'x' is not a number");
-							}
-							lua_pop(luaState, 1);
-
-							lua_pushinteger(luaState, 2);
-							lua_gettable(luaState, -2);
-							if (lua_isnumber(luaState, -1)) {
-								v2.y = lua_tonumber(luaState, -1);
-							}
-							else {
-								LOG_WARNING("SetLocalPosition() value 'y' is not a number");
-							}
-							lua_pop(luaState, 1);
-							transform->SetPosition(v2, false);
+						else {
+							LOG_WARNING("SetPosition() Vector3 argument is not a Vector3!");
+							return 0;
 						}
+						lua_pop(luaState, 1);
 					}
 				}
 				else {
-					LOG_WARNING("SetLocalPosition() Vector3 argument is not a Vector3!");
-					return 0;
+					LOG_WARNING("SetPosition() GameObject argument is not a GameObject!");
 				}
-				lua_pop(luaState, 1);
 			}
 		}
 		else {
-			LOG_WARNING("SetLocalPosition() GameObject argument is not a GameObject!");
+			LOG_WARNING("SetPosition() GameObject argument is not a GameObject!");
 		}
 	}
 	return 0;
@@ -988,171 +1162,220 @@ int LuaScript::GetGameObjectGlobalPosition(lua_State * luaState)
 {
 	int arguments = lua_gettop(luaState);
 	if (arguments != 1) {
-		LOG_WARNING("GetGlobalPosition(GameObject) takes 1 argument!");
+		LOG_WARNING("GetWorldPosition(GameObject) takes 1 argument!");
 		return 0;
 	}
 	else {
-		if (lua_islightuserdata(luaState, 1)) {
-			GameObject* go = (GameObject*)lua_touserdata(luaState, 1);
-			if (go == nullptr) {
-				LOG_WARNING("GetGlobalPosition() GameObject argument is nil");
-				return 0;
-			}
-			ComponentTransform* transform = (ComponentTransform*)go->GetComponent(ComponentTransform::Transform);
-			if (transform == nullptr) {
-				LOG_WARNING("GetGlobalPosition() failed to get component transform");
-				return 0;
-			}
-			lua_newtable(luaState);
-			lua_pushnumber(luaState, transform->GetGlobalPosition().x);
-			lua_rawseti(luaState, -2, 1);
-			lua_pushnumber(luaState, transform->GetGlobalPosition().y);
-			lua_rawseti(luaState, -2, 2);
-			lua_pushnumber(luaState, transform->GetGlobalPosition().z);
-			lua_rawseti(luaState, -2, 3);
-		}
-		else {
-			LOG_WARNING("GetGlobalPosition() GameObject argument is not a GameObject!");
-			return 0;
-		}
-	}
-	return 1;
-}
-
-int LuaScript::SetGameObjectGlobalPosition(lua_State * luaState)
-{
-	int arguments = lua_gettop(luaState);
-	if (arguments != 2) {
-		LOG_WARNING("SetGlobalPosition(GameObject, Vector3) takes 2 arguments!");
-	}
-	else {
-		if (lua_islightuserdata(luaState, 1)) {
-			GameObject* go = (GameObject*)lua_touserdata(luaState, 1);
-			if (go == nullptr) {
-				LOG_WARNING("SetGlobalPosition() GameObject argument is nil!");
-			}
-			else {
-				if (lua_istable(luaState, 2)) {
-					ComponentTransform* transform = (ComponentTransform*)go->GetComponent(ComponentTransform::Transform);
-					if (transform == nullptr) {
-						LOG_WARNING("SetGlobalPosition() failed to get component transform");
-					}
-					else {
-						if (lua_rawlen(luaState, 2) == 3) {
-							sf::Vector3f v3;
-							lua_pushinteger(luaState, 1);
-							lua_gettable(luaState, -2);
-							if (lua_isnumber(luaState, -1)) {
-								v3.x = lua_tonumber(luaState, -1);
-							}
-							else {
-								LOG_WARNING("SetGlobalPosition() value 'x' is not a number");
-							}
-							lua_pop(luaState, 1);
-
-							lua_pushinteger(luaState, 2);
-							lua_gettable(luaState, -2);
-							if (lua_isnumber(luaState, -1)) {
-								v3.y = lua_tonumber(luaState, -1);
-							}
-							else {
-								LOG_WARNING("SetGlobalPosition() value 'y' is not a number");
-							}
-							lua_pop(luaState, 1);
-
-							lua_pushinteger(luaState, 3);
-							lua_gettable(luaState, -2);
-							if (lua_isnumber(luaState, -1)) {
-								v3.z = lua_tonumber(luaState, -1);
-							}
-							else {
-								LOG_WARNING("SetGlobalPosition() value 'z' is not a number");
-							}
-							lua_pop(luaState, 1);
-							transform->SetPosition(v3, true);
-						}
-						else if (lua_rawlen(luaState, 2) == 2) {
-							sf::Vector2f v2;
-							lua_pushinteger(luaState, 1);
-							lua_gettable(luaState, -2);
-							if (lua_isnumber(luaState, -1)) {
-								v2.x = lua_tonumber(luaState, -1);
-							}
-							else {
-								LOG_WARNING("SetGlobalPosition() value 'x' is not a number");
-							}
-							lua_pop(luaState, 1);
-
-							lua_pushinteger(luaState, 2);
-							lua_gettable(luaState, -2);
-							if (lua_isnumber(luaState, -1)) {
-								v2.y = lua_tonumber(luaState, -1);
-							}
-							else {
-								LOG_WARNING("SetGlobalPosition() value 'y' is not a number");
-							}
-							lua_pop(luaState, 1);
-							transform->SetPosition(v2, true);
-						}
-					}
-				}
-				else {
-					LOG_WARNING("SetGlobalPosition() Vector3 argument is not a Vector3!");
-					return 0;
-				}
-				lua_pop(luaState, 1);
-			}
-		}
-		else {
-			LOG_WARNING("SetGlobalPosition() GameObject argument is not a GameObject!");
-		}
-	}
-	return 0;
-}
-
-int LuaScript::GetGameObjectComponent(lua_State * luaState)
-{
-	int arguments = lua_gettop(luaState);
-	if (arguments != 2) {
-		LOG_WARNING("GetComponent(GameObject, string) takes 2 arguments!");
-		return 0;
-	}
-	if (lua_islightuserdata(luaState, 1)) {
-		GameObject* go = (GameObject*)lua_touserdata(luaState, 1);
-		if (go == nullptr) {
-			LOG_WARNING("GetComponent() GameObject argument is nil!");
-			return 0;
-		}
-		else {
-			if (lua_isstring(luaState, 2)) {
-				string componentName = lua_tostring(luaState, 2);
-				if (componentName == "SpriteRenderer") {
-					ComponentSpriteRenderer* renderer = (ComponentSpriteRenderer*)go->GetComponent(Component::SpriteRenderer);
-					if (renderer != nullptr) {
-						lua_pushlightuserdata(luaState, renderer);
-					}
-					else {
-						LOG_WARNING("SpriteRenderer component doesn't exists!");
+		if (lua_istable(luaState, 1)) {
+			lua_pushstring(luaState, "Type");
+			lua_gettable(luaState, -2);
+			if (lua_isstring(luaState, -1)) {
+				string str = lua_tostring(luaState, -1);
+				if (str == "GameObject")
+				{
+					lua_pop(luaState, 1);
+					lua_pushstring(luaState, "Data");
+					lua_gettable(luaState, -2);
+					GameObject* go = (GameObject*)lua_touserdata(luaState, -1);
+					if (go == nullptr) {
+						LOG_WARNING("GetWorldPosition() GameObject argument is nil");
 						return 0;
 					}
+					ComponentTransform* transform = (ComponentTransform*)go->GetComponent(ComponentTransform::Transform);
+					if (transform == nullptr) {
+						LOG_ERROR("GetWorldPosition() failed to get component transform");
+						return 0;
+					}
+					lua_newtable(luaState);
+					lua_pushnumber(luaState, transform->GetGlobalPosition().x);
+					lua_rawseti(luaState, -2, 1);
+					lua_pushnumber(luaState, transform->GetGlobalPosition().y);
+					lua_rawseti(luaState, -2, 2);
+					lua_pushnumber(luaState, transform->GetGlobalPosition().z);
+					lua_rawseti(luaState, -2, 3);
 				}
 				else {
-					LOG_WARNING("GetComponent() string argument is not a valid component type");
+					LOG_WARNING("GetWorldPosition() GameObject argument is not a GameObject!");
 					return 0;
 				}
 			}
-			else {
-				LOG_WARNING("GetComponent() string argument is not a string!");
-				return 0;
-			}
 		}
-	}
-	else {
-		LOG_WARNING("GetComponent() GameObject argument is not a GameObject!");
-		return 0;
+		else {
+			LOG_WARNING("GetWorldPosition() GameObject argument is not a GameObject!");
+			return 0;
+		}
 	}
 	return 1;
 }
+
+//int LuaScript::SetGameObjectGlobalPosition(lua_State * luaState)
+//{
+//	int arguments = lua_gettop(luaState);
+//	if (arguments != 2) {
+//		LOG_WARNING("SetGlobalPosition(GameObject, Vector3) takes 2 arguments!");
+//	}
+//	else {
+//		if (lua_istable(luaState, 1)) {
+//			lua_pushstring(luaState, "Type");
+//			lua_gettable(luaState, -3);
+//			if (lua_isstring(luaState, -1)) {
+//				string str = lua_tostring(luaState, -1);
+//				if (str == "GameObject")
+//				{
+//					lua_pop(luaState, 1);
+//					lua_pushstring(luaState, "Data");
+//					lua_gettable(luaState, -3);
+//					GameObject* go = (GameObject*)lua_touserdata(luaState, -1);
+//					if (go == nullptr) {
+//						LOG_WARNING("SetGlobalPosition() GameObject argument is nil!");
+//					}
+//					else {
+//						lua_pop(luaState, 1);
+//						if (lua_istable(luaState, 2)) {
+//							ComponentTransform* transform = (ComponentTransform*)go->GetComponent(ComponentTransform::Transform);
+//							if (transform == nullptr) {
+//								LOG_WARNING("SetGlobalPosition() failed to get component transform");
+//							}
+//							else {
+//								if (lua_rawlen(luaState, 2) == 3) {
+//									sf::Vector3f v3;
+//									lua_pushinteger(luaState, 1);
+//									lua_gettable(luaState, -2);
+//									if (lua_isnumber(luaState, -1)) {
+//										v3.x = lua_tonumber(luaState, -1);
+//									}
+//									else {
+//										LOG_WARNING("SetGlobalPosition() value 'x' is not a number");
+//									}
+//									lua_pop(luaState, 1);
+//
+//									lua_pushinteger(luaState, 2);
+//									lua_gettable(luaState, -2);
+//									if (lua_isnumber(luaState, -1)) {
+//										v3.y = lua_tonumber(luaState, -1);
+//									}
+//									else {
+//										LOG_WARNING("SetGlobalPosition() value 'y' is not a number");
+//									}
+//									lua_pop(luaState, 1);
+//
+//									lua_pushinteger(luaState, 3);
+//									lua_gettable(luaState, -2);
+//									if (lua_isnumber(luaState, -1)) {
+//										v3.z = lua_tonumber(luaState, -1);
+//									}
+//									else {
+//										LOG_WARNING("SetGlobalPosition() value 'z' is not a number");
+//									}
+//									lua_pop(luaState, 1);
+//									transform->SetPosition(v3, true);
+//								}
+//								else if (lua_rawlen(luaState, 2) == 2) {
+//									sf::Vector2f v2;
+//									lua_pushinteger(luaState, 1);
+//									lua_gettable(luaState, -2);
+//									if (lua_isnumber(luaState, -1)) {
+//										v2.x = lua_tonumber(luaState, -1);
+//									}
+//									else {
+//										LOG_WARNING("SetGlobalPosition() value 'x' is not a number");
+//									}
+//									lua_pop(luaState, 1);
+//
+//									lua_pushinteger(luaState, 2);
+//									lua_gettable(luaState, -2);
+//									if (lua_isnumber(luaState, -1)) {
+//										v2.y = lua_tonumber(luaState, -1);
+//									}
+//									else {
+//										LOG_WARNING("SetGlobalPosition() value 'y' is not a number");
+//									}
+//									lua_pop(luaState, 1);
+//									transform->SetPosition(v2, true);
+//								}
+//								else {
+//									LOG_WARNING("SetGlobalPosition() Vector3 argument is not a Vector3!");
+//									return 0;
+//								}
+//							}
+//						}
+//						else {
+//							LOG_WARNING("SetGlobalPosition() Vector3 argument is not a Vector3!");
+//							return 0;
+//						}
+//						lua_pop(luaState, 1);
+//					}
+//				}
+//				else {
+//					LOG_WARNING("SetGlobalPosition() GameObject argument is not a GameObject!");
+//				}
+//			}
+//		}
+//		else {
+//			LOG_WARNING("SetGlobalPosition() GameObject argument is not a GameObject!");
+//		}
+//	}
+//	return 0;
+//}
+
+//int LuaScript::GetGameObjectComponent(lua_State * luaState)
+//{
+//	int arguments = lua_gettop(luaState);
+//	if (arguments != 2) {
+//		LOG_WARNING("GetComponent(GameObject, string) takes 2 arguments!");
+//		return 0;
+//	}
+//	if (lua_istable(luaState, 1)) {
+//		lua_pushstring(luaState, "Type");
+//		lua_gettable(luaState, -3);
+//		if (lua_isstring(luaState, -1)) {
+//			string str = lua_tostring(luaState, -1);
+//			if (str == "GameObject")
+//			{
+//				lua_pop(luaState, 1);
+//				lua_pushstring(luaState, "Data");
+//				lua_gettable(luaState, -3);
+//				GameObject* go = (GameObject*)lua_touserdata(luaState, -1);
+//				if (go == nullptr) {
+//					LOG_WARNING("GetComponent() GameObject argument is nil!");
+//					return 0;
+//				}
+//				else {
+//					if (lua_isstring(luaState, 2)) {
+//						string componentName = lua_tostring(luaState, 2);
+//						if (componentName == "SpriteRenderer") {
+//							ComponentSpriteRenderer* renderer = (ComponentSpriteRenderer*)go->GetComponent(Component::SpriteRenderer);
+//							if (renderer != nullptr) {
+//								lua_pushlightuserdata(luaState, renderer);
+//							}
+//							else {
+//								LOG_WARNING("SpriteRenderer component doesn't exists!");
+//								return 0;
+//							}
+//						}
+//						else {
+//							LOG_WARNING("GetComponent() string argument is not a valid component type");
+//							return 0;
+//						}
+//					}
+//					else {
+//						LOG_WARNING("GetComponent() string argument is not a string!");
+//						return 0;
+//					}
+//				}
+//			}
+//			else {
+//				LOG_WARNING("GetComponent() GameObject argument is not a GameObject!");
+//				return 0;
+//			}
+//		}
+//	}
+//	else {
+//		LOG_WARNING("GetComponent() GameObject argument is not a GameObject!");
+//		return 0;
+//	}
+//	return 1;
+//}
 
 int LuaScript::AddGameObjectComponent(lua_State * luaState)
 {
@@ -1188,13 +1411,28 @@ int LuaScript::GetGameObjectLayer(lua_State * luaState)
 		return 0;
 	}
 	else {
-		if (lua_islightuserdata(luaState, 1)) {
-			GameObject* go = (GameObject*)lua_touserdata(luaState, 1);
-			if (go == nullptr) {
-				LOG_WARNING("GetLayer() GameObject argument is nil");
-				return 0;
+		if (lua_istable(luaState, 1)) {
+			lua_pushstring(luaState, "Type");
+			lua_gettable(luaState, -2);
+			if (lua_isstring(luaState, -1)) {
+				string str = lua_tostring(luaState, -1);
+				if (str == "GameObject")
+				{
+					lua_pop(luaState, 1);
+					lua_pushstring(luaState, "Data");
+					lua_gettable(luaState, -2);
+					GameObject* go = (GameObject*)lua_touserdata(luaState, -1);
+					if (go == nullptr) {
+						LOG_WARNING("GetLayer() GameObject argument is nil");
+						return 0;
+					}
+					lua_pushstring(luaState, go->layer.c_str());
+				}
+				else {
+					LOG_WARNING("GetLayer() GameObject argument is not a GameObject!");
+					return 0;
+				}
 			}
-			lua_pushstring(luaState, go->layer.c_str());
 		}
 		else {
 			LOG_WARNING("GetLayer() GameObject argument is not a GameObject!");
@@ -1211,18 +1449,32 @@ int LuaScript::SetGameObjectLayer(lua_State * luaState)
 		LOG_WARNING("SetLayer(GameObject, string) takes 2 arguments!");
 	}
 	else {
-		if (lua_islightuserdata(luaState, 1)) {
-			GameObject* go = (GameObject*)lua_touserdata(luaState, 1);
-			if (go == nullptr) {
-				LOG_WARNING("SetLayer() GameObject argument is nil");
-			}
-			else {
-				if (lua_isstring(luaState, 2)) {
-					string layer = lua_tostring(luaState, 2);
-					go->layer = layer;
+		if (lua_istable(luaState, 1)) {
+			lua_pushstring(luaState, "Type");
+			lua_gettable(luaState, -3);
+			if (lua_isstring(luaState, -1)) {
+				string str = lua_tostring(luaState, -1);
+				if (str == "GameObject")
+				{
+					lua_pop(luaState, 1);
+					lua_pushstring(luaState, "Data");
+					lua_gettable(luaState, -3);
+					GameObject* go = (GameObject*)lua_touserdata(luaState, -1);
+					if (go == nullptr) {
+						LOG_WARNING("SetLayer() GameObject argument is nil");
+					}
+					else {
+						if (lua_isstring(luaState, 2)) {
+							string layer = lua_tostring(luaState, 2);
+							go->layer = layer;
+						}
+						else {
+							LOG_WARNING("SetLayer() string argument is not a string!");
+						}
+					}
 				}
 				else {
-					LOG_WARNING("SetLayer() string argument is not a string!");
+					LOG_WARNING("SetLayer() GameObject argument is not a GameObject!");
 				}
 			}
 		}
@@ -1241,13 +1493,28 @@ int LuaScript::GetGameObjectName(lua_State * luaState)
 		return 0;
 	}
 	else {
-		if (lua_islightuserdata(luaState, 1)) {
-			GameObject* go = (GameObject*)lua_touserdata(luaState, 1);
-			if (go == nullptr) {
-				LOG_WARNING("GetName() GameObject argument is nil");
-				return 0;
+		if (lua_istable(luaState, 1)) {
+			lua_pushstring(luaState, "Type");
+			lua_gettable(luaState, -2);
+			if (lua_isstring(luaState, -1)) {
+				string str = lua_tostring(luaState, -1);
+				if (str == "GameObject")
+				{
+					lua_pop(luaState, 1);
+					lua_pushstring(luaState, "Data");
+					lua_gettable(luaState, -2);
+					GameObject* go = (GameObject*)lua_touserdata(luaState, -1);
+					if (go == nullptr) {
+						LOG_WARNING("GetName() GameObject argument is nil");
+						return 0;
+					}
+					lua_pushstring(luaState, go->name.c_str());
+				}
+				else {
+					LOG_WARNING("GetName() GameObject argument is not a GameObject!");
+					return 0;
+				}
 			}
-			lua_pushstring(luaState, go->name.c_str());
 		}
 		else {
 			LOG_WARNING("GetName() GameObject argument is not a GameObject!");
@@ -1264,19 +1531,33 @@ int LuaScript::SetGameObjectName(lua_State * luaState)
 		LOG_WARNING("SetName(GameObject, string) takes 2 arguments!");
 	}
 	else {
-		if (lua_islightuserdata(luaState, 1)) {
-			GameObject* go = (GameObject*)lua_touserdata(luaState, 1);
-			if (go == nullptr) {
-				LOG_WARNING("SetName() GameObject argument is nil");
-			}
-			else {
-				if (lua_isstring(luaState, 2)) {
-					string name = lua_tostring(luaState, 2);
-					go->Rename(name);
-					engine->sceneManagerModule->RenameDuplicatedGameObject(go);
+		if (lua_istable(luaState, 1)) {
+			lua_pushstring(luaState, "Type");
+			lua_gettable(luaState, -3);
+			if (lua_isstring(luaState, -1)) {
+				string str = lua_tostring(luaState, -1);
+				if (str == "GameObject")
+				{
+					lua_pop(luaState, 1);
+					lua_pushstring(luaState, "Data");
+					lua_gettable(luaState, -3);
+					GameObject* go = (GameObject*)lua_touserdata(luaState, -1);
+					if (go == nullptr) {
+						LOG_WARNING("SetName() GameObject argument is nil");
+					}
+					else {
+						if (lua_isstring(luaState, 2)) {
+							string name = lua_tostring(luaState, 2);
+							go->Rename(name);
+							engine->sceneManagerModule->RenameDuplicatedGameObject(go);
+						}
+						else {
+							LOG_WARNING("SetName() string argument is not a string!");
+						}
+					}
 				}
 				else {
-					LOG_WARNING("SetName() string argument is not a string!");
+					LOG_WARNING("SetName() GameObject argument is not a GameObject!");
 				}
 			}
 		}
@@ -1295,13 +1576,28 @@ int LuaScript::GetGameObjectTag(lua_State * luaState)
 		return 0;
 	}
 	else {
-		if (lua_islightuserdata(luaState, 1)) {
-			GameObject* go = (GameObject*)lua_touserdata(luaState, 1);
-			if (go == nullptr) {
-				LOG_WARNING("GetTag() GameObject argument is nil");
-				return 0;
+		if (lua_istable(luaState, 1)) {
+			lua_pushstring(luaState, "Type");
+			lua_gettable(luaState, -2);
+			if (lua_isstring(luaState, -1)) {
+				string str = lua_tostring(luaState, -1);
+				if (str == "GameObject")
+				{
+					lua_pop(luaState, 1);
+					lua_pushstring(luaState, "Data");
+					lua_gettable(luaState, -2);
+					GameObject* go = (GameObject*)lua_touserdata(luaState, -1);
+					if (go == nullptr) {
+						LOG_WARNING("GetTag() GameObject argument is nil");
+						return 0;
+					}
+					lua_pushstring(luaState, go->tag.c_str());
+				}
+				else {
+					LOG_WARNING("GetTag() GameObject argument is not a GameObject!");
+					return 0;
+				}
 			}
-			lua_pushstring(luaState, go->tag.c_str());
 		}
 		else {
 			LOG_WARNING("GetTag() GameObject argument is not a GameObject!");
@@ -1318,18 +1614,32 @@ int LuaScript::SetGameObjectTag(lua_State * luaState)
 		LOG_WARNING("SetTag(GameObject, string) takes 2 arguments!");
 	}
 	else {
-		if (lua_islightuserdata(luaState, 1)) {
-			GameObject* go = (GameObject*)lua_touserdata(luaState, 1);
-			if (go == nullptr) {
-				LOG_WARNING("SetTag() GameObject argument is nil");
-			}
-			else {
-				if (lua_isstring(luaState, 2)) {
-					string tag = lua_tostring(luaState, 2);
-					go->tag = tag;
+		if (lua_istable(luaState, 1)) {
+			lua_pushstring(luaState, "Type");
+			lua_gettable(luaState, -3);
+			if (lua_isstring(luaState, -1)) {
+				string str = lua_tostring(luaState, -1);
+				if (str == "GameObject")
+				{
+					lua_pop(luaState, 1);
+					lua_pushstring(luaState, "Data");
+					lua_gettable(luaState, -3);
+					GameObject* go = (GameObject*)lua_touserdata(luaState, -1);
+					if (go == nullptr) {
+						LOG_WARNING("SetTag() GameObject argument is nil");
+					}
+					else {
+						if (lua_isstring(luaState, 2)) {
+							string tag = lua_tostring(luaState, 2);
+							go->tag = tag;
+						}
+						else {
+							LOG_WARNING("SetTag() string argument is not a string!");
+						}
+					}
 				}
 				else {
-					LOG_WARNING("SetTag() string argument is not a string!");
+					LOG_WARNING("SetTag() GameObject argument is not a GameObject!");
 				}
 			}
 		}
@@ -1348,37 +1658,74 @@ int LuaScript::GetGameObjectParent(lua_State * luaState)
 		return 0;
 	}
 	else {
-		if (lua_islightuserdata(luaState, 1)) {
-			GameObject* go = (GameObject*)lua_touserdata(luaState, 1);
-			if (go == nullptr) {
-				LOG_WARNING("GetParent() GameObject argument is nil!");
-				return 0;
-			}
+		if (lua_istable(luaState, 1)) {
+			lua_pushstring(luaState, "Type");
 			if (arguments == 1) {
-				if (go->parent == nullptr) {
-					LOG_WARNING("%s parent is nil!", go->name.c_str());
-					return 0;
-				}
-				lua_pushlightuserdata(luaState, go->parent);
+				lua_gettable(luaState, -2);
 			}
 			else {
-				if (lua_isstring(luaState, 2)) {
-					string name = lua_tostring(luaState, 2);
-					string goName = go->name;
-					while (go->parent != nullptr) {
-						if (go->parent->name == name) {
-							lua_pushlightuserdata(luaState, go->parent);
-							return 1;
+				lua_gettable(luaState, -3);
+			}
+			if (lua_isstring(luaState, -1)) {
+				string str = lua_tostring(luaState, -1);
+				if (str == "GameObject")
+				{
+					lua_pop(luaState, 1);
+					lua_pushstring(luaState, "Data");
+					if (arguments == 1) {
+						lua_gettable(luaState, -2);
+					}
+					else {
+						lua_gettable(luaState, -3);
+					}
+					GameObject* go = (GameObject*)lua_touserdata(luaState, -1);
+					if (go == nullptr) {
+						LOG_WARNING("GetParent() GameObject argument is nil!");
+						return 0;
+					}
+					if (arguments == 1) {
+						if (go->parent == nullptr) {
+							LOG_WARNING("%s parent is nil!", go->name.c_str());
+							return 0;
+						}
+						lua_newtable(luaState);
+						lua_pushstring(luaState, "Type");
+						lua_pushstring(luaState, "GameObject");
+						lua_settable(luaState, -3);
+						lua_pushstring(luaState, "Data");
+						lua_pushlightuserdata(luaState, go->parent);
+						lua_settable(luaState, -3);
+					}
+					else {
+						if (lua_isstring(luaState, 2)) {
+							string name = lua_tostring(luaState, 2);
+							string goName = go->name;
+							while (go->parent != nullptr) {
+								if (go->parent->name == name) {
+									lua_newtable(luaState);
+									lua_pushstring(luaState, "Type");
+									lua_pushstring(luaState, "GameObject");
+									lua_settable(luaState, -3);
+									lua_pushstring(luaState, "Data");
+									lua_pushlightuserdata(luaState, go->parent);
+									lua_settable(luaState, -3);
+									return 1;
+								}
+								else {
+									go = go->parent;
+								}
+							}
+							LOG_WARNING("'%s' is not '%s' parent or doesn't exist in '%s' branch!", name.c_str(), goName.c_str(), goName.c_str());
+							return 0;
 						}
 						else {
-							go = go->parent;
+							LOG_WARNING("GetParent() string argument is not a string!");
+							return 0;
 						}
 					}
-					LOG_WARNING("'%s' is not '%s' parent or doesn't exist in '%s' branch!", name.c_str(), goName.c_str(), goName.c_str());
-					return 0;
 				}
 				else {
-					LOG_WARNING("GetParent() string argument is not a string!");
+					LOG_WARNING("GetParent() GameObject argument is not a GameObject!");
 					return 0;
 				}
 			}
@@ -1399,23 +1746,52 @@ int LuaScript::SetGameObjectParent(lua_State * luaState)
 		return 0;
 	}
 	else {
-		if (lua_islightuserdata(luaState, 1)) {
-			GameObject* go = (GameObject*)lua_touserdata(luaState, 1);
-			if (go == nullptr) {
-				LOG_WARNING("SetParent() GameObject(1) argument is nil!");
-			}
-			else {
-				if (lua_islightuserdata(luaState, 2)) {
-					GameObject* parent = (GameObject*)lua_touserdata(luaState, 2);
-					if (parent == nullptr) {
-						LOG_WARNING("SetParent() GameObject(2) argument is nil!");
+		if (lua_istable(luaState, 1)) {
+			lua_pushstring(luaState, "Type");
+			lua_gettable(luaState, -3);
+			if (lua_isstring(luaState, -1)) {
+				string str = lua_tostring(luaState, -1);
+				if (str == "GameObject")
+				{
+					lua_pop(luaState, 1);
+					lua_pushstring(luaState, "Data");
+					lua_gettable(luaState, -3);
+					GameObject* go = (GameObject*)lua_touserdata(luaState, -1);
+					if (go == nullptr) {
+						LOG_WARNING("SetParent() GameObject(1) argument is nil!");
 					}
 					else {
-						go->SetParent(parent);
+						lua_pop(luaState, 1);
+						if (lua_istable(luaState, 2)) {
+							lua_pushstring(luaState, "Type");
+							lua_gettable(luaState, -2);
+							if (lua_isstring(luaState, -1)) {
+								string str = lua_tostring(luaState, -1);
+								if (str == "GameObject")
+								{
+									lua_pop(luaState, 1);
+									lua_pushstring(luaState, "Data");
+									lua_gettable(luaState, -2);
+									GameObject* parent = (GameObject*)lua_touserdata(luaState, -1);
+									if (parent == nullptr) {
+										LOG_WARNING("SetParent() GameObject(2) argument is nil!");
+									}
+									else {
+										go->SetParent(parent);
+									}
+								}
+								else {
+									LOG_WARNING("SetParent() GameObject(2) argument is not a GameObject!");
+								}
+							}
+						}
+						else {
+							LOG_WARNING("SetParent() GameObject(2) argument is not a GameObject!");
+						}
 					}
 				}
 				else {
-					LOG_WARNING("SetParent() GameObject(2) argument is not a GameObject!");
+					LOG_WARNING("SetParent() GameObject(1) argument is not a GameObject!");
 				}
 			}
 		}
@@ -1434,16 +1810,37 @@ int LuaScript::GetGameObjectRoot(lua_State * luaState)
 		return 0;
 	}
 	else {
-		if (lua_islightuserdata(luaState, 1)) {
-			GameObject* go = (GameObject*)lua_touserdata(luaState, 1);
-			if (go == nullptr) {
-				LOG_WARNING("GetRoot() GameObject argument is nil!");
-				return 0;
+		if (lua_istable(luaState, 1)) {
+			lua_pushstring(luaState, "Type");
+			lua_gettable(luaState, -2);
+			if (lua_isstring(luaState, -1)) {
+				string str = lua_tostring(luaState, -1);
+				if (str == "GameObject")
+				{
+					lua_pop(luaState, 1);
+					lua_pushstring(luaState, "Data");
+					lua_gettable(luaState, -2);
+					GameObject* go = (GameObject*)lua_touserdata(luaState, -1);
+					if (go == nullptr) {
+						LOG_WARNING("GetRoot() GameObject argument is nil!");
+						return 0;
+					}
+					while (go->parent != nullptr) {
+						go = go->parent;
+					}
+					lua_newtable(luaState);
+					lua_pushstring(luaState, "Type");
+					lua_pushstring(luaState, "GameObject");
+					lua_settable(luaState, -3);
+					lua_pushstring(luaState, "Data");
+					lua_pushlightuserdata(luaState, go);
+					lua_settable(luaState, -3);
+				}
+				else {
+					LOG_WARNING("GetRoot() GameObject argument is not a GameObject!");
+					return 0;
+				}
 			}
-			while (go->parent != nullptr) {
-				go = go->parent;
-			}
-			lua_pushlightuserdata(luaState, go);
 		}
 		else {
 			LOG_WARNING("GetRoot() GameObject argument is not a GameObject!");
@@ -1461,26 +1858,47 @@ int LuaScript::GetGameObjectChild(lua_State * luaState)
 		return 0;
 	}
 	else {
-		if (lua_islightuserdata(luaState, 1)) {
-			GameObject* go = (GameObject*)lua_touserdata(luaState, 1);
-			if (go == nullptr) {
-				LOG_WARNING("GetChild() GameObject argument is nil!");
-				return 0;
-			}
-			if (lua_isstring(luaState, 2)) {
-				string name = lua_tostring(luaState, 2);
-				for (list<GameObject*>::iterator it = go->childs.begin(); it != go->childs.end(); it++) {
-					if ((*it)->name == name) {
-						lua_pushlightuserdata(luaState, (*it));
-						return 1;
+		if (lua_istable(luaState, 1)) {
+			lua_pushstring(luaState, "Type");
+			lua_gettable(luaState, -3);
+			if (lua_isstring(luaState, -1)) {
+				string str = lua_tostring(luaState, -1);
+				if (str == "GameObject")
+				{
+					lua_pop(luaState, 1);
+					lua_pushstring(luaState, "Data");
+					lua_gettable(luaState, -3);
+					GameObject* go = (GameObject*)lua_touserdata(luaState, -1);
+					if (go == nullptr) {
+						LOG_WARNING("GetChild() GameObject argument is nil!");
+						return 0;
+					}
+					if (lua_isstring(luaState, 2)) {
+						string name = lua_tostring(luaState, 2);
+						for (list<GameObject*>::iterator it = go->childs.begin(); it != go->childs.end(); it++) {
+							if ((*it)->name == name) {
+								lua_newtable(luaState);
+								lua_pushstring(luaState, "Type");
+								lua_pushstring(luaState, "GameObject");
+								lua_settable(luaState, -3);
+								lua_pushstring(luaState, "Data");
+								lua_pushlightuserdata(luaState, (*it));
+								lua_settable(luaState, -3);
+								return 1;
+							}
+						}
+						LOG_WARNING("'%s' is not '%s' child!", name.c_str(), go->name.c_str());
+						return 0;
+					}
+					else {
+						LOG_WARNING("GetChild() string argument is not a string!");
+						return 0;
 					}
 				}
-				LOG_WARNING("'%s' is not '%s' child!", name.c_str(), go->name.c_str());
-				return 0;
-			}
-			else {
-				LOG_WARNING("GetChild() string argument is not a string!");
-				return 0;
+				else {
+					LOG_WARNING("GetChild() GameObject argument is not a GameObject!");
+					return 0;
+				}
 			}
 		}
 		else {
@@ -1499,33 +1917,54 @@ int LuaScript::GetGameObjectChildByIndex(lua_State * luaState)
 		return 0;
 	}
 	else {
-		if (lua_islightuserdata(luaState, 1)) {
-			GameObject* go = (GameObject*)lua_touserdata(luaState, 1);
-			if (go == nullptr) {
-				LOG_WARNING("GetChild() GameObject argument is nil!");
-				return 0;
-			}
-			if (lua_isinteger(luaState, 2)) {
-				int index = lua_tointeger(luaState, 2);
-				if (index >= 0 && index < go->childs.size()) {
-					list<GameObject*>::iterator it = go->childs.begin();
-					for (int i = 0; i < index; i++) {
-						it++;
-					}
-					if ((*it) == nullptr) {
-						LOG_WARNING("'%s'child at index %d is nil!", go->name.c_str(), index);
+		if (lua_istable(luaState, 1)) {
+			lua_pushstring(luaState, "Type");
+			lua_gettable(luaState, -3);
+			if (lua_isstring(luaState, -1)) {
+				string str = lua_tostring(luaState, -1);
+				if (str == "GameObject")
+				{
+					lua_pop(luaState, 1);
+					lua_pushstring(luaState, "Data");
+					lua_gettable(luaState, -3);
+					GameObject* go = (GameObject*)lua_touserdata(luaState, -1);
+					if (go == nullptr) {
+						LOG_WARNING("GetChild() GameObject argument is nil!");
 						return 0;
 					}
-					lua_pushlightuserdata(luaState, (*it));
+					if (lua_isinteger(luaState, 2)) {
+						int index = lua_tointeger(luaState, 2);
+						if (index >= 0 && index < go->childs.size()) {
+							list<GameObject*>::iterator it = go->childs.begin();
+							for (int i = 0; i < index; i++) {
+								it++;
+							}
+							if ((*it) == nullptr) {
+								LOG_WARNING("'%s'child at index %d is nil!", go->name.c_str(), index);
+								return 0;
+							}
+							lua_newtable(luaState);
+							lua_pushstring(luaState, "Type");
+							lua_pushstring(luaState, "GameObject");
+							lua_settable(luaState, -3);
+							lua_pushstring(luaState, "Data");
+							lua_pushlightuserdata(luaState, (*it));
+							lua_settable(luaState, -3);
+						}
+						else {
+							LOG_WARNING("'%s' doesn't have %d childs!", go->name.c_str(), index);
+							return 0;
+						}
+					}
+					else {
+						LOG_WARNING("GetChild() string argument is not a string!");
+						return 0;
+					}
 				}
 				else {
-					LOG_WARNING("'%s' doesn't have %d childs!", go->name.c_str(), index);
+					LOG_WARNING("GetChild() GameObject argument is not a GameObject!");
 					return 0;
 				}
-			}
-			else {
-				LOG_WARNING("GetChild() string argument is not a string!");
-				return 0;
 			}
 		}
 		else {
@@ -1544,13 +1983,28 @@ int LuaScript::GetGameObjectChildsCount(lua_State * luaState)
 		return 0;
 	}
 	else {
-		if (lua_islightuserdata(luaState, 1)) {
-			GameObject* go = (GameObject*)lua_touserdata(luaState, 1);
-			if (go == nullptr) {
-				LOG_WARNING("GetChildsCount() GameObject argument is nil!");
-				return 0;
+		if (lua_istable(luaState, 1)) {
+			lua_pushstring(luaState, "Type");
+			lua_gettable(luaState, -2);
+			if (lua_isstring(luaState, -1)) {
+				string str = lua_tostring(luaState, -1);
+				if (str == "GameObject")
+				{
+					lua_pop(luaState, 1);
+					lua_pushstring(luaState, "Data");
+					lua_gettable(luaState, -2);
+					GameObject* go = (GameObject*)lua_touserdata(luaState, -1);
+					if (go == nullptr) {
+						LOG_WARNING("GetChildsCount() GameObject argument is nil!");
+						return 0;
+					}
+					lua_pushinteger(luaState, go->childs.size());
+				}
+				else {
+					LOG_WARNING("GetChildsCount() GameObject argument is not a GameObject!");
+					return 0;
+				}
 			}
-			lua_pushinteger(luaState, go->childs.size());
 		}
 		else {
 			LOG_WARNING("GetChildsCount() GameObject argument is not a GameObject!");
@@ -1576,7 +2030,13 @@ int LuaScript::FindGameObject(lua_State * luaState)
 				return 0;
 			}
 			else {
+				lua_newtable(luaState);
+				lua_pushstring(luaState, "Type");
+				lua_pushstring(luaState, "GameObject");
+				lua_settable(luaState, -3);
+				lua_pushstring(luaState, "Data");
 				lua_pushlightuserdata(luaState, go);
+				lua_settable(luaState, -3);
 			}
 		}
 		else {
@@ -1587,74 +2047,6 @@ int LuaScript::FindGameObject(lua_State * luaState)
 	return 1;
 }
 
-int LuaScript::GetGameObjectSprite(lua_State * luaState)
-{
-	int arguments = lua_gettop(luaState);
-	if (arguments != 1) {
-		LOG_WARNING("GetSprite(GameObject) takes 1 argument!");
-		return 0;
-	}
-	else {
-		if (lua_islightuserdata(luaState, 1)) {
-			GameObject* go = (GameObject*)lua_touserdata(luaState, 1);
-			if (go == nullptr) {
-				LOG_WARNING("GetSprite() GameObject argument is nil!");
-				return 0;
-			}
-			ComponentSpriteRenderer* renderer = (ComponentSpriteRenderer*)go->GetComponent(Component::SpriteRenderer);
-			if (renderer == nullptr) {
-				LOG_WARNING("Cannot get %s Sprite because Sprite Renderer component is not found!", go->name.c_str());
-				return 0;
-			}
-			lua_pushlightuserdata(luaState, go->gameObjectSprite);
-		}
-		else {
-			LOG_WARNING("GetSprite() GameObject argument is not a GameObject!");
-			return 0;
-		}
-	}
-	return 1;
-}
-
-int LuaScript::SetGameObjectSprite(lua_State * luaState)
-{
-	int arguments = lua_gettop(luaState);
-	if (arguments != 2) {
-		LOG_WARNING("SetSprite(GameObject, string) takes 2 arguments!");
-		return 0;
-	}
-	else {
-		if (lua_islightuserdata(luaState, 1)) {
-			GameObject* go = (GameObject*)lua_touserdata(luaState, 1);
-			if (go == nullptr) {
-				LOG_WARNING("SetSprite() GameObject(1) argument is nil!");
-			}
-			else {
-				if (lua_isstring(luaState, 2)) {
-					string str = lua_tostring(luaState, 2);
-					str = "/" + str;
-					ComponentSpriteRenderer* renderer = (ComponentSpriteRenderer*)go->GetComponent(Component::SpriteRenderer);
-					if (renderer == nullptr) {
-						LOG_WARNING("Cannot change %s Sprite because Sprite Renderer component is not found!");
-					}
-					else {
-						if (!renderer->ChangeSprite(ASSETS_FOLDER + str)) {
-							LOG_WARNING("SetSprite() failed to load Sprite using the given path: %s", str.c_str());
-						}
-					}
-				}
-				else {
-					LOG_WARNING("SetSprite() string argument is not a string!");
-				}
-			}
-		}
-		else {
-			LOG_WARNING("SetSprite() GameObject argument is not a GameObject!");
-		}
-	}
-	return 0;
-}
-
 int LuaScript::DestroyGameObject(lua_State * luaState)
 {
 	int arguments = lua_gettop(luaState);
@@ -1662,25 +2054,52 @@ int LuaScript::DestroyGameObject(lua_State * luaState)
 		LOG_WARNING("Destroy(GameObject, float) takes 1 or 2 arguments(float is optional)!");
 	}
 	else {
-		if (lua_islightuserdata(luaState, 1)) {
-			GameObject* go = (GameObject*)lua_touserdata(luaState, 1);
-			if (go == nullptr) {
-				LOG_WARNING("Destroy() GameObject argument is nil");
+		if (lua_istable(luaState, 1)) {
+			lua_pushstring(luaState, "Type");
+			if (arguments == 1) {
+				lua_gettable(luaState, -2);
 			}
 			else {
-				if (arguments == 1) {
-					go->Destroy();
-				}
-				else {
-					if (lua_isnumber(luaState, 2)) {
-						float time = lua_tonumber(luaState, 2);
-						go->DestroyAfterTime(time);
+				lua_gettable(luaState, -3);
+			}
+			if (lua_isstring(luaState, -1)) {
+				string str = lua_tostring(luaState, -1);
+				if (str == "GameObject")
+				{
+					lua_pop(luaState, 1);
+					lua_pushstring(luaState, "Data");
+					if (arguments == 1) {
+						lua_gettable(luaState, -2);
 					}
 					else {
-						LOG_WARNING("Destroy() float argument is not a number!");
+						lua_gettable(luaState, -3);
+					}
+					GameObject* go = (GameObject*)lua_touserdata(luaState, -1);
+					if (go == nullptr) {
+						LOG_WARNING("Destroy() GameObject argument is nil");
+					}
+					else {
+						if (arguments == 1) {
+							go->Destroy();
+						}
+						else {
+							if (lua_isnumber(luaState, 2)) {
+								float time = lua_tonumber(luaState, 2);
+								go->DestroyAfterTime(time);
+							}
+							else {
+								LOG_WARNING("Destroy() float argument is not a number!");
+							}
+						}
 					}
 				}
+				else {
+					LOG_WARNING("Destroy() GameObject argument is not a GameObject!");
+				}
 			}
+		}
+		else {
+			LOG_WARNING("Destroy() GameObject argument is not a GameObject!");
 		}
 	}
 	return 0;
@@ -1736,237 +2155,356 @@ int LuaScript::Instantiate(lua_State * luaState)
 		else {
 			GameObject* go = nullptr;
 			GameObject* duplicatedGO = nullptr;
-			if (lua_islightuserdata(luaState, 1)) {
-				go = (GameObject*)lua_touserdata(luaState, 1);
-				if (go == nullptr) {
-					LOG_WARNING("Instantiate() GameObject argument is nil!");
-					return 0;
-				}
-				else {
-					duplicatedGO = engine->sceneManagerModule->DuplicateGameObject(go);
-					if (duplicatedGO == nullptr) {
-						LOG_WARNING("Failed to Instantiate %s!", go->name.c_str());
-						return 0;
+			if (lua_istable(luaState, 1)) {
+				lua_pushstring(luaState, "Type");
+				lua_gettable(luaState, -2);
+				if (lua_isstring(luaState, -1)) {
+					string str = lua_tostring(luaState, -1);
+					if (str == "GameObject")
+					{
+						lua_pop(luaState, 1);
+						lua_pushstring(luaState, "Data");
+						lua_gettable(luaState, -2);
+						go = (GameObject*)lua_touserdata(luaState, -1);
+						if (go == nullptr) {
+							LOG_WARNING("Instantiate() GameObject argument is nil!");
+							return 0;
+						}
+						else {
+							duplicatedGO = engine->sceneManagerModule->DuplicateGameObject(go);
+							if (duplicatedGO == nullptr) {
+								LOG_WARNING("Failed to Instantiate %s!", go->name.c_str());
+								return 0;
+							}
+							else {
+								lua_newtable(luaState);
+								lua_pushstring(luaState, "Type");
+								lua_pushstring(luaState, "GameObject");
+								lua_settable(luaState, -3);
+								lua_pushstring(luaState, "Data");
+								lua_pushlightuserdata(luaState, duplicatedGO);
+								lua_settable(luaState, -3);
+							}
+						}
 					}
 					else {
-						lua_pushlightuserdata(luaState, duplicatedGO);
+						LOG_WARNING("Instantiate() cannot be called outside functions!");
+						return 0;
 					}
 				}
 			}
 		}
 	}
 	else {
-		LOG_WARNING("Instantiate cannot be called outside functions!");
+		LOG_WARNING("Instantiate() cannot be called outside Main functions!");
 		return 0;
 	}
 	return 1;
 }
 
-int LuaScript::FlipSpriteX(lua_State * luaState)
+int LuaScript::FlipGameObjectSpriteX(lua_State * luaState)
 {
 	int arguments = lua_gettop(luaState);
 	if (arguments != 1) {
-		LOG_WARNING("FlipX(Sprite) takes 1 argument!");
+		LOG_WARNING("FlipSpriteX(GameObject) takes 1 argument!");
 	}
 	else {
-		if (lua_islightuserdata(luaState, 1)) {
-			sf::Sprite* spr = (sf::Sprite*)lua_touserdata(luaState,1);
-			if (spr == nullptr) {
-				LOG_WARNING("FlipX() Sprite argument is nil!");
-			}
-			else {
-				if (spr->getTextureRect().left == 0) {
-					spr->setTextureRect(sf::IntRect(spr->getTextureRect().width, spr->getTextureRect().top != 0 ? spr->getTextureRect().top : 0, -spr->getTextureRect().width, spr->getTextureRect().height));
+		if (lua_istable(luaState, 1)) {
+			lua_pushstring(luaState, "Type");
+			lua_gettable(luaState, -2);
+			if (lua_isstring(luaState, -1)) {
+				string str = lua_tostring(luaState, -1);
+				if (str == "GameObject")
+				{
+					lua_pop(luaState, 1);
+					lua_pushstring(luaState, "Data");
+					lua_gettable(luaState, -2);
+					GameObject* go = (GameObject*)lua_touserdata(luaState, -1);
+					if (go == nullptr) {
+						LOG_WARNING("FlipSpriteX() GameObject argument is nil!");
+					}
+					else {
+						if (go->gameObjectSprite->getTextureRect().left == 0) {
+							go->gameObjectSprite->setTextureRect(sf::IntRect(go->gameObjectSprite->getTextureRect().width, 
+								go->gameObjectSprite->getTextureRect().top != 0 ? go->gameObjectSprite->getTextureRect().top : 0, 
+								-go->gameObjectSprite->getTextureRect().width, go->gameObjectSprite->getTextureRect().height));
+						}
+						else {
+							go->gameObjectSprite->setTextureRect(sf::IntRect(0, go->gameObjectSprite->getTextureRect().top != 0 ? go->gameObjectSprite->getTextureRect().top : 0, 
+								-go->gameObjectSprite->getTextureRect().width, go->gameObjectSprite->getTextureRect().height));
+						}
+					}
 				}
 				else {
-					spr->setTextureRect(sf::IntRect(0, spr->getTextureRect().top != 0 ? spr->getTextureRect().top : 0, -spr->getTextureRect().width, spr->getTextureRect().height));
+					LOG_WARNING("FlipSpriteX() GameObject argument is not a GameObject!");
 				}
 			}
+		}
+		else {
+			LOG_WARNING("FlipSpriteX() GameObject argument is not a GameObject!");
 		}
 	}
 	return 0;
 }
 
-int LuaScript::FlipSpriteY(lua_State * luaState)
+int LuaScript::FlipGameObjectSpriteY(lua_State * luaState)
 {
 	int arguments = lua_gettop(luaState);
 	if (arguments != 1) {
-		LOG_WARNING("FlipY(Sprite) takes 1 argument!");
+		LOG_WARNING("FlipSpriteY(GameObject) takes 1 argument!");
 	}
 	else {
-		if (lua_islightuserdata(luaState, 1)) {
-			sf::Sprite* sprite = (sf::Sprite*)lua_touserdata(luaState, 1);
-			if (sprite == nullptr) {
-				LOG_WARNING("FlipY() Sprite argument is nil!");
-			}
-			else {
-				if (sprite->getTextureRect().top == 0) {
-					sprite->setTextureRect(sf::IntRect(sprite->getTextureRect().left != 0 ? sprite->getTextureRect().left : 0, sprite->getTextureRect().height, sprite->getTextureRect().width, -sprite->getTextureRect().height));
+		if (lua_istable(luaState, 1)) {
+			lua_pushstring(luaState, "Type");
+			lua_gettable(luaState, -2);
+			if (lua_isstring(luaState, -1)) {
+				string str = lua_tostring(luaState, -1);
+				if (str == "GameObject")
+				{
+					lua_pop(luaState, 1);
+					lua_pushstring(luaState, "Data");
+					lua_gettable(luaState, -2);
+					GameObject* go = (GameObject*)lua_touserdata(luaState, -1);
+					if (go == nullptr) {
+						LOG_WARNING("FlipSpriteY() GameObject argument is nil!");
+					}
+					else {
+						if (go->gameObjectSprite->getTextureRect().top == 0) {
+							go->gameObjectSprite->setTextureRect(sf::IntRect(go->gameObjectSprite->getTextureRect().left != 0 ? go->gameObjectSprite->getTextureRect().left : 0, 
+								go->gameObjectSprite->getTextureRect().height, go->gameObjectSprite->getTextureRect().width, -go->gameObjectSprite->getTextureRect().height));
+						}
+						else {
+							go->gameObjectSprite->setTextureRect(sf::IntRect(go->gameObjectSprite->getTextureRect().left != 0 ? go->gameObjectSprite->getTextureRect().left : 0, 0, 
+								go->gameObjectSprite->getTextureRect().width, -go->gameObjectSprite->getTextureRect().height));
+						}
+					}
 				}
 				else {
-					sprite->setTextureRect(sf::IntRect(sprite->getTextureRect().left != 0 ? sprite->getTextureRect().left : 0, 0, sprite->getTextureRect().width, -sprite->getTextureRect().height));
+					LOG_WARNING("FlipY() GameObject argument is not a GameObject!");
 				}
 			}
+		}
+		else {
+			LOG_WARNING("FlipY() GameObject argument is not a GameObject!");
 		}
 	}
 	return 0;
 }
 
-int LuaScript::TintSprite(lua_State * luaState)
+int LuaScript::TintGameObjectSprite(lua_State * luaState)
 {
 	int arguments = lua_gettop(luaState);
 	if (arguments != 2) {
-		LOG_WARNING("Tint(Sprite, Vector4) takes 2 argument!");
+		LOG_WARNING("TintSprite(GameObject, Vector4) takes 2 argument!");
 	}
 	else {
-		if (lua_islightuserdata(luaState, 1)) {
-			sf::Sprite* sprite = (sf::Sprite*)lua_touserdata(luaState, 1);
-			if (sprite == nullptr) {
-				LOG_WARNING("Tint() Sprite argument is nil!");
-			}
-			else {
-				if (lua_istable(luaState, 2)) {
-					if (lua_rawlen(luaState, 2) == 4) {
-						int r, g, b, a;
+		if (lua_istable(luaState, 1)) {
+			lua_pushstring(luaState, "Type");
+			lua_gettable(luaState, -3);
+			if (lua_isstring(luaState, -1)) {
+				string str = lua_tostring(luaState, -1);
+				if (str == "GameObject")
+				{
+					lua_pop(luaState, 1);
+					lua_pushstring(luaState, "Data");
+					lua_gettable(luaState, -3);
+					GameObject* go = (GameObject*)lua_touserdata(luaState, -1);
+					if (go == nullptr) {
+						LOG_WARNING("TintSprite() GameObject argument is nil!");
+					}
+					else {
+						lua_pop(luaState, 1);;
+						if (lua_istable(luaState, 2)) {
+							if (lua_rawlen(luaState, 2) == 4) {
+								int r, g, b, a;
 
-						lua_pushinteger(luaState, 1);
-						lua_gettable(luaState, -2);
-						if (lua_isnumber(luaState, -1)) {
-							if (lua_tonumber(luaState, -1) >= 0 && lua_tonumber(luaState, -1) <= 255) {
-								r = lua_tonumber(luaState, -1);
+								lua_pushinteger(luaState, 1);
+								lua_gettable(luaState, -2);
+								if (lua_isnumber(luaState, -1)) {
+									if (lua_tonumber(luaState, -1) >= 0 && lua_tonumber(luaState, -1) <= 255) {
+										r = lua_tonumber(luaState, -1);
+									}
+									else {
+										LOG_WARNING("TintSprite() value 'r' is not between 0 and 255!");
+										return 0;
+									}
+								}
+								else {
+									LOG_WARNING("TintSprite() value 'r' is not a number!");
+									return 0;
+								}
+								lua_pop(luaState, 1);
+
+								lua_pushinteger(luaState, 2);
+								lua_gettable(luaState, -2);
+								if (lua_isnumber(luaState, -1)) {
+									if (lua_tonumber(luaState, -1) >= 0 && lua_tonumber(luaState, -1) <= 255) {
+										g = lua_tonumber(luaState, -1);
+									}
+									else {
+										LOG_WARNING("TintSprite() value 'g' is not between 0 and 255!");
+										return 0;
+									}
+								}
+								else {
+									LOG_WARNING("TintSprite() value 'g' is not a number!");
+									return 0;
+								}
+								lua_pop(luaState, 1);
+
+								lua_pushinteger(luaState, 3);
+								lua_gettable(luaState, -2);
+								if (lua_isnumber(luaState, -1)) {
+									if (lua_tonumber(luaState, -1) >= 0 && lua_tonumber(luaState, -1) <= 255) {
+										b = lua_tonumber(luaState, -1);
+									}
+									else {
+										LOG_WARNING("TintSprite() value 'b' is not between 0 and 255!");
+										return 0;
+									}
+								}
+								else {
+									LOG_WARNING("TintSprite() value 'b' is not a number!");
+									return 0;
+								}
+								lua_pop(luaState, 1);
+
+								lua_pushinteger(luaState, 4);
+								lua_gettable(luaState, -2);
+								if (lua_isnumber(luaState, -1)) {
+									if (lua_tonumber(luaState, -1) >= 0 && lua_tonumber(luaState, -1) <= 255) {
+										a = lua_tonumber(luaState, -1);
+									}
+									else {
+										LOG_WARNING("TintSprite() value 'a' is not between 0 and 255!");
+										return 0;
+									}
+								}
+								else {
+									LOG_WARNING("TintSprite() value 'a' is not a number!");
+									return 0;
+								}
+								lua_pop(luaState, 1);
+								sf::Color color(r, g, b, a);
+								go->gameObjectSprite->setColor(color);
 							}
 							else {
-								LOG_WARNING("Tint() value 'r' is not between 0 and 255!");
-								return 0;
+								LOG_WARNING("TintSprite() Vector4 argument is not a Vector4!");
 							}
 						}
-						else {
-							LOG_WARNING("Tint() value 'r' is not a number!");
-							return 0;
-						}
-						lua_pop(luaState, 1);
-
-						lua_pushinteger(luaState, 2);
-						lua_gettable(luaState, -2);
-						if (lua_isnumber(luaState, -1)) {
-							if (lua_tonumber(luaState, -1) >= 0 && lua_tonumber(luaState, -1) <= 255) {
-								g = lua_tonumber(luaState, -1);
-							}
-							else {
-								LOG_WARNING("Tint() value 'g' is not between 0 and 255!");
-								return 0;
-							}
-						}
-						else {
-							LOG_WARNING("Tint() value 'g' is not a number!");
-							return 0;
-						}
-						lua_pop(luaState, 1);
-
-						lua_pushinteger(luaState, 3);
-						lua_gettable(luaState, -2);
-						if (lua_isnumber(luaState, -1)) {
-							if (lua_tonumber(luaState, -1) >= 0 && lua_tonumber(luaState, -1) <= 255) {
-								b = lua_tonumber(luaState, -1);
-							}
-							else {
-								LOG_WARNING("Tint() value 'b' is not between 0 and 255!");
-								return 0;
-							}
-						}
-						else {
-							LOG_WARNING("Tint() value 'b' is not a number!");
-							return 0;
-						}
-						lua_pop(luaState, 1);
-
-						lua_pushinteger(luaState, 4);
-						lua_gettable(luaState, -2);
-						if (lua_isnumber(luaState, -1)) {
-							if (lua_tonumber(luaState, -1) >= 0 && lua_tonumber(luaState, -1) <= 255) {
-								a = lua_tonumber(luaState, -1);
-							}
-							else {
-								LOG_WARNING("Tint() value 'a' is not between 0 and 255!");
-								return 0;
-							}
-						}
-						else {
-							LOG_WARNING("Tint() value 'a' is not a number!");
-							return 0;
-						}
-						lua_pop(luaState, 1);
-						sf::Color color(r, g, b, a);
-						sprite->setColor(color);
 					}
 				}
+				else {
+					LOG_WARNING("TintSprite() GameObject argument is not a GameObject!");
+				}
 			}
+		}
+		else {
+			LOG_WARNING("TintSprite() GameObject argument is not a GameObject!");
 		}
 	}
 	return 0;
 }
 
-int LuaScript::GetSpriteLocalBounds(lua_State * luaState)
+int LuaScript::GetGameObjectSpriteLocalBounds(lua_State * luaState)
 {
 	int arguments = lua_gettop(luaState);
 	if (arguments != 1) {
-		LOG_WARNING("GetLocalBounds(Sprite) takes 1 argument!");
+		LOG_WARNING("GetSpriteLocalBounds(GameObject) takes 1 argument!");
 		return 0;
 	}
 	else {
-		if (lua_islightuserdata(luaState, 1)) {
-			sf::Sprite* sprite = (sf::Sprite*)lua_touserdata(luaState, 1);
-			if (sprite == nullptr) {
-				LOG_WARNING("GetLocalBounds() Sprite argument is nil!");
-				return 0;
+		if (lua_istable(luaState, 1)) {
+			lua_pushstring(luaState, "Type");
+			lua_gettable(luaState, -2);
+			if (lua_isstring(luaState, -1)) {
+				string str = lua_tostring(luaState, -1);
+				if (str == "GameObject")
+				{
+					lua_pop(luaState, 1);
+					lua_pushstring(luaState, "Data");
+					lua_gettable(luaState, -2);
+					GameObject* go = (GameObject*)lua_touserdata(luaState, -1);
+					if (go == nullptr) {
+						LOG_WARNING("GetSpriteLocalBounds() GameObject argument is nil!");
+						return 0;
+					}
+					else {
+						lua_newtable(luaState);
+						lua_pushnumber(luaState, go->gameObjectSprite->getLocalBounds().left);
+						lua_rawseti(luaState, -2, 1);
+						lua_pushnumber(luaState, go->gameObjectSprite->getLocalBounds().top);
+						lua_rawseti(luaState, -2, 2);
+						lua_pushnumber(luaState, go->gameObjectSprite->getLocalBounds().width);
+						lua_rawseti(luaState, -2, 3);
+						lua_pushnumber(luaState, go->gameObjectSprite->getLocalBounds().height);
+						lua_rawseti(luaState, -2, 4);
+					}
+				}
+				else {
+					LOG_WARNING("GetSpriteLocalBounds() GameObject argument is not a GameObject!");
+					return 0;
+				}
 			}
-			else {
-				lua_newtable(luaState);
-				lua_pushnumber(luaState, sprite->getLocalBounds().left);
-				lua_rawseti(luaState, -2, 1);
-				lua_pushnumber(luaState, sprite->getLocalBounds().top);
-				lua_rawseti(luaState, -2, 2);
-				lua_pushnumber(luaState, sprite->getLocalBounds().width);
-				lua_rawseti(luaState, -2, 3);
-				lua_pushnumber(luaState, sprite->getLocalBounds().height);
-				lua_rawseti(luaState, -2, 4);
-			}
+		}
+		else {
+			LOG_WARNING("GetSpriteLocalBounds() GameObject argument is not a GameObject!");
+			return 0;
 		}
 	}
 	return 1;
 }
 
-int LuaScript::GetSpriteGlobalBounds(lua_State * luaState)
+int LuaScript::GetGameObjectSpriteGlobalBounds(lua_State * luaState)
 {
 	int arguments = lua_gettop(luaState);
 	if (arguments != 1) {
-		LOG_WARNING("GetGlobalBounds(Sprite) takes 1 argument!");
+		LOG_WARNING("GetSpriteGlobalBounds(GameObject) takes 1 argument!");
 		return 0;
 	}
 	else {
-		if (lua_islightuserdata(luaState, 1)) {
-			sf::Sprite* sprite = (sf::Sprite*)lua_touserdata(luaState, 1);
-			if (sprite == nullptr) {
-				LOG_WARNING("GetGlobalBounds() Sprite argument is nil!");
-				return 0;
+		if (lua_istable(luaState, 1)) {
+			lua_pushstring(luaState, "Type");
+			lua_gettable(luaState, -2);
+			if (lua_isstring(luaState, -1)) {
+				string str = lua_tostring(luaState, -1);
+				if (str == "GameObject")
+				{
+					lua_pop(luaState, 1);
+					lua_pushstring(luaState, "Data");
+					lua_gettable(luaState, -2);
+					GameObject* go = (GameObject*)lua_touserdata(luaState, -1);
+					if (go == nullptr) {
+						LOG_WARNING("GetSpriteGlobalBounds() GameObject argument is nil!");
+						return 0;
+					}
+					else {
+						lua_newtable(luaState);
+						lua_pushnumber(luaState, go->gameObjectSprite->getGlobalBounds().left);
+						lua_rawseti(luaState, -2, 1);
+						lua_pushnumber(luaState, go->gameObjectSprite->getGlobalBounds().top);
+						lua_rawseti(luaState, -2, 2);
+						lua_pushnumber(luaState, go->gameObjectSprite->getGlobalBounds().width);
+						lua_rawseti(luaState, -2, 3);
+						lua_pushnumber(luaState, go->gameObjectSprite->getGlobalBounds().height);
+						lua_rawseti(luaState, -2, 4);
+					}
+				}
+				else {
+					LOG_WARNING("GetSpriteGlobalBounds() GameObject argument is not a GameObject!");
+					return 0;
+				}
 			}
-			else {
-				lua_newtable(luaState);
-				lua_pushnumber(luaState, sprite->getGlobalBounds().left);
-				lua_rawseti(luaState, -2, 1);
-				lua_pushnumber(luaState, sprite->getGlobalBounds().top);
-				lua_rawseti(luaState, -2, 2);
-				lua_pushnumber(luaState, sprite->getGlobalBounds().width);
-				lua_rawseti(luaState, -2, 3);
-				lua_pushnumber(luaState, sprite->getGlobalBounds().height);
-				lua_rawseti(luaState, -2, 4);
-			}
+		}
+		else {
+			LOG_WARNING("GetSpriteGlobalBounds() GameObject argument is not a GameObject!");
+			return 0;
 		}
 	}
 	return 1;
 }
 
-/////////////// Math API //////////////////
+/////////////// Math //////////////////
 
 int LuaScript::Vector4(lua_State * luaState)
 {
@@ -2076,6 +2614,1177 @@ int LuaScript::Vector2(lua_State * luaState)
 	return 1;
 }
 
+/////////////// Input  //////////////////
+
+int LuaScript::IsKeyPressed(lua_State * luaState)
+{
+	int arguments = lua_gettop(luaState);
+	if (arguments != 1) {
+		LOG_WARNING("IsKeyPressed(string) takes 1 argument!");
+		return 0;
+	}
+	else {
+		if (lua_isstring(luaState, 1)) {
+			string str = lua_tostring(luaState, 1);
+			sf::Keyboard::Key key = engine->inputModule->StringToKey(str);
+			if (key != -1) {
+				lua_pushboolean(luaState, (int)engine->inputModule->IsKeyPressed(key));
+			}
+			else {
+				LOG_WARNING("IsKeyPressed() string argument is not a valid key!");
+				return 0;
+			}
+		}
+		else {
+			LOG_WARNING("IsKeyPressed() string argument is not a string!");
+			return 0;
+		}
+	}
+	return 1;
+}
+
+int LuaScript::IsKeyReleased(lua_State * luaState)
+{
+	int arguments = lua_gettop(luaState);
+	if (arguments != 1) {
+		LOG_WARNING("IsKeyReleased(string) takes 1 argument!");
+		return 0;
+	}
+	else {
+		if (lua_isstring(luaState, 1)) {
+			string str = lua_tostring(luaState, 1);
+			sf::Keyboard::Key key = engine->inputModule->StringToKey(str);
+			if (key != -1) {
+				lua_pushboolean(luaState, (int)engine->inputModule->IsKeyReleased(key));
+			}
+			else {
+				LOG_WARNING("IsKeyReleased() string argument is not a valid key!");
+				return 0;
+			}
+		}
+		else {
+			LOG_WARNING("IsKeyReleased() string argument is not a string!");
+			return 0;
+		}
+	}
+	return 1;
+}
+
+int LuaScript::IsKeyRepeated(lua_State * luaState)
+{
+	int arguments = lua_gettop(luaState);
+	if (arguments != 1) {
+		LOG_WARNING("IsKeyRepeated(string) takes 1 argument!");
+		return 0;
+	}
+	else {
+		if (lua_isstring(luaState, 1)) {
+			string str = lua_tostring(luaState, 1);
+			sf::Keyboard::Key key = engine->inputModule->StringToKey(str);
+			if (key != -1) {
+				lua_pushboolean(luaState, (int)engine->inputModule->IsKeyRepeated(key));
+			}
+			else {
+				LOG_WARNING("IsKeyRepeated() string argument is not a valid key!");
+				return 0;
+			}
+		}
+		else {
+			LOG_WARNING("IsKeyRepeated() string argument is not a string!");
+			return 0;
+		}
+	}
+	return 1;
+}
+
+int LuaScript::IsMouseButtonPressed(lua_State * luaState)
+{
+	int arguments = lua_gettop(luaState);
+	if (arguments != 1) {
+		LOG_WARNING("IsMouseButtonPressed(int) takes 1 argument!");
+		return 0;
+	}
+	else {
+		if (lua_isinteger(luaState, 1)) {
+			sf::Mouse::Button button = (sf::Mouse::Button)lua_tointeger(luaState, 1);
+			if (button >= 0 && button <= 4) {
+				lua_pushboolean(luaState, (int)engine->inputModule->IsMouseButtonPressed(button));
+			}
+			else {
+				LOG_WARNING("IsMouseButtonPressed() integer argument is not a valid number!");
+				return 0;
+			}
+		}
+		else {
+			LOG_WARNING("IsMouseButtonPressed() integer argument is not a number!");
+			return 0;
+		}
+	}
+	return 1;
+}
+
+int LuaScript::IsMouseButtonReleased(lua_State * luaState)
+{
+	int arguments = lua_gettop(luaState);
+	if (arguments != 1) {
+		LOG_WARNING("IsMouseButtonReleased(int) takes 1 argument!");
+		return 0;
+	}
+	else {
+		if (lua_isinteger(luaState, 1)) {
+			sf::Mouse::Button button = (sf::Mouse::Button)lua_tointeger(luaState, 1);
+			if (button >= 0 && button <= 4) {
+				lua_pushboolean(luaState, (int)engine->inputModule->IsMouseButtonReleased(button));
+			}
+			else {
+				LOG_WARNING("IsMouseButtonReleased() integer argument is not a valid number!");
+				return 0;
+			}
+		}
+		else {
+			LOG_WARNING("IsMouseButtonReleased() integer argument is not a number!");
+			return 0;
+		}
+	}
+	return 1;
+}
+
+int LuaScript::IsMouseButtonRepeated(lua_State * luaState)
+{
+	int arguments = lua_gettop(luaState);
+	if (arguments != 1) {
+		LOG_WARNING("IsMouseButtonRepeated(int) takes 1 argument!");
+		return 0;
+	}
+	else {
+		if (lua_isinteger(luaState, 1)) {
+			sf::Mouse::Button button = (sf::Mouse::Button)lua_tointeger(luaState, 1);
+			if (button >= 0 && button <= 4) {
+				lua_pushboolean(luaState, (int)engine->inputModule->IsMouseButtonRepeated(button));
+			}
+			else {
+				LOG_WARNING("IsMouseButtonRepeated() integer argument is not a valid number!");
+				return 0;
+			}
+		}
+		else {
+			LOG_WARNING("IsMouseButtonRepeated() integer argument is not a number!");
+			return 0;
+		}
+	}
+	return 1;
+}
+
+int LuaScript::IsGameObjectAnimationPlaying(lua_State * luaState)
+{
+	int arguments = lua_gettop(luaState);
+	if (arguments != 2) {
+		LOG_WARNING("IsAnimationPlaying(GameObject, string) takes 2 arguments!");
+		return 0;
+	}
+	else {
+		if (lua_istable(luaState, 1)) {
+			lua_pushstring(luaState, "Type");
+			lua_gettable(luaState, -3);
+			if (lua_isstring(luaState, -1)) {
+				string str = lua_tostring(luaState, -1);
+				if (str == "GameObject")
+				{
+					lua_pop(luaState, 1);
+					lua_pushstring(luaState, "Data");
+					lua_gettable(luaState, -3);
+					GameObject* go = (GameObject*)lua_touserdata(luaState, -1);
+					if (go == nullptr) {
+						LOG_WARNING("IsAnimationPlaying() GameObject argument is nil");
+						return 0;
+					}
+					ComponentAnimation* animation = (ComponentAnimation*)go->GetComponent(Component::Animaton);
+					if (animation == nullptr) {
+						LOG_ERROR("IsAnimationPlaying() failed to get component Animation");
+						return 0;
+					}
+					else {
+						if (lua_isstring(luaState, 2)) {
+							string animName = lua_tostring(luaState, 2);
+							if (animation->playingAnimationName == animName) {
+								lua_pushboolean(luaState, true);
+							}
+						}
+					}
+				}
+				else {
+					LOG_WARNING("IsAnimationPlaying() GameObject argument is not a GameObject!");
+					return 0;
+				}
+			}
+		}
+		else {
+			LOG_WARNING("IsAnimationPlaying() GameObject argument is not a GameObject!");
+			return 0;
+		}
+	}
+	return 1;
+}
+
+int LuaScript::PlayGameObjectAnimation(lua_State * luaState)
+{
+	int arguments = lua_gettop(luaState);
+	if (arguments != 2) {
+		LOG_WARNING("PlayAnimation(GameObject, string) takes 2 arguments!");
+	}
+	else {
+		if (lua_istable(luaState, 1)) {
+			lua_pushstring(luaState, "Type");
+			lua_gettable(luaState, -3);
+			if (lua_isstring(luaState, -1)) {
+				string str = lua_tostring(luaState, -1);
+				if (str == "GameObject")
+				{
+					lua_pop(luaState, 1);
+					lua_pushstring(luaState, "Data");
+					lua_gettable(luaState, -3);
+					GameObject* go = (GameObject*)lua_touserdata(luaState, -1);
+					if (go == nullptr) {
+						LOG_WARNING("PlayAnimation() GameObject argument is nil");
+					}
+					else {
+						ComponentAnimation* animation = (ComponentAnimation*)go->GetComponent(Component::Animaton);
+						if (animation == nullptr) {
+							LOG_ERROR("PlayAnimation() failed to get component Animation");
+						}
+						else {
+							if (lua_isstring(luaState, 2)) {
+								string animName = lua_tostring(luaState, 2);
+								ResourceAnimation* anim = animation->GetAnimation(animName);
+								if (anim != nullptr) {
+									animation->SetAnimation(anim);
+									animation->Play();
+								}
+								else {
+									LOG_WARNING("%s is not an animation of GameObject %s!", animName.c_str(), go->name.c_str());
+								}
+							}
+							else {
+								LOG_WARNING("PlayAnimation() string argument is not a string!");
+							}
+						}
+					}
+				}
+				else {
+					LOG_WARNING("PlayAnimation() GameObject argument is not a GameObject!");
+				}
+			}
+		}
+		else {
+			LOG_WARNING("PlayAnimation() GameObject argument is not a GameObject!");
+		}
+	}
+
+	return 0;
+}
+
+int LuaScript::StopGameObjectAnimation(lua_State * luaState)
+{
+	int arguments = lua_gettop(luaState);
+	if (arguments != 1) {
+		LOG_WARNING("StopAnimation(GameObject) takes 1 argument!");
+	}
+	else {
+		if (lua_istable(luaState, 1)) {
+			lua_pushstring(luaState, "Type");
+			lua_gettable(luaState, -2);
+			if (lua_isstring(luaState, -1)) {
+				string str = lua_tostring(luaState, -1);
+				if (str == "GameObject")
+				{
+					lua_pop(luaState, 1);
+					lua_pushstring(luaState, "Data");
+					lua_gettable(luaState, -2);
+					GameObject* go = (GameObject*)lua_touserdata(luaState, -1);
+					if (go == nullptr) {
+						LOG_WARNING("StopAnimation() GameObject argument is nil");
+					}
+					else {
+						ComponentAnimation* animation = (ComponentAnimation*)go->GetComponent(Component::Animaton);
+						if (animation == nullptr) {
+							LOG_ERROR("StopAnimation() failed to get component Animation");
+						}
+						animation->Stop();
+					}
+				}
+				else {
+					LOG_WARNING("StopAnimation() GameObject argument is not a GameObject!");
+				}
+			}
+		}
+		else {
+			LOG_WARNING("StopAnimation() GameObject argument is not a GameObject!");
+		}
+	}
+	return 0;
+}
+
+int LuaScript::PauseGameObjectAnimation(lua_State * luaState)
+{
+	int arguments = lua_gettop(luaState);
+	if (arguments != 1) {
+		LOG_WARNING("PauseAnimation(GameObject) takes 1 argument!");
+	}
+	else {
+		if (lua_istable(luaState, 1)) {
+			lua_pushstring(luaState, "Type");
+			lua_gettable(luaState, -2);
+			if (lua_isstring(luaState, -1)) {
+				string str = lua_tostring(luaState, -1);
+				if (str == "GameObject")
+				{
+					lua_pop(luaState, 1);
+					lua_pushstring(luaState, "Data");
+					lua_gettable(luaState, -2);
+					GameObject* go = (GameObject*)lua_touserdata(luaState, -1);
+					if (go == nullptr) {
+						LOG_WARNING("PauseAnimation() GameObject argument is nil");
+					}
+					else {
+						ComponentAnimation* animation = (ComponentAnimation*)go->GetComponent(Component::Animaton);
+						if (animation == nullptr) {
+							LOG_ERROR("PauseAnimation() failed to get component Animation");
+						}
+						animation->Pause();
+					}
+				}
+				else {
+					LOG_WARNING("PauseAnimation() GameObject argument is not a GameObject!");
+				}
+			}
+		}
+		else {
+			LOG_WARNING("PauseAnimation() GameObject argument is not a GameObject!");
+		}
+	}
+	return 0;
+}
+
+int LuaScript::IsGameObjectAnimationFinished(lua_State * luaState)
+{
+	int arguments = lua_gettop(luaState);
+	if (arguments != 1) {
+		LOG_WARNING("IsAnimationFinished(GameObject) takes 1 argument!");
+		return 0;
+	}
+	else {
+		if (lua_istable(luaState, 1)) {
+			lua_pushstring(luaState, "Type");
+			lua_gettable(luaState, -2);
+			if (lua_isstring(luaState, -1)) {
+				string str = lua_tostring(luaState, -1);
+				if (str == "GameObject")
+				{
+					lua_pop(luaState, 1);
+					lua_pushstring(luaState, "Data");
+					lua_gettable(luaState, -2);
+					GameObject* go = (GameObject*)lua_touserdata(luaState, -1);
+					if (go == nullptr) {
+						LOG_WARNING("IsAnimationFinished() GameObject argument is nil");
+						return 0;
+					}
+					ComponentAnimation* animation = (ComponentAnimation*)go->GetComponent(Component::Animaton);
+					if (animation == nullptr) {
+						LOG_ERROR("IsAnimationFinished() failed to get component Animation");
+						return 0;
+					}
+					if (animation->GetAnimation() != nullptr) {
+						lua_pushboolean(luaState, animation->IsFinish());
+					}
+					else {
+						LOG_WARNING("There is no animation playing!");
+						return 0;
+					}
+				}
+				else {
+					LOG_WARNING("IsAnimationFinished() GameObject argument is not a GameObject!");
+					return 0;
+				}
+			}
+		}
+		else {
+			LOG_WARNING("IsAnimationFinished() GameObject argument is not a GameObject!");
+			return 0;
+		}
+	}
+	return 1;
+}
+
+int LuaScript::ChangeGameObjectAnimationSpeed(lua_State * luaState)
+{
+	int arguments = lua_gettop(luaState);
+	if (arguments != 3) {
+		LOG_WARNING("ChangeAnimationSpeed(GameObject, string, float) takes 3 arguments!");
+	}
+	else {
+		if (lua_istable(luaState, 1)) {
+			lua_pushstring(luaState, "Type");
+			lua_gettable(luaState, -4);
+			if (lua_isstring(luaState, -1)) {
+				string str = lua_tostring(luaState, -1);
+				if (str == "GameObject")
+				{
+					lua_pop(luaState, 1);
+					lua_pushstring(luaState, "Data");
+					lua_gettable(luaState, -4);
+					GameObject* go = (GameObject*)lua_touserdata(luaState, -1);
+					if (go == nullptr) {
+						LOG_WARNING("ChangeAnimationSpeed() GameObject argument is nil");
+					}
+					else {
+						ComponentAnimation* animation = (ComponentAnimation*)go->GetComponent(Component::Animaton);
+						if (animation == nullptr) {
+							LOG_ERROR("ChangeAnimationSpeed() failed to get component Animation");
+						}
+						else {
+							if (lua_isstring(luaState, 2)) {
+								string animName = lua_tostring(luaState, 2);
+								ResourceAnimation* anim = animation->GetAnimation(animName);
+								if (anim != nullptr) {
+									if (lua_isnumber(luaState, 3)) {
+										float speed = lua_tonumber(luaState, 3);
+										anim->GetAnimation()->fps = speed;
+									}
+									else {
+										LOG_WARNING("ChangeAnimationSpeed() float argument is not a number!");
+									}
+								}
+								else {
+									LOG_WARNING("%s is not an animation of GameObject %s!", animName.c_str(), go->name.c_str());
+								}
+							}
+							else {
+								LOG_WARNING("ChangeAnimationSpeed() string argument is not a string!");
+							}
+						}
+					}
+				}
+				else {
+					LOG_WARNING("ChangeAnimationSpeed() GameObject argument is not a GameObject!");
+				}
+			}
+		}
+		else {
+			LOG_WARNING("ChangeAnimationSpeed() GameObject argument is not a GameObject!");
+		}
+	}
+
+	return 0;
+}
+
+int LuaScript::PlayGameObjectSound(lua_State * luaState)
+{
+	int arguments = lua_gettop(luaState);
+	if (arguments != 2) {
+		LOG_WARNING("PlaySound(GameObject, string) takes 2 arguments!");
+	}
+	else {
+		if (lua_istable(luaState, 1)) {
+			lua_pushstring(luaState, "Type");
+			lua_gettable(luaState, -3);
+			if (lua_isstring(luaState, -1)) {
+				string str = lua_tostring(luaState, -1);
+				if (str == "GameObject")
+				{
+					lua_pop(luaState, 1);
+					lua_pushstring(luaState, "Data");
+					lua_gettable(luaState, -3);
+					GameObject* go = (GameObject*)lua_touserdata(luaState, -1);
+					if (go == nullptr) {
+						LOG_WARNING("PlaySound() GameObject argument is nil");
+					}
+					else {
+						ComponentAudio* audio = (ComponentAudio*)go->GetComponent(Component::AudioSource);
+						if (audio == nullptr) {
+							LOG_ERROR("PlaySound() failed to get component Audio");
+						}
+						else {
+							if (lua_isstring(luaState, 2)) {
+								string soundName = lua_tostring(luaState, 2);
+								if (audio->SoundExist(soundName)) {
+									audio->PlaySound(soundName);
+								}
+								else {
+									LOG_WARNING("%s is not a Sound of GameObject %s!", soundName.c_str(), go->name.c_str());
+								}
+							}
+							else {
+								LOG_WARNING("PlaySound() string argument is not a string!");
+							}
+						}
+					}
+				}
+				else {
+					LOG_WARNING("PlaySound() GameObject argument is not a GameObject!");
+				}
+			}
+		}
+		else {
+			LOG_WARNING("PlaySound() GameObject argument is not a GameObject!");
+		}
+	}
+	return 0;
+}
+
+int LuaScript::StopGameObjectSound(lua_State * luaState)
+{
+	int arguments = lua_gettop(luaState);
+	if (arguments != 2) {
+		LOG_WARNING("StopSound(GameObject, string) takes 2 arguments!");
+	}
+	else {
+		if (lua_istable(luaState, 1)) {
+			lua_pushstring(luaState, "Type");
+			lua_gettable(luaState, -3);
+			if (lua_isstring(luaState, -1)) {
+				string str = lua_tostring(luaState, -1);
+				if (str == "GameObject")
+				{
+					lua_pop(luaState, 1);
+					lua_pushstring(luaState, "Data");
+					lua_gettable(luaState, -3);
+					GameObject* go = (GameObject*)lua_touserdata(luaState, -1);
+					if (go == nullptr) {
+						LOG_WARNING("StopSound() GameObject argument is nil");
+					}
+					else {
+						ComponentAudio* audio = (ComponentAudio*)go->GetComponent(Component::AudioSource);
+						if (audio == nullptr) {
+							LOG_ERROR("StopSound() failed to get component Audio");
+						}
+						else {
+							if (lua_isstring(luaState, 2)) {
+								string soundName = lua_tostring(luaState, 2);
+								if (audio->SoundExist(soundName)) {
+									audio->StopSound(soundName);
+								}
+								else {
+									LOG_WARNING("%s is not a Sound of GameObject %s!", soundName.c_str(), go->name.c_str());
+								}
+							}
+							else {
+								LOG_WARNING("StopSound() string argument is not a string!");
+							}
+						}
+					}
+				}
+				else {
+					LOG_WARNING("StopSound() GameObject argument is not a GameObject!");
+				}
+			}
+		}
+		else {
+			LOG_WARNING("StopSound() GameObject argument is not a GameObject!");
+		}
+	}
+	return 0;
+}
+
+int LuaScript::PauseGameObjectSound(lua_State * luaState)
+{
+	int arguments = lua_gettop(luaState);
+	if (arguments != 2) {
+		LOG_WARNING("PauseSound(GameObject, string) takes 2 arguments!");
+	}
+	else {
+		if (lua_istable(luaState, 1)) {
+			lua_pushstring(luaState, "Type");
+			lua_gettable(luaState, -3);
+			if (lua_isstring(luaState, -1)) {
+				string str = lua_tostring(luaState, -1);
+				if (str == "GameObject")
+				{
+					lua_pop(luaState, 1);
+					lua_pushstring(luaState, "Data");
+					lua_gettable(luaState, -3);
+					GameObject* go = (GameObject*)lua_touserdata(luaState, -1);
+					if (go == nullptr) {
+						LOG_WARNING("PauseSound() GameObject argument is nil");
+					}
+					else {
+						ComponentAudio* audio = (ComponentAudio*)go->GetComponent(Component::AudioSource);
+						if (audio == nullptr) {
+							LOG_ERROR("PauseSound() failed to get component Audio");
+						}
+						else {
+							if (lua_isstring(luaState, 2)) {
+								string soundName = lua_tostring(luaState, 2);
+								if (audio->SoundExist(soundName)) {
+									audio->PauseSound(soundName);
+								}
+								else {
+									LOG_WARNING("%s is not a Sound of GameObject %s!", soundName.c_str(), go->name.c_str());
+								}
+							}
+							else {
+								LOG_WARNING("PauseSound() string argument is not a string!");
+							}
+						}
+					}
+				}
+				else {
+					LOG_WARNING("PauseSound() GameObject argument is not a GameObject!");
+				}
+			}
+		}
+		else {
+			LOG_WARNING("PauseSound() GameObject argument is not a GameObject!");
+		}
+	}
+	return 0;
+}
+
+int LuaScript::GetGameObjectSoundState(lua_State * luaState)
+{
+	int arguments = lua_gettop(luaState);
+	if (arguments != 2) {
+		LOG_WARNING("GetSoundState(GameObject, string) takes 2 arguments!");
+		return 0;
+	}
+	else {
+		if (lua_istable(luaState, 1)) {
+			lua_pushstring(luaState, "Type");
+			lua_gettable(luaState, -3);
+			if (lua_isstring(luaState, -1)) {
+				string str = lua_tostring(luaState, -1);
+				if (str == "GameObject")
+				{
+					lua_pop(luaState, 1);
+					lua_pushstring(luaState, "Data");
+					lua_gettable(luaState, -3);
+					GameObject* go = (GameObject*)lua_touserdata(luaState, -1);
+					if (go == nullptr) {
+						LOG_WARNING("GetSoundState() GameObject argument is nil");
+						return 0;
+					}
+					else {
+						ComponentAudio* audio = (ComponentAudio*)go->GetComponent(Component::AudioSource);
+						if (audio == nullptr) {
+							LOG_ERROR("GetSoundState() failed to get component Audio");
+							return 0;
+						}
+						else {
+							if (lua_isstring(luaState, 2)) {
+								string soundName = lua_tostring(luaState, 2);
+								if (audio->SoundExist(soundName)) {
+									string state = audio->GetSoundState(soundName);
+									lua_pushstring(luaState, state.c_str());
+								}
+								else {
+									LOG_WARNING("%s is not a Sound of GameObject %s!", soundName.c_str(), go->name.c_str());
+									return 0;
+								}
+							}
+							else {
+								LOG_WARNING("GetSoundState() string argument is not a string!");
+								return 0;
+							}
+						}
+					}
+				}
+				else {
+					LOG_WARNING("GetSoundState() GameObject argument is not a GameObject!");
+					return 0;
+				}
+			}
+		}
+		else {
+			LOG_WARNING("GetSoundState() GameObject argument is not a GameObject!");
+			return 0;
+		}
+	}
+	return 1;
+}
+
+int LuaScript::SetGameObjectSoundVolume(lua_State * luaState)
+{
+	int arguments = lua_gettop(luaState);
+	if (arguments != 3) {
+		LOG_WARNING("SetSoundVolume(GameObject, string, float) takes 3 arguments!");
+	}
+	else {
+		if (lua_istable(luaState, 1)) {
+			lua_pushstring(luaState, "Type");
+			lua_gettable(luaState, -4);
+			if (lua_isstring(luaState, -1)) {
+				string str = lua_tostring(luaState, -1);
+				if (str == "GameObject")
+				{
+					lua_pop(luaState, 1);
+					lua_pushstring(luaState, "Data");
+					lua_gettable(luaState, -4);
+					GameObject* go = (GameObject*)lua_touserdata(luaState, -1);
+					if (go == nullptr) {
+						LOG_WARNING("SetSoundVolume() GameObject argument is nil");
+					}
+					else {
+						ComponentAudio* audio = (ComponentAudio*)go->GetComponent(Component::AudioSource);
+						if (audio == nullptr) {
+							LOG_ERROR("SetSoundVolume() failed to get component Audio");
+						}
+						else {
+							if (lua_isstring(luaState, 2)) {
+								string soundName = lua_tostring(luaState, 2);
+								if (audio->SoundExist(soundName)) {
+									if (lua_isnumber(luaState, 3)) {
+										float volume = lua_tonumber(luaState, 3);
+										if (volume > 0 && volume <= 100) {
+											audio->SetSoundVolume(soundName, volume);
+										}
+										else {
+											LOG_WARNING("Volume value must be between 0 and 100, both included!");
+										}
+									}
+									else {
+										LOG_WARNING("SetSoundVolume() float argument is not a number!");
+									}
+								}
+								else {
+									LOG_WARNING("%s is not a Sound of GameObject %s!", soundName.c_str(), go->name.c_str());
+								}
+							}
+							else {
+								LOG_WARNING("SetSoundVolume() string argument is not a string!");
+							}
+						}
+					}
+				}
+				else {
+					LOG_WARNING("SetSoundVolume() GameObject argument is not a GameObject!");
+				}
+			}
+		}
+		else {
+			LOG_WARNING("SetSoundVolume() GameObject argument is not a GameObject!");
+		}
+	}
+	return 0;
+}
+
+int LuaScript::SetGameObjectSoundPitch(lua_State * luaState)
+{
+	int arguments = lua_gettop(luaState);
+	if (arguments != 3) {
+		LOG_WARNING("SetSoundPitch(GameObject, string, float) takes 3 arguments!");
+	}
+	else {
+		if (lua_istable(luaState, 1)) {
+			lua_pushstring(luaState, "Type");
+			lua_gettable(luaState, -4);
+			if (lua_isstring(luaState, -1)) {
+				string str = lua_tostring(luaState, -1);
+				if (str == "GameObject")
+				{
+					lua_pop(luaState, 1);
+					lua_pushstring(luaState, "Data");
+					lua_gettable(luaState, -4);
+					GameObject* go = (GameObject*)lua_touserdata(luaState, -1);
+					if (go == nullptr) {
+						LOG_WARNING("SetSoundPitch() GameObject argument is nil");
+					}
+					else {
+						ComponentAudio* audio = (ComponentAudio*)go->GetComponent(Component::AudioSource);
+						if (audio == nullptr) {
+							LOG_ERROR("SetSoundPitch() failed to get component Audio");
+						}
+						else {
+							if (lua_isstring(luaState, 2)) {
+								string soundName = lua_tostring(luaState, 2);
+								if (audio->SoundExist(soundName)) {
+									if (lua_isnumber(luaState, 3)) {
+										float pitch = lua_tonumber(luaState, 3);
+										if (pitch > 0 && pitch <= 100) {
+											audio->SetSoundPitch(soundName, pitch);
+										}
+										else {
+											LOG_WARNING("Pitch value must be between 0 and 100, both included!");
+										}
+									}
+									else {
+										LOG_WARNING("SetSoundPitch() float argument is not a number!");
+									}
+								}
+								else {
+									LOG_WARNING("%s is not a Sound of GameObject %s!", soundName.c_str(), go->name.c_str());
+								}
+							}
+							else {
+								LOG_WARNING("SetSoundPitch() string argument is not a string!");
+							}
+						}
+					}
+				}
+				else {
+					LOG_WARNING("SetSoundPitch() GameObject argument is not a GameObject!");
+				}
+			}
+		}
+		else {
+			LOG_WARNING("SetSoundPitch() GameObject argument is not a GameObject!");
+		}
+	}
+	return 0;
+}
+
+int LuaScript::PlayGameObjectMusic(lua_State * luaState)
+{
+	int arguments = lua_gettop(luaState);
+	if (arguments != 2) {
+		LOG_WARNING("PlayMusic(GameObject, string) takes 2 arguments!");
+	}
+	else {
+		if (lua_istable(luaState, 1)) {
+			lua_pushstring(luaState, "Type");
+			lua_gettable(luaState, -3);
+			if (lua_isstring(luaState, -1)) {
+				string str = lua_tostring(luaState, -1);
+				if (str == "GameObject")
+				{
+					lua_pop(luaState, 1);
+					lua_pushstring(luaState, "Data");
+					lua_gettable(luaState, -3);
+					GameObject* go = (GameObject*)lua_touserdata(luaState, -1);
+					if (go == nullptr) {
+						LOG_WARNING("PlayMusic() GameObject argument is nil");
+					}
+					else {
+						ComponentAudio* audio = (ComponentAudio*)go->GetComponent(Component::AudioSource);
+						if (audio == nullptr) {
+							LOG_ERROR("PlayMusic() failed to get component Audio");
+						}
+						else {
+							if (lua_isstring(luaState, 2)) {
+								string musicName = lua_tostring(luaState, 2);
+								if (audio->MusicExist(musicName)) {
+									audio->PlayMusic(musicName);
+								}
+								else {
+									LOG_WARNING("%s is not a Music of GameObject %s!", musicName.c_str(), go->name.c_str());
+								}
+							}
+							else {
+								LOG_WARNING("PlayMusic() string argument is not a string!");
+							}
+						}
+					}
+				}
+				else {
+					LOG_WARNING("PlayMusic() GameObject argument is not a GameObject!");
+				}
+			}
+		}
+		else {
+			LOG_WARNING("PlayMusic() GameObject argument is not a GameObject!");
+		}
+	}
+	return 0;
+}
+
+int LuaScript::StopGameObjectMusic(lua_State * luaState)
+{
+	int arguments = lua_gettop(luaState);
+	if (arguments != 2) {
+		LOG_WARNING("StopMusic(GameObject, string) takes 2 arguments!");
+	}
+	else {
+		if (lua_istable(luaState, 1)) {
+			lua_pushstring(luaState, "Type");
+			lua_gettable(luaState, -3);
+			if (lua_isstring(luaState, -1)) {
+				string str = lua_tostring(luaState, -1);
+				if (str == "GameObject")
+				{
+					lua_pop(luaState, 1);
+					lua_pushstring(luaState, "Data");
+					lua_gettable(luaState, -3);
+					GameObject* go = (GameObject*)lua_touserdata(luaState, -1);
+					if (go == nullptr) {
+						LOG_WARNING("StopMusic() GameObject argument is nil");
+					}
+					else {
+						ComponentAudio* audio = (ComponentAudio*)go->GetComponent(Component::AudioSource);
+						if (audio == nullptr) {
+							LOG_ERROR("StopMusic() failed to get component Audio");
+						}
+						else {
+							if (lua_isstring(luaState, 2)) {
+								string musicName = lua_tostring(luaState, 2);
+								if (audio->MusicExist(musicName)) {
+									audio->StopMusic(musicName);
+								}
+								else {
+									LOG_WARNING("%s is not a Music of GameObject %s!", musicName.c_str(), go->name.c_str());
+								}
+							}
+							else {
+								LOG_WARNING("StopMusic() string argument is not a string!");
+							}
+						}
+					}
+				}
+				else {
+					LOG_WARNING("StopMusic() GameObject argument is not a GameObject!");
+				}
+			}
+		}
+		else {
+			LOG_WARNING("StopMusic() GameObject argument is not a GameObject!");
+		}
+	}
+	return 0;
+}
+
+int LuaScript::PauseGameObjectMusic(lua_State * luaState)
+{
+	int arguments = lua_gettop(luaState);
+	if (arguments != 2) {
+		LOG_WARNING("PauseMusic(GameObject, string) takes 2 arguments!");
+	}
+	else {
+		if (lua_istable(luaState, 1)) {
+			lua_pushstring(luaState, "Type");
+			lua_gettable(luaState, -3);
+			if (lua_isstring(luaState, -1)) {
+				string str = lua_tostring(luaState, -1);
+				if (str == "GameObject")
+				{
+					lua_pop(luaState, 1);
+					lua_pushstring(luaState, "Data");
+					lua_gettable(luaState, -3);
+					GameObject* go = (GameObject*)lua_touserdata(luaState, -1);
+					if (go == nullptr) {
+						LOG_WARNING("PauseMusic() GameObject argument is nil");
+					}
+					else {
+						ComponentAudio* audio = (ComponentAudio*)go->GetComponent(Component::AudioSource);
+						if (audio == nullptr) {
+							LOG_ERROR("PauseMusic() failed to get component Audio");
+						}
+						else {
+							if (lua_isstring(luaState, 2)) {
+								string musicName = lua_tostring(luaState, 2);
+								if (audio->MusicExist(musicName)) {
+									audio->PauseMusic(musicName);
+								}
+								else {
+									LOG_WARNING("%s is not a Music of GameObject %s!", musicName.c_str(), go->name.c_str());
+								}
+							}
+							else {
+								LOG_WARNING("PauseMusic() string argument is not a string!");
+							}
+						}
+					}
+				}
+				else {
+					LOG_WARNING("PauseMusic() GameObject argument is not a GameObject!");
+				}
+			}
+		}
+		else {
+			LOG_WARNING("PauseMusic() GameObject argument is not a GameObject!");
+		}
+	}
+	return 0;
+}
+
+int LuaScript::GetGameObjectMusicState(lua_State * luaState)
+{
+	int arguments = lua_gettop(luaState);
+	if (arguments != 2) {
+		LOG_WARNING("GetMusicState(GameObject, string) takes 2 arguments!");
+		return 0;
+	}
+	else {
+		if (lua_istable(luaState, 1)) {
+			lua_pushstring(luaState, "Type");
+			lua_gettable(luaState, -3);
+			if (lua_isstring(luaState, -1)) {
+				string str = lua_tostring(luaState, -1);
+				if (str == "GameObject")
+				{
+					lua_pop(luaState, 1);
+					lua_pushstring(luaState, "Data");
+					lua_gettable(luaState, -3);
+					GameObject* go = (GameObject*)lua_touserdata(luaState, -1);
+					if (go == nullptr) {
+						LOG_WARNING("GetMusicState() GameObject argument is nil");
+						return 0;
+					}
+					else {
+						ComponentAudio* audio = (ComponentAudio*)go->GetComponent(Component::AudioSource);
+						if (audio == nullptr) {
+							LOG_ERROR("GetMusicState() failed to get component Audio");
+							return 0;
+						}
+						else {
+							if (lua_isstring(luaState, 2)) {
+								string musicName = lua_tostring(luaState, 2);
+								if (audio->MusicExist(musicName)) {
+									string state = audio->GetMusicState(musicName);
+									lua_pushstring(luaState, state.c_str());
+								}
+								else {
+									LOG_WARNING("%s is not a Music of GameObject %s!", musicName.c_str(), go->name.c_str());
+									return 0;
+								}
+							}
+							else {
+								LOG_WARNING("GetMusicState() string argument is not a string!");
+								return 0;
+							}
+						}
+					}
+				}
+				else {
+					LOG_WARNING("GetMusicState() GameObject argument is not a GameObject!");
+					return 0;
+				}
+			}
+		}
+		else {
+			LOG_WARNING("GetMusicState() GameObject argument is not a GameObject!");
+			return 0;
+		}
+	}
+	return 1;
+}
+
+int LuaScript::SetGameObjectMusicVolume(lua_State * luaState)
+{
+	int arguments = lua_gettop(luaState);
+	if (arguments != 3) {
+		LOG_WARNING("SetMusicVolume(GameObject, string, float) takes 3 arguments!");
+	}
+	else {
+		if (lua_istable(luaState, 1)) {
+			lua_pushstring(luaState, "Type");
+			lua_gettable(luaState, -4);
+			if (lua_isstring(luaState, -1)) {
+				string str = lua_tostring(luaState, -1);
+				if (str == "GameObject")
+				{
+					lua_pop(luaState, 1);
+					lua_pushstring(luaState, "Data");
+					lua_gettable(luaState, -4);
+					GameObject* go = (GameObject*)lua_touserdata(luaState, -1);
+					if (go == nullptr) {
+						LOG_WARNING("SetMusicVolume() GameObject argument is nil");
+					}
+					else {
+						ComponentAudio* audio = (ComponentAudio*)go->GetComponent(Component::AudioSource);
+						if (audio == nullptr) {
+							LOG_ERROR("SetMusicVolume() failed to get component Audio");
+						}
+						else {
+							if (lua_isstring(luaState, 2)) {
+								string musicName = lua_tostring(luaState, 2);
+								if (audio->MusicExist(musicName)) {
+									if (lua_isnumber(luaState, 3)) {
+										float volume = lua_tonumber(luaState, 3);
+										if (volume > 0 && volume <= 100) {
+											audio->SetMusicVolume(musicName, volume);
+										}
+										else {
+											LOG_WARNING("Volume value must be between 0 and 100, both included!");
+										}
+									}
+									else {
+										LOG_WARNING("SetMusicVolume() float argument is not a number!");
+									}
+								}
+								else {
+									LOG_WARNING("%s is not a Music of GameObject %s!", musicName.c_str(), go->name.c_str());
+								}
+							}
+							else {
+								LOG_WARNING("SetMusicVolume() string argument is not a string!");
+							}
+						}
+					}
+				}
+				else {
+					LOG_WARNING("SetMusicVolume() GameObject argument is not a GameObject!");
+				}
+			}
+		}
+		else {
+			LOG_WARNING("SetMusicVolume() GameObject argument is not a GameObject!");
+		}
+	}
+	return 0;
+}
+
+int LuaScript::SetGameObjectMusicPitch(lua_State * luaState)
+{
+	int arguments = lua_gettop(luaState);
+	if (arguments != 3) {
+		LOG_WARNING("SetMusicPitch(GameObject, string, float) takes 3 arguments!");
+	}
+	else {
+		if (lua_istable(luaState, 1)) {
+			lua_pushstring(luaState, "Type");
+			lua_gettable(luaState, -4);
+			if (lua_isstring(luaState, -1)) {
+				string str = lua_tostring(luaState, -1);
+				if (str == "GameObject")
+				{
+					lua_pop(luaState, 1);
+					lua_pushstring(luaState, "Data");
+					lua_gettable(luaState, -4);
+					GameObject* go = (GameObject*)lua_touserdata(luaState, -1);
+					if (go == nullptr) {
+						LOG_WARNING("SetMusicPitch() GameObject argument is nil");
+					}
+					else {
+						ComponentAudio* audio = (ComponentAudio*)go->GetComponent(Component::AudioSource);
+						if (audio == nullptr) {
+							LOG_ERROR("SetMusicPitch() failed to get component Audio");
+						}
+						else {
+							if (lua_isstring(luaState, 2)) {
+								string musicName = lua_tostring(luaState, 2);
+								if (audio->MusicExist(musicName)) {
+									if (lua_isnumber(luaState, 3)) {
+										float pitch = lua_tonumber(luaState, 3);
+										if (pitch > 0 && pitch <= 100) {
+											audio->SetMusicVolume(musicName, pitch);
+										}
+										else {
+											LOG_WARNING("Pitch value must be between 0 and 100, both included!");
+										}
+									}
+									else {
+										LOG_WARNING("SetMusicPitch() float argument is not a number!");
+									}
+								}
+								else {
+									LOG_WARNING("%s is not a Music of GameObject %s!", musicName.c_str(), go->name.c_str());
+								}
+							}
+							else {
+								LOG_WARNING("SetMusicPitch() string argument is not a string!");
+							}
+						}
+					}
+				}
+				else {
+					LOG_WARNING("SetMusicPitch() GameObject argument is not a GameObject!");
+				}
+			}
+		}
+		else {
+			LOG_WARNING("SetMusicPitch() GameObject argument is not a GameObject!");
+		}
+	}
+	return 0;
+}
+
 
 /////////////// Lua Utils //////////////////
 
@@ -2122,7 +3831,7 @@ bool LuaUtils::FunctionExist(lua_State * luaState, const char* functionName)
 	return ret;
 }
 
-void LuaScript::stackdump_g(lua_State* l)
+void LuaScript::StackDump(lua_State* l)
 {
    int i;
    int top = lua_gettop(l);

@@ -47,6 +47,18 @@ bool ComponentSpriteRenderer::ChangeSprite(string path)
 	return ret;
 }
 
+bool ComponentSpriteRenderer::ChangeSprite(sf::Sprite* sprite, string path)
+{
+	bool ret = false;
+	if (sprite != nullptr) {
+		gameObjectSprite->setTexture(*sprite->getTexture(),true);
+		gameObject->gameObjectSprite = gameObjectSprite;
+		spritePath = path;
+		ret = true;
+	}
+	return ret;
+}
+
 void ComponentSpriteRenderer::OnEnable()
 {
 }

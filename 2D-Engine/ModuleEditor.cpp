@@ -8,6 +8,7 @@
 #include "ModuleSceneWindow.h"
 #include "ModuleSceneManager.h"
 #include "tinyfiledialogs.h"
+#include "PanelAnimator.h"
 
 ModuleEditor::ModuleEditor()
 {
@@ -31,6 +32,7 @@ bool ModuleEditor::Awake()
 	editorPanels.push_back(hierarchyPanel = new PanelHierarchy());
 	editorPanels.push_back(propertiesPanel = new PanelProperties());
 	editorPanels.push_back(consolePanel = new PanelConsole());
+	editorPanels.push_back(animatorPanel = new PanelAnimator());
 	ImGui::LoadDocks();
 	return true;
 }

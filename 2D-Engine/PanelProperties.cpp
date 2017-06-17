@@ -6,6 +6,12 @@
 #include "ComponentTransform.h"
 #include "ModuleEngineWindow.h"
 #include "tinyfiledialogs.h"
+#include "Animation.h"
+#include "ModuleResources.h"
+#include "ResourceScript.h"
+#include "PanelAnimator.h"
+#include "ResourceSound.h"
+#include "ResourceMusic.h"
 
 
 PanelProperties::PanelProperties()
@@ -79,31 +85,36 @@ void PanelProperties::DrawPanel()
 			}
 			if (ImGui::BeginPopup("Components"))
 			{
-				if (ImGui::MenuItem("Transform")) {
-					if (selectedGameObject->GetComponent(Component::Transform) == nullptr) {
-						selectedGameObject->AddComponent(Component::Transform);
-					}
-				}
-				if (ImGui::MenuItem("RigidBody")) {
-					if (selectedGameObject->GetComponent(Component::RigidBody) == nullptr) {
-						selectedGameObject->AddComponent(Component::RigidBody);
-					}
-				}
+				//if (ImGui::MenuItem("RigidBody")) {
+				//	if (selectedGameObject->GetComponent(Component::RigidBody) == nullptr) {
+				//		selectedGameObject->AddComponent(Component::RigidBody);
+				//	}
+				//}
 				if (ImGui::MenuItem("SpriteRenderer")) {
 					if (selectedGameObject->GetComponent(Component::SpriteRenderer) == nullptr) {
 						selectedGameObject->AddComponent(Component::SpriteRenderer);
 					}
 				}
+				if (ImGui::MenuItem("Animation")) {
+					if (selectedGameObject->GetComponent(Component::Animaton) == nullptr) {
+						selectedGameObject->AddComponent(Component::Animaton);
+					}
+				}
+				if (ImGui::MenuItem("Audio")) {
+					if (selectedGameObject->GetComponent(Component::AudioSource) == nullptr) {
+						selectedGameObject->AddComponent(Component::AudioSource);
+					}
+				}
 				if(ImGui::BeginMenu("Scripts")) {
-					if (engine->editorModule->scriptList.empty()) {
+					if (engine->resourcesModule->GetGameScriptsList().empty()) {
 						ImGui::MenuItem("No scripts");
 					}
 					else {
-						for (list<fs::path*>::iterator it = engine->editorModule->scriptList.begin(); it != engine->editorModule->scriptList.end(); it++) {
-							if (ImGui::MenuItem((*it)->filename().string().c_str())){
+						for (int i = 0; i < engine->resourcesModule->GetGameScriptsList().size(); i++) {
+							if (ImGui::MenuItem(engine->resourcesModule->GetGameScriptsList()[i]->GetName().c_str())) {
 								ComponentScript* script = (ComponentScript*)selectedGameObject->AddComponent(Component::Script);
-								script->SetScriptName((*it)->filename().string().c_str());
-								script->SetScriptPath((*it)->string());
+								script->SetScriptName(engine->resourcesModule->GetGameScriptsList()[i]->GetName().c_str());
+								script->SetScriptPath(engine->resourcesModule->GetGameScriptsList()[i]->GetScript());
 							}
 						}
 					}
@@ -137,8 +148,10 @@ void PanelProperties::DrawComponent(Component* component)
 	case Component::CircleCollider:
 		break;
 	case Component::AudioSource:
+		DrawAudioPanel((ComponentAudio*)component);
 		break;
-	case Component::Animator:
+	case Component::Animaton:
+		DrawAnimatonPanel((ComponentAnimation*)component);
 		break;
 	case Component::Script:
 		DrawScriptPanel((ComponentScript*)component);
@@ -179,11 +192,7 @@ void PanelProperties::DrawSpriteRendererPanel(ComponentSpriteRenderer * spriteRe
 		sf::Sprite* sprite = spriteRenderer->gameObject->gameObjectSprite;
 		ImGui::Image(*sprite, ImVec2(100.f, 100.f), sf::Color::White, sf::Color::Transparent);
 		if (ImGui::IsItemClicked(0)) {
-			char const * lFilterPatterns[2] = { "*.png", "*.jpg" };
-			const char* path = tinyfd_openFileDialog("Load Image...", NULL, 1, lFilterPatterns, NULL, 0);
-			if (path != NULL) {
-				spriteRenderer->ChangeSprite(path);
-			}
+			engine->resourcesModule->SetResourcesWindowOpen(Resource::spriteResource, true);
 		}
 		if (ImGui::Checkbox("Flip x", &spriteRenderer->isFlippedX)) {
 			if (spriteRenderer->isFlippedX) {
@@ -202,63 +211,201 @@ void PanelProperties::DrawSpriteRendererPanel(ComponentSpriteRenderer * spriteRe
 			}
 		}
 	}
+
+	if (engine->resourcesModule->IsResourcesWindowOpen(Resource::spriteResource)) {
+		ResourceSprite* sprite = (ResourceSprite*)engine->resourcesModule->DrawResourcesWindow(Resource::spriteResource);
+		if (sprite != nullptr) {
+			engine->resourcesModule->SetResourcesWindowOpen(Resource::spriteResource, false);
+			spriteRenderer->ChangeSprite(sprite->GetSprite(),sprite->GetPath());
+		}
+	}
 }
 
-void PanelProperties::DrawScriptPanel(ComponentScript * script)
+void PanelProperties::DrawAnimatonPanel(ComponentAnimation * animator)
 {
-	
-	if (ImGui::CollapsingHeader(script->GetScriptName().c_str(), ImGuiTreeNodeFlags_DefaultOpen)) {
+	if (ImGui::CollapsingHeader("Animation", ImGuiTreeNodeFlags_DefaultOpen)) {
 		ImGui::Spacing();
-		bool scriptHasChanged = ScriptHasChanged(script->GetScriptPath());
 
-		if (script->GetScriptFields().empty() || scriptHasChanged) {
-			UpdateScript(script);
-			script->SetScriptFields();
+		if (animator->animationsList.empty()) {
+			ImGui::Text("No animations added.");
+		}
+		else {
+			for (int i = 0; i < animator->animationsList.size(); i++) {
+				ImGui::Text("Animation %d:", i);
+				ImGui::SameLine();
+				ImGui::Text("%s", animator->animationsList[i]->GetName().c_str());
+				if (ImGui::Button(("Remove##" + to_string(i)).c_str())) {
+					animator->RemoveAnimation(i);
+				}
+				ImGui::SameLine();
+				if (ImGui::Button(("Change##" + to_string(i)).c_str())) {
+					engine->resourcesModule->SetResourcesWindowOpen(Resource::animationResource, true);
+					animPos = i;
+				}
+			}
 		}
 
-		vector<ScriptField*> scriptFields = script->GetScriptFields();
+		ImGui::Spacing();
+		ImGui::Spacing();
+		if (ImGui::Button("Add animation")) {
+			engine->resourcesModule->SetResourcesWindowOpen(Resource::animationResource, true);
+			animPos = -1;
+		}
+		
+		ImGui::SameLine();
+		if (ImGui::Button("Create animation")) {
+			for (int i = 0; i < engine->editorModule->editorPanels.size(); i++) {
+				if (engine->editorModule->editorPanels[i]->panelName == "Animator") {
+					engine->editorModule->editorPanels[i]->SetActive(true);
+				}
+			}
+		}
+		ImGui::Spacing();
+	}
+
+	if (engine->resourcesModule->IsResourcesWindowOpen(Resource::animationResource)) {
+		ResourceAnimation* animation = (ResourceAnimation*)engine->resourcesModule->DrawResourcesWindow(Resource::animationResource);
+		if (animation != nullptr) {
+			engine->resourcesModule->SetResourcesWindowOpen(Resource::animationResource, false);
+			animator->AddAnimation(animation, animPos);
+		}
+	}
+}
+
+void PanelProperties::DrawAudioPanel(ComponentAudio * audio)
+{
+	if (ImGui::CollapsingHeader("Audio", ImGuiTreeNodeFlags_DefaultOpen)) {
+		ImGui::Spacing();
+
+		if (audio->soundsListVector.empty()) {
+			ImGui::Text("No sounds added.");
+		}
+		else {
+			for (int i = 0; i < audio->soundsListVector.size(); i++) {
+				ImGui::Text("Sound %d:", i);
+				ImGui::SameLine();
+				ImGui::Text("%s", audio->soundsListVector[i]->GetName().c_str());
+				if (ImGui::Button(("Remove##" + to_string(i)).c_str())) {
+					audio->RemoveSound(i);
+				}
+				ImGui::SameLine();
+				if (ImGui::Button(("Change##" + to_string(i)).c_str())) {
+					engine->resourcesModule->SetResourcesWindowOpen(Resource::soundResource, true);
+					soundPos = i;
+				}
+			}
+		}
+
+		ImGui::Spacing();
+		ImGui::Spacing();
+		if (ImGui::Button("Add sound")) {
+			engine->resourcesModule->SetResourcesWindowOpen(Resource::soundResource, true);
+			soundPos = -1;
+		}
+
+		ImGui::Spacing();
+		ImGui::Spacing();
+
+		if (audio->musicListVector.empty()) {
+			ImGui::Text("No music added.");
+		}
+		else {
+			for (int i = 0; i < audio->musicListVector.size(); i++) {
+				ImGui::Text("Music %d:", i);
+				ImGui::SameLine();
+				ImGui::Text("%s", audio->musicListVector[i]->GetName().c_str());
+				if (ImGui::Button(("Remove##" + to_string(i)).c_str())) {
+					audio->RemoveMusic(i);
+				}
+				ImGui::SameLine();
+				if (ImGui::Button(("Change##" + to_string(i)).c_str())) {
+					engine->resourcesModule->SetResourcesWindowOpen(Resource::musicResource, true);
+					musicPos = i;
+				}
+			}
+		}
+
+		ImGui::Spacing();
+		ImGui::Spacing();
+		if (ImGui::Button("Add music")) {
+			engine->resourcesModule->SetResourcesWindowOpen(Resource::musicResource, true);
+			musicPos = -1;
+		}
+
+		ImGui::Spacing();
+	}
+
+	if (engine->resourcesModule->IsResourcesWindowOpen(Resource::soundResource)) {
+		ResourceSound* sound = (ResourceSound*)engine->resourcesModule->DrawResourcesWindow(Resource::soundResource);
+		if (sound != nullptr) {
+			engine->resourcesModule->SetResourcesWindowOpen(Resource::soundResource, false);
+			audio->AddSound(sound, soundPos);
+		}
+	}
+
+	if (engine->resourcesModule->IsResourcesWindowOpen(Resource::musicResource)) {
+		ResourceMusic* music = (ResourceMusic*)engine->resourcesModule->DrawResourcesWindow(Resource::musicResource);
+		if (music != nullptr) {
+			engine->resourcesModule->SetResourcesWindowOpen(Resource::musicResource, false);
+			audio->AddMusic(music, musicPos);
+		}
+	}
+}
+
+void PanelProperties::DrawScriptPanel(ComponentScript * componentScript)
+{
+	
+	if (ImGui::CollapsingHeader(componentScript->GetScriptName().c_str(), ImGuiTreeNodeFlags_DefaultOpen)) {
+		ImGui::Spacing();
+		bool scriptHasChanged = ScriptHasChanged(componentScript->GetScriptPath());
+
+		if (componentScript->GetScriptFields().empty() || scriptHasChanged) {
+			UpdateScript(componentScript);
+			componentScript->SetScriptFields();
+		}
+
+		vector<ScriptField*> scriptFields = componentScript->GetScriptFields();
 		for (int j = 0; j < scriptFields.size(); j++) {
 			switch (scriptFields[j]->propertyType) {
 				case ScriptField::Integer:
 				{
-					int i = script->GetScript()->GetIntProperty(scriptFields[j]->fieldName.c_str());
+					int i = componentScript->GetScript()->GetIntProperty(scriptFields[j]->fieldName.c_str());
 					ImGui::Text(" %s", scriptFields[j]->fieldName.c_str());
 					ImGui::SameLine(100);
 					if (ImGui::InputInt(("##" + scriptFields[j]->fieldName).c_str(), &i)) {
-						script->GetScript()->SetIntProperty(scriptFields[j]->fieldName.c_str(), i);
+						componentScript->GetScript()->SetIntProperty(scriptFields[j]->fieldName.c_str(), i);
 					}
 				}
 					break;
 				case ScriptField::Float:
 				{
-					float f = script->GetScript()->GetFloatProperty(scriptFields[j]->fieldName.c_str());
+					float f = componentScript->GetScript()->GetFloatProperty(scriptFields[j]->fieldName.c_str());
 					ImGui::Text(" %s", scriptFields[j]->fieldName.c_str());
 					ImGui::SameLine(100);
 					if (ImGui::InputFloat(("##" + scriptFields[j]->fieldName).c_str(), &f, 0.001f, 0.01f, 3)) {
-						script->GetScript()->SetFloatProperty(scriptFields[j]->fieldName.c_str(), f);
+						componentScript->GetScript()->SetFloatProperty(scriptFields[j]->fieldName.c_str(), f);
 					}
 				}
 					break;
 				case ScriptField::Bool:
 				{
-					bool b = script->GetScript()->GetBoolProperty(scriptFields[j]->fieldName.c_str());
+					bool b = componentScript->GetScript()->GetBoolProperty(scriptFields[j]->fieldName.c_str());
 					ImGui::Text(" %s", scriptFields[j]->fieldName.c_str());
 					ImGui::SameLine(100);
 					if (ImGui::Checkbox(("##" + scriptFields[j]->fieldName).c_str(), &b)) {
-						script->GetScript()->SetBoolProperty(scriptFields[j]->fieldName.c_str(), b);
+						componentScript->GetScript()->SetBoolProperty(scriptFields[j]->fieldName.c_str(), b);
 					}
 				}
 					break;
 				case ScriptField::String:
 				{
-					
 					static char textToRender[256];
-					string str = script->GetScript()->GetStringProperty(scriptFields[j]->fieldName.c_str());
+					string str = componentScript->GetScript()->GetStringProperty(scriptFields[j]->fieldName.c_str());
 					strncpy(textToRender, str.data(), str.size());
 					ImGui::Text(" %s", scriptFields[j]->fieldName.c_str());
 					ImGui::SameLine(100);
 					if (ImGui::InputText(("##" + scriptFields[j]->fieldName).c_str(), textToRender, 256)) {
-						script->GetScript()->SetStringProperty(scriptFields[j]->fieldName.c_str(), string(textToRender).c_str());
+						componentScript->GetScript()->SetStringProperty(scriptFields[j]->fieldName.c_str(), string(textToRender).c_str());
 					}
 					memset(textToRender, 0, sizeof textToRender);
 				}
@@ -273,26 +420,27 @@ void PanelProperties::DrawScriptPanel(ComponentScript * script)
 					break;
 				case ScriptField::Vector3i:
 				{
-					sf::Vector3i v3i = script->GetScript()->GetVec3iProperty(scriptFields[j]->fieldName.c_str());
+					sf::Vector3i v3i = componentScript->GetScript()->GetVec3iProperty(scriptFields[j]->fieldName.c_str());
 					ImGui::Text(" %s", scriptFields[j]->fieldName.c_str());
 					ImGui::SameLine(100);
 					if (ImGui::DragInt3(("##" + scriptFields[j]->fieldName).c_str(), (int*)&v3i, 0.25f)) {
-						script->GetScript()->SetVec3iProperty(scriptFields[j]->fieldName.c_str(), v3i);
+						componentScript->GetScript()->SetVec3iProperty(scriptFields[j]->fieldName.c_str(), v3i);
 					}
 				}
 					break;
 				case ScriptField::Vector4i:
 				{
-					ImVec4 v4i = script->GetScript()->GetVec4iProperty(scriptFields[j]->fieldName.c_str());
+					ImVec4 v4i = componentScript->GetScript()->GetVec4iProperty(scriptFields[j]->fieldName.c_str());
 					ImGui::Text(" %s", scriptFields[j]->fieldName.c_str());
 					ImGui::SameLine(100);
 					if (ImGui::DragFloat4(("##" + scriptFields[j]->fieldName).c_str(), (float*)&v4i, 0.25f)) {
-						script->GetScript()->SetVec4iProperty(scriptFields[j]->fieldName.c_str(), v4i);
+						componentScript->GetScript()->SetVec4iProperty(scriptFields[j]->fieldName.c_str(), v4i);
 					}
 				}
 				break;
 			}
 		}
+		componentScript->GetScript()->UpdateScript(engine->deltaTime);
 	}
 }
 

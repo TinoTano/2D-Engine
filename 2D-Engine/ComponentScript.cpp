@@ -6,6 +6,7 @@ ComponentScript::ComponentScript(GameObject* attachedObject)
 {
 	gameObject = attachedObject;
 	type = Script;
+	name = "Script";
 }
 
 

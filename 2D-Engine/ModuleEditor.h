@@ -8,6 +8,7 @@
 #include "PanelScene.h"
 #include "PanelConsole.h"
 #include "GameObject.h"
+#include "PanelAnimator.h"
 
 struct DragObjectData {
 	string fromPanel;
@@ -47,12 +48,12 @@ private:
 	PanelProperties* propertiesPanel = nullptr;
 	PanelScene* scenePanel = nullptr;
 	PanelConsole* consolePanel = nullptr;
+	PanelAnimator* animatorPanel = nullptr;
 
 public:
 	vector<Panel*> editorPanels;
 	ImFont* font = nullptr;
 	DragObjectData dragData;
 	GameObject* draggingGameObject = nullptr;
-	list<fs::path*> scriptList;
 };
 

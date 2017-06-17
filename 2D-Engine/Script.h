@@ -32,6 +32,11 @@ public:
 	virtual bool InitScript(const char* code, GameObject* container) = 0;
 	virtual void StartScript() = 0;
 	virtual void UpdateScript(float deltaTime) = 0;
+	virtual void OnCollisionEnter() = 0;
+	virtual void OnCollisionStay() = 0;
+	virtual void OnCollisionExit() = 0;
+	virtual void OnEnable() = 0;
+	virtual void OnDisable() = 0;
 
 	virtual void CallFunction(const char* function) = 0;
 	

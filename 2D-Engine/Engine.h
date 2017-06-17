@@ -6,9 +6,9 @@ class ModuleEngineWindow;
 class ModuleSceneWindow;
 class ModuleInput;
 class ModuleGraphics;
-class ModuleAudio;
 class ModuleEditor;
 class ModuleSceneManager;
+class ModuleResources;
 
 class Engine
 {
@@ -46,15 +46,16 @@ public:
 	ModuleSceneWindow* sceneWindow = nullptr;
 	ModuleInput* inputModule = nullptr;
 	ModuleGraphics* graphicsModule = nullptr;
-	ModuleAudio* audioModule = nullptr;
 	ModuleEditor* editorModule = nullptr;
 	ModuleSceneManager* sceneManagerModule = nullptr;
+	ModuleResources* resourcesModule = nullptr;
+	float deltaTime;
 	sf::Time time;
 
 private:
 	list<Module*> modulesList;
 	sf::Clock clock;
-	float deltaTime;
+	
 	float FPS;
 	EngineState state = EngineState::OnStop;
 	bool quit = false;

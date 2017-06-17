@@ -22,3 +22,4 @@ bool Panel::IsActive() const
 	return active;
 }
 
+

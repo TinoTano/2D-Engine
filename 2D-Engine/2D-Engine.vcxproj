@@ -20,6 +20,8 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Component.cpp" />
+    <ClCompile Include="ComponentAnimation.cpp" />
+    <ClCompile Include="ComponentAudio.cpp" />
     <ClCompile Include="ComponentScript.cpp" />
     <ClCompile Include="ComponentSpriteRenderer.cpp" />
     <ClCompile Include="ComponentTransform.cpp" />
@@ -27,18 +29,24 @@
     <ClCompile Include="GameObject.cpp" />
     <ClCompile Include="Globals.cpp" />
     <ClCompile Include="LuaScript.cpp" />
-    <ClCompile Include="ModuleAudio.cpp" />
     <ClCompile Include="ModuleEditor.cpp" />
     <ClCompile Include="ModuleGraphics.cpp" />
+    <ClCompile Include="ModuleResources.cpp" />
     <ClCompile Include="ModuleSceneManager.cpp" />
     <ClCompile Include="ModuleSceneWindow.cpp" />
     <ClCompile Include="Panel.cpp" />
+    <ClCompile Include="PanelAnimator.cpp" />
     <ClCompile Include="PanelAssets.cpp" />
     <ClCompile Include="PanelConsole.cpp" />
     <ClCompile Include="PanelProperties.cpp" />
     <ClCompile Include="PanelHierarchy.cpp" />
     <ClCompile Include="PanelScene.cpp" />
     <ClCompile Include="Resource.cpp" />
+    <ClCompile Include="ResourceAnimation.cpp" />
+    <ClCompile Include="ResourceMusic.cpp" />
+    <ClCompile Include="ResourceSound.cpp" />
+    <ClCompile Include="ResourceScript.cpp" />
+    <ClCompile Include="ResourceSprite.cpp" />
     <ClCompile Include="Script.cpp" />
     <ClCompile Include="SFML-2.4.2\include\imgui-1.49\imgui-SFML.cpp" />
     <ClCompile Include="SFML-2.4.2\include\imgui-1.49\imgui.cpp" />
@@ -54,7 +62,10 @@
     <ClCompile Include="tinyfiledialogs.c" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Animation.h" />
     <ClInclude Include="Component.h" />
+    <ClInclude Include="ComponentAnimation.h" />
+    <ClInclude Include="ComponentAudio.h" />
     <ClInclude Include="ComponentScript.h" />
     <ClInclude Include="ComponentSpriteRenderer.h" />
     <ClInclude Include="ComponentTransform.h" />
@@ -64,20 +75,26 @@
     <ClInclude Include="Globals.h" />
     <ClInclude Include="LuaScript.h" />
     <ClInclude Include="Module.h" />
-    <ClInclude Include="ModuleAudio.h" />
     <ClInclude Include="ModuleEditor.h" />
     <ClInclude Include="ModuleGraphics.h" />
     <ClInclude Include="ModuleInput.h" />
     <ClInclude Include="ModuleEngineWindow.h" />
+    <ClInclude Include="ModuleResources.h" />
     <ClInclude Include="ModuleSceneManager.h" />
     <ClInclude Include="ModuleSceneWindow.h" />
     <ClInclude Include="Panel.h" />
+    <ClInclude Include="PanelAnimator.h" />
     <ClInclude Include="PanelAssets.h" />
     <ClInclude Include="PanelConsole.h" />
     <ClInclude Include="PanelProperties.h" />
     <ClInclude Include="PanelHierarchy.h" />
     <ClInclude Include="PanelScene.h" />
     <ClInclude Include="Resource.h" />
+    <ClInclude Include="ResourceAnimation.h" />
+    <ClInclude Include="ResourceMusic.h" />
+    <ClInclude Include="ResourceSound.h" />
+    <ClInclude Include="ResourceScript.h" />
+    <ClInclude Include="ResourceSprite.h" />
     <ClInclude Include="Script.h" />
     <ClInclude Include="SFML-2.4.2\include\imgui-1.49\imguidock.h" />
     <ClInclude Include="tinyfiledialogs.h" />

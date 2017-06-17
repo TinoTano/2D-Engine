@@ -10,6 +10,7 @@ public:
 	virtual ~ComponentSpriteRenderer();
 
 	bool ChangeSprite(string path);
+	bool ChangeSprite(sf::Sprite* sprite, string path);
 
 	void OnEnable();
 	void OnDisable();

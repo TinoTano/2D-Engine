@@ -3,16 +3,16 @@
 #include "ModuleSceneWindow.h"
 #include "ModuleInput.h"
 #include "ModuleGraphics.h"
-#include "ModuleAudio.h"
 #include "ModuleEditor.h"
 #include "ModuleSceneManager.h"
+#include "ModuleResources.h"
 
 
 Engine::Engine()
 {
 	modulesList.push_back(engineWindow = new ModuleEngineWindow());
+	modulesList.push_back(resourcesModule = new ModuleResources());
 	modulesList.push_back(inputModule = new ModuleInput());
-	modulesList.push_back(audioModule = new ModuleAudio());
 	modulesList.push_back(sceneWindow = new ModuleSceneWindow());
 	modulesList.push_back(editorModule = new ModuleEditor());
 	modulesList.push_back(sceneManagerModule = new ModuleSceneManager());

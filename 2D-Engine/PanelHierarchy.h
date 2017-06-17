@@ -20,8 +20,5 @@ private:
 	GameObject* openGameObjectNode = nullptr;
 	GameObject* gameObjectToRename = nullptr;
 	float renameWindowY;
-	bool b = false;
-	int i = 0;
-	int i2 = 0;
 };
 

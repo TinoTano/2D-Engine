@@ -18,6 +18,11 @@ public:
 	virtual bool InitScript(const char* code, GameObject* container) override;
 	virtual void StartScript() override;
 	virtual void UpdateScript(float deltaTime) override;
+	virtual void OnCollisionEnter() override;
+	virtual void OnCollisionStay() override;
+	virtual void OnCollisionExit() override;
+	virtual void OnEnable() override;
+	virtual void OnDisable() override;
 
 	virtual void CallFunction(const char* function) override;
 
@@ -60,10 +65,9 @@ private:
 	//GameObject library
 	static int IsGameObjectActive(lua_State* luaState);
 	static int SetGameObjectActive(lua_State* luaState);
-	static int GetGameObjectLocalPosition(lua_State* luaState);
-	static int SetGameObjectLocalPosition(lua_State* luaState);
+	static int GetGameObjectPosition(lua_State* luaState);
+	static int SetGameObjectPosition(lua_State* luaState);
 	static int GetGameObjectGlobalPosition(lua_State* luaState);
-	static int SetGameObjectGlobalPosition(lua_State* luaState);
 	static int GetGameObjectComponent(lua_State* luaState);
 	static int AddGameObjectComponent(lua_State* luaState);
 	static int GetGameObjectLayer(lua_State* luaState);
@@ -79,29 +83,59 @@ private:
 	static int GetGameObjectChildByIndex(lua_State* luaState);
 	static int GetGameObjectChildsCount(lua_State* luaState);
 	static int FindGameObject(lua_State* luaState);
-	static int GetGameObjectSprite(lua_State* luaState);
-	static int SetGameObjectSprite(lua_State* luaState);
 	static int DestroyGameObject(lua_State* luaState);
+	static int FlipGameObjectSpriteX(lua_State* luaState);
+	static int FlipGameObjectSpriteY(lua_State* luaState);
+	static int TintGameObjectSprite(lua_State* luaState);
+	static int GetGameObjectSpriteLocalBounds(lua_State* luaState);
+	static int GetGameObjectSpriteGlobalBounds(lua_State* luaState);
+	static int IsGameObjectAnimationPlaying(lua_State* luaState);
+	static int PlayGameObjectAnimation(lua_State* luaState);
+	static int StopGameObjectAnimation(lua_State* luaState);
+	static int PauseGameObjectAnimation(lua_State* luaState);
+	static int IsGameObjectAnimationFinished(lua_State* luaState);
+	static int ChangeGameObjectAnimationSpeed(lua_State* luaState);
+	static int PlayGameObjectSound(lua_State* luaState);
+	static int StopGameObjectSound(lua_State* luaState);
+	static int PauseGameObjectSound(lua_State* luaState);
+	static int GetGameObjectSoundState(lua_State* luaState);
+	static int SetGameObjectSoundVolume(lua_State* luaState);
+	static int SetGameObjectSoundPitch(lua_State* luaState);
+	static int PlayGameObjectMusic(lua_State* luaState);
+	static int StopGameObjectMusic(lua_State* luaState);
+	static int PauseGameObjectMusic(lua_State* luaState);
+	static int GetGameObjectMusicState(lua_State* luaState);
+	static int SetGameObjectMusicVolume(lua_State* luaState);
+	static int SetGameObjectMusicPitch(lua_State* luaState);
+	
+
+	//Globals
 	static int Invoke(lua_State* luaState);
 	static int Instantiate(lua_State* luaState);
-
-	//Sprite library
-	static int FlipSpriteX(lua_State* luaState);
-	static int FlipSpriteY(lua_State* luaState);
-	static int TintSprite(lua_State* luaState);
-	static int GetSpriteLocalBounds(lua_State* luaState);
-	static int GetSpriteGlobalBounds(lua_State* luaState);
-
+	
 	//Math library
 	static int Vector4(lua_State* luaState);
 	static int Vector3(lua_State* luaState);
 	static int Vector2(lua_State* luaState);
 
-	static void stackdump_g(lua_State* luaState);
+	//Input library
+	static int IsKeyPressed(lua_State* luaState);
+	static int IsKeyReleased(lua_State* luaState);
+	static int IsKeyRepeated(lua_State* luaState);
+	static int IsMouseButtonPressed(lua_State* luaState);
+	static int IsMouseButtonReleased(lua_State* luaState);
+	static int IsMouseButtonRepeated(lua_State* luaState);
+	
+	static void StackDump(lua_State* luaState);
 
 private:
 	bool hasStartFunction = false;
 	bool hasUpdateFunction = false;
+	bool hasOnCollisionEnter = false;
+	bool hasOnCollisionStay = false;
+	bool hasOnCollisionExit = false;
+	bool hasOnEnable = false;
+	bool hasOnDisable = false;
 	static bool insideFunction;
 	lua_State* luaState = NULL;
 	vector<ScriptField*> fields;

@@ -17,7 +17,7 @@ void Log(const char file[], const char function[], int line, bool isWarning, boo
 	if (isWarning) {
 		engine->editorModule->PrintWarningLog(tmp_string2);
 	}
-	else if (isWarning) {
+	else if (isError) {
 		engine->editorModule->PrintErrorLog(tmp_string2);
 	}
 	else {

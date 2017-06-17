@@ -4,6 +4,12 @@
 #include "ModuleInput.h"
 #include "ModuleSceneWindow.h"
 #include "ModuleSceneManager.h"
+#include "ModuleResources.h"
+#include "ResourceAnimation.h"
+#include "ResourceScript.h"
+#include "ResourceSprite.h"
+#include "ResourceMusic.h"
+#include "ResourceSound.h"
 
 PanelAssets::PanelAssets()
 {
@@ -15,8 +21,9 @@ PanelAssets::PanelAssets()
 	soundImage->loadFromFile("../Data/speaker.png");
 	textureImage = new sf::Texture();
 	textureImage->loadFromFile("../Data/picture.png");
-	spr = new sf::Sprite();
-	spr->setTexture(*textureImage);
+	luaScriptImage = new sf::Texture();
+	luaScriptImage->loadFromFile("../Data/LuaScriptIcon.png");
+
 
 	assetsPath = ASSETS_FOLDER;
 	if (!fs::exists(assetsPath)) {
@@ -265,6 +272,31 @@ void PanelAssets::DrawPanel()
 								}
 							}
 						}
+						else if (p.path().extension().string() == ".lua") {
+							ImGui::Image(*luaScriptImage, { 16,16 }, sf::Color::White, sf::Color::Transparent);
+							ImGui::SameLine();
+							bool selected = false;
+							if (p.path() == selectedFilePath) {
+								if (engine->sceneManagerModule->selectedGameObjects.empty()) {
+									selected = true;
+								}
+								else {
+									selectedFilePath.clear();
+								}
+							}
+							ImGui::Selectable(p.path().filename().string().c_str(), &selected, 0, { 0,0 }, false);
+							if (ImGui::IsItemHoveredRect()) {
+								if (ImGui::IsItemClicked(0) || ImGui::IsItemClicked(1) && !fileOptionsOpen) {
+									selectedFilePath = p.path();
+									engine->sceneManagerModule->selectedGameObjects.clear();
+									if (ImGui::IsItemClicked(1)) {
+										ImGui::SetNextWindowPos(ImGui::GetMousePos());
+										ImGui::OpenPopup("File Options");
+										fileOptionsOpen = true;
+									}
+								}
+							}
+						}
 						else {
 							bool selected = false;
 							if (p.path() == selectedFilePath) selected = true;
@@ -325,7 +357,24 @@ void PanelAssets::FillAssetsLists()
 	for (auto & p : fs::recursive_directory_iterator(assetsPath)) {
 		if (!fs::is_directory(p)) {
 			if (p.path().extension().string() == ".h" || p.path().extension().string() == ".cs" || p.path().extension().string() == ".lua" || p.path().extension().string() == ".js") {
-				engine->editorModule->scriptList.push_back(new fs::path(p.path()));
+				ResourceScript* script = new ResourceScript(p.path().string(), p.path().filename().replace_extension("").string());
+				engine->resourcesModule->AddResourceScript(script);
+			}
+			else if (p.path().extension().string() == ".png" || p.path().extension().string() == ".jpg") {
+				ResourceSprite* sprite = new ResourceSprite(p.path().string(), p.path().filename().replace_extension("").string());
+				engine->resourcesModule->AddResourceSprite(sprite);
+			}
+			else if (p.path().extension().string() == ".animation") {
+				ResourceAnimation* animation = new ResourceAnimation(p.path().string(), p.path().filename().replace_extension("").string());
+				engine->resourcesModule->AddResourceAnimation(animation);
+			}
+			else if (p.path().extension().string() == ".wav") {
+				ResourceSound* sound = new ResourceSound(p.path().string(), p.path().filename().replace_extension("").string());
+				engine->resourcesModule->AddResourceSound(sound);
+			}
+			else if (p.path().extension().string() == ".ogg") {
+				ResourceMusic* music = new ResourceMusic(p.path().string(), p.path().filename().replace_extension("").string());
+				engine->resourcesModule->AddResourceMusic(music);
 			}
 		}
 	}
@@ -425,7 +474,8 @@ void PanelAssets::CreateScript(ScripType type, string scriptName)
 		outputFile << str;
 		outputFile.close();
 
-		engine->editorModule->scriptList.push_back(new fs::path(selectedFolder.string() + "\\" + newFileName));
+		ResourceScript* script = new ResourceScript(selectedFolder.string() + "\\" + newFileName, newFileName);
+		engine->resourcesModule->GetGameScriptsList().push_back(script);
 
 		if (type == hScript) {
 			CreateScript(cppScript, scriptName);

@@ -9,6 +9,7 @@
 void Log(const char file[], const char function[], int line, bool isWarning, bool isError, const char* format, ...);
 
 typedef unsigned int uint;
+typedef unsigned long long UID;
 
 // Useful macros
 #define CAP(n) ((n <= 0.0f) ? n=0.0f : (n >= 1.0f) ? n=1.0f : n=n)

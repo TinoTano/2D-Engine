@@ -6,6 +6,8 @@
 #include "ComponentScript.h"
 #include "ModuleSceneWindow.h"
 #include "Data.h"
+#include "ComponentAnimation.h"
+#include "ComponentAudio.h"
 
 GameObject::GameObject() 
 {
@@ -95,8 +97,10 @@ Component* GameObject::AddComponent(Component::ComponentType componentType)
 	case Component::CircleCollider:
 		break;
 	case Component::AudioSource:
+		componentsList.push_back(component = new ComponentAudio(this));
 		break;
-	case Component::Animator:
+	case Component::Animaton:
+		componentsList.push_back(component = new ComponentAnimation(this));
 		break;
 	case Component::Script:
 		componentsList.push_back(component = new ComponentScript(this));
@@ -111,6 +115,14 @@ Component* GameObject::AddComponent(Component::ComponentType componentType)
 void GameObject::SetActive(bool active)
 {
 	activeInScene = active;
+	ComponentScript* componentScript = (ComponentScript*)GetComponent(Component::Script);
+	if (componentScript != nullptr) {
+		if (active) {
+			componentScript->GetScript()->OnEnable();
+		}else{
+			componentScript->GetScript()->OnDisable();
+		}
+	}
 }
 
 bool GameObject::isActive()

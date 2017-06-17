@@ -14,7 +14,7 @@ public:
 	bool PreUpdate();
 	bool PostUpdate();
 	bool CleanUp();
-	void Resize(uint width, uint height);
+	void ResizeScene(float x, float y, sf::Vector2u engineScreenSize);
 
 public:
 	sf::RenderTexture* window = nullptr;

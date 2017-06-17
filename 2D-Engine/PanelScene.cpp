@@ -22,8 +22,12 @@ PanelScene::~PanelScene()
 void PanelScene::DrawPanel()
 {
 	if (ImGui::BeginDock(panelName.c_str(),false, false, ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse)) {
-		sf::Vector2u size = ImGui::GetContentRegionAvail();
+		sf::Vector2f size = ImGui::GetContentRegionAvail();
+		if (size != storedSceneSize) {
+			engine->sceneWindow->ResizeScene(size.x, size.y, engine->engineWindow->window->getSize());
+		}
 		ImGui::Image((void*)engine->sceneWindow->window->getTexture().getNativeHandle(), size, ImVec2(0, 1), ImVec2(1, 0), sf::Color::White, sf::Color::Transparent);
+		storedSceneSize = size;
 
 		//Dragging Images/Prefabs to the scene
 		if (ImGui::IsItemHoveredRect()) {
@@ -67,15 +71,17 @@ void PanelScene::DrawPanel()
 						engine->editorModule->dragData.clearData();
 					}
 					else if (ImGui::IsMouseDragging()) {
-						int x = engine->inputModule->GetmousePosition().x - ((ImGui::GetItemRectMin().x - ImGui::GetCursorStartPos().x) * engine->sceneWindow->zoomValue);
+						int x = engine->inputModule->GetmousePosition().x - ImGui::GetItemRectMin().x /**/;
 						int y = engine->inputModule->GetmousePosition().y - ImGui::GetItemRectMin().y;
-						LOG("Itemrect: %f", ImGui::GetItemRectMin().x);
-						LOG("CursorPos: %f", ImGui::GetCursorPos().x);
-						LOG("CursorScreenPos: %f", ImGui::GetCursorScreenPos().x);
-						LOG("CursorStartPos: %f", ImGui::GetCursorStartPos().x);
-						engine->editorModule->dragData.dragSprite.setPosition(
-						engine->sceneWindow->window->mapPixelToCoords({ x,y }).x, engine->sceneWindow->window->mapPixelToCoords({ x,y }).y);
-						engine->sceneWindow->window->draw(engine->editorModule->dragData.dragSprite);	
+						//LOG("Itemrect: %f", ImGui::GetItemRectMin().x);
+						//LOG("CursorPos: %f", ImGui::GetCursorPos().x);
+						//LOG("CursorScreenPos: %f", ImGui::GetCursorScreenPos().x);
+						//LOG("CursorStartPos: %f", ImGui::GetCursorStartPos().x);
+						sf::Vector2f bla = engine->sceneWindow->window->mapPixelToCoords({ x,y });
+						engine->editorModule->dragData.dragSprite.setPosition(bla.x, bla.y);
+						engine->sceneWindow->window->draw(engine->editorModule->dragData.dragSprite);
+						LOG("%.3f, %.3f", bla.x, bla.y);
+						LOG("%d, %d", x, y);
 					}
 				}
 			}
