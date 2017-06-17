@@ -8,20 +8,22 @@ Personal 2D Engine for my own games and learning purposes.
 * Create/Delete/Duplicate/Rename GameObjects.
 * Save/Load Scenes.
 * Console.
+* Game object components:
+  - Transform, Sprite Renderer, Animation.
 * Sprites animation.
 
 ## Half functional - Work in progress
 
 * Assets browser.
 * Scene view.
-* Game object components.
+* Game object components:
+  - Script, Audio.
 * Scripting system using lua.
 
 ## Future tasks
 
 * Collisions.
 * Particles.
-* Audio.
 * UI.
 * Game building.
 
