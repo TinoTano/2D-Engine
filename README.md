@@ -9,7 +9,7 @@ Personal 2D Engine for my own games and learning purposes.
 * Save/Load Scenes.
 * Console.
 * Game object components:
-  - Transform, Sprite Renderer, Animation.
+  - Transform, Sprite Renderer, Animation, Audio.
 * Sprites animation.
 
 ## Half functional - Work in progress
@@ -17,7 +17,7 @@ Personal 2D Engine for my own games and learning purposes.
 * Assets browser.
 * Scene view.
 * Game object components:
-  - Script, Audio.
+  - Script, Particles.
 * Scripting system using lua.
 
 ## Future tasks
