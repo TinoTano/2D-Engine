@@ -285,13 +285,63 @@ void PanelProperties::DrawAudioPanel(ComponentAudio * audio)
 				ImGui::Text("Sound %d:", i);
 				ImGui::SameLine();
 				ImGui::Text("%s", audio->soundsListVector[i]->GetName().c_str());
-				if (ImGui::Button(("Remove##" + to_string(i)).c_str())) {
-					audio->RemoveSound(i);
+
+				float actualVolume = audio->soundsListVector[i]->GetSound()->getVolume();
+				ImGui::Text("Volume");
+				ImGui::SameLine(70);
+				if (ImGui::DragFloat(("##SoundVolume" + to_string(i)).c_str(), &actualVolume, 0.25f, 0, 100)) {
+					audio->soundsListVector[i]->GetSound()->setVolume(actualVolume);
 				}
+				float actualPitch = audio->soundsListVector[i]->GetSound()->getPitch();
+				ImGui::Text("Pitch");
+				ImGui::SameLine(70);
+				if (ImGui::DragFloat(("##SoundPitch" + to_string(i)).c_str(), &actualPitch, 0.25f)) {
+					audio->soundsListVector[i]->GetSound()->setPitch(actualPitch);
+				}
+				bool actualLoop = audio->soundsListVector[i]->GetSound()->getLoop();
+				ImGui::Text("Loop");
+				ImGui::SameLine(70);
+				if (ImGui::Checkbox(("##SoundLoop" + to_string(i)).c_str(), &actualLoop)) {
+					audio->soundsListVector[i]->GetSound()->setLoop(actualLoop);
+				}
+				
+				if (audio->soundsListVector[i]->GetSound()->getStatus() == 0 || //Stopped
+					audio->soundsListVector[i]->GetSound()->getStatus() == 1) //Paused
+				{
+					if (ImGui::Button(("Play##Sound" + to_string(i)).c_str())) {
+						for (int j = 0; j < audio->soundsListVector.size(); j++) {
+							if (audio->soundsListVector[j]->GetSound()->getStatus() == 2) {
+								audio->soundsListVector[j]->GetSound()->stop();
+							}
+						}
+						audio->soundsListVector[i]->GetSound()->play();
+					}
+					if (audio->soundsListVector[i]->GetSound()->getStatus() == 1) {
+						ImGui::SameLine();
+						if (ImGui::Button(("Stop##Sound" + to_string(i)).c_str())) {
+							audio->soundsListVector[i]->GetSound()->stop();
+						}
+					}
+				}
+				else {
+					if (ImGui::Button(("Pause##Sound" + to_string(i)).c_str())) {
+						audio->soundsListVector[i]->GetSound()->pause();
+					}
+					ImGui::SameLine();
+					if (ImGui::Button(("Stop##Sound" + to_string(i)).c_str())) {
+						audio->soundsListVector[i]->GetSound()->stop();
+					}
+				}
+				
 				ImGui::SameLine();
-				if (ImGui::Button(("Change##" + to_string(i)).c_str())) {
+				if (ImGui::Button(("Change##Sound" + to_string(i)).c_str())) {
 					engine->resourcesModule->SetResourcesWindowOpen(Resource::soundResource, true);
 					soundPos = i;
+				}
+				ImGui::SameLine();
+				if (ImGui::Button(("Remove##Sound" + to_string(i)).c_str())) {
+					audio->soundsListVector[i]->GetSound()->stop();
+					audio->RemoveSound(i);
 				}
 			}
 		}
@@ -314,13 +364,62 @@ void PanelProperties::DrawAudioPanel(ComponentAudio * audio)
 				ImGui::Text("Music %d:", i);
 				ImGui::SameLine();
 				ImGui::Text("%s", audio->musicListVector[i]->GetName().c_str());
-				if (ImGui::Button(("Remove##" + to_string(i)).c_str())) {
-					audio->RemoveMusic(i);
+
+				float actualVolume = audio->musicListVector[i]->GetMusic()->getVolume();
+				ImGui::Text("Volume");
+				ImGui::SameLine(70);
+				if (ImGui::DragFloat(("##MusicVolume" + to_string(i)).c_str(), &actualVolume, 0.25f, 0, 100)) {
+					audio->musicListVector[i]->GetMusic()->setVolume(actualVolume);
 				}
+				float actualPitch = audio->musicListVector[i]->GetMusic()->getPitch();
+				ImGui::Text("Pitch");
+				ImGui::SameLine(70);
+				if (ImGui::DragFloat(("##MusicPitch" + to_string(i)).c_str(), &actualPitch)) {
+					audio->musicListVector[i]->GetMusic()->setPitch(actualPitch);
+				}
+				bool actualLoop = audio->musicListVector[i]->GetMusic()->getLoop();
+				ImGui::Text("Loop");
+				ImGui::SameLine(70);
+				if (ImGui::Checkbox(("##MusicLoop" + to_string(i)).c_str(), &actualLoop)) {
+					audio->musicListVector[i]->GetMusic()->setLoop(actualLoop);
+				}
+
+				if (audio->musicListVector[i]->GetMusic()->getStatus() == 0 || //Stopped
+					audio->musicListVector[i]->GetMusic()->getStatus() == 1) //Paused
+				{
+					if (ImGui::Button(("Play##Music" + to_string(i)).c_str())) {
+						for (int j = 0; j < audio->soundsListVector.size(); j++) {
+							if (audio->musicListVector[j]->GetMusic()->getStatus() == 2) {
+								audio->musicListVector[j]->GetMusic()->stop();
+							}
+						}
+						audio->musicListVector[i]->GetMusic()->play();
+					}
+					if (audio->musicListVector[i]->GetMusic()->getStatus() == 1) {
+						ImGui::SameLine();
+						if (ImGui::Button(("Stop##Music" + to_string(i)).c_str())) {
+							audio->musicListVector[i]->GetMusic()->stop();
+						}
+					}
+				}
+				else {
+					if (ImGui::Button(("Pause##Music" + to_string(i)).c_str())) {
+						audio->musicListVector[i]->GetMusic()->pause();
+					}
+					ImGui::SameLine();
+					if (ImGui::Button(("Stop##Music" + to_string(i)).c_str())) {
+						audio->musicListVector[i]->GetMusic()->stop();
+					}
+				}
+
 				ImGui::SameLine();
-				if (ImGui::Button(("Change##" + to_string(i)).c_str())) {
+				if (ImGui::Button(("Change##Music" + to_string(i)).c_str())) {
 					engine->resourcesModule->SetResourcesWindowOpen(Resource::musicResource, true);
 					musicPos = i;
+				}
+				ImGui::SameLine();
+				if (ImGui::Button(("Remove##Music" + to_string(i)).c_str())) {
+					audio->RemoveMusic(i);
 				}
 			}
 		}
