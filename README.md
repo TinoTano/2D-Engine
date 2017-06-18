@@ -25,6 +25,8 @@ Personal 2D Engine for my own games and learning purposes.
 * Collisions.
 * Particles.
 * UI.
+* Factory object.
+* Camera Object.
 * Game building.
 
 ## 3rd party libraries
