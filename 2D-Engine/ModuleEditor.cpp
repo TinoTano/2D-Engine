@@ -9,6 +9,7 @@
 #include "ModuleSceneManager.h"
 #include "tinyfiledialogs.h"
 #include "PanelAnimator.h"
+#include "PanelParticleEditor.h"
 
 ModuleEditor::ModuleEditor()
 {
@@ -33,6 +34,7 @@ bool ModuleEditor::Awake()
 	editorPanels.push_back(propertiesPanel = new PanelProperties());
 	editorPanels.push_back(consolePanel = new PanelConsole());
 	editorPanels.push_back(animatorPanel = new PanelAnimator());
+	editorPanels.push_back(particleEditorPanel = new PanelParticleEditor());
 	ImGui::LoadDocks();
 	return true;
 }
@@ -125,19 +127,19 @@ bool ModuleEditor::Update(float deltaTime)
 
 	ImGui::SameLine(ImGui::GetIO().DisplaySize.x / 2 - 75);
 	if (ImGui::Button("Play", { 50,40 })) {
-		
+		engine->Play();
 	}
 	ImGui::SameLine();
 	if (ImGui::Button("Stop", { 50,40 })) {
-	
+		engine->Stop();
 	}
 	ImGui::SameLine();
 	if (ImGui::Button("Pause", { 50,40 })) {
 	
 	}
 
-	/*ImGui::SameLine();
-	ImGui::Text("%f", engine->GetFPS());*/
+	ImGui::SameLine();
+	ImGui::Text("%f", engine->GetFPS());
 
 	ImGui::Separator();
 	ImGui::BeginDockspace();

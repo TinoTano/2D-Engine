@@ -43,14 +43,14 @@ public:
 	void AddMusic(ResourceMusic* music, int index);
 	void RemoveMusic(int index);
 	bool MusicExist(string musicName);
-
-public:
-	vector<ResourceSound*> soundsListVector;
-	vector<ResourceMusic*> musicListVector;
+	vector<ResourceSound*> GetSoundsList() const;
+	vector<ResourceMusic*> GetMusicList() const;
 
 private:
 	map<string, ResourceSound*> soundsList;
 	map<string, ResourceMusic*> musicList;
+	vector<ResourceSound*> soundsListVector;
+	vector<ResourceMusic*> musicListVector;
 	
 };
 

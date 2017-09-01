@@ -242,3 +242,13 @@ bool ComponentAudio::MusicExist(string musicName)
 	return musicList.find(musicName) != musicList.end();
 }
 
+vector<ResourceSound*> ComponentAudio::GetSoundsList() const
+{
+	return soundsListVector;
+}
+
+vector<ResourceMusic*> ComponentAudio::GetMusicList() const
+{
+	return musicListVector;
+}
+

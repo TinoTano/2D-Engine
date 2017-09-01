@@ -44,6 +44,7 @@ bool ModuleSceneWindow::Awake()
 	sf::View view = window->getView();
 	view.zoom(zoomValue);
 	window->setView(view);
+	window->setSmooth(true);
 	return true;
 }
 

@@ -16,7 +16,7 @@ PanelConsole::~PanelConsole()
 
 void PanelConsole::DrawPanel()
 {
-	if (ImGui::BeginDock(panelName.c_str(), false, false, ImGuiWindowFlags_HorizontalScrollbar)) {
+	if (ImGui::BeginDock(panelName.c_str(), false, false, false, ImGuiWindowFlags_HorizontalScrollbar)) {
 		if (ImGui::Button(logsLabel.c_str())) {
 			showLogs = !showLogs;
 		}

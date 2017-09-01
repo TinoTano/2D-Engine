@@ -44,6 +44,11 @@ vector<ResourceMusic*> ModuleResources::GetGameMusicList()
 	return gameMusicList;
 }
 
+vector<ResourceParticleEffect*> ModuleResources::GetGameParticleFXList()
+{
+	return gameParticleFXList;
+}
+
 void ModuleResources::AddResourceAnimation(ResourceAnimation * anim)
 {
 	gameAnimationsList.push_back(anim);
@@ -69,13 +74,17 @@ void ModuleResources::AddResourceMusic(ResourceMusic * music)
 	gameMusicList.push_back(music);
 }
 
+void ModuleResources::AddResourceParticleFX(ResourceParticleEffect * particleFX)
+{
+	gameParticleFXList.push_back(particleFX);
+}
+
 void* ModuleResources::DrawResourcesWindow(Resource::ResourceType type)
 {
 	void* ret = nullptr;
 
 	ImGui::SetNextWindowSize({ 500,700 });
 	if (ImGui::Begin("Resources", &resourcesWindowIsOpen,
-		ImGuiWindowFlags_NoFocusOnAppearing |
 		ImGuiWindowFlags_AlwaysAutoResize |
 		ImGuiWindowFlags_NoCollapse |
 		ImGuiWindowFlags_ShowBorders)) 
@@ -121,6 +130,14 @@ void* ModuleResources::DrawResourcesWindow(Resource::ResourceType type)
 				}
 			}
 			break;
+		case Resource::particleFXResource:
+			for (vector<ResourceParticleEffect*>::iterator it = gameParticleFXList.begin(); it != gameParticleFXList.end(); it++) {
+				if (ImGui::Selectable((*it)->GetName().c_str())) {
+					ret = (*it);
+					break;
+				}
+			}
+			break;
 		}
 
 		ImGui::End();
@@ -151,6 +168,9 @@ bool ModuleResources::IsResourcesWindowOpen(Resource::ResourceType type)
 		case Resource::musicResource:
 			ret = musicsWindowIsOpen;
 			break;
+		case Resource::particleFXResource:
+			ret = particleFXWindowIsOpen;
+			break;
 		}
 	}
 
@@ -160,7 +180,7 @@ bool ModuleResources::IsResourcesWindowOpen(Resource::ResourceType type)
 void ModuleResources::SetResourcesWindowOpen(Resource::ResourceType type, bool open)
 {
 	resourcesWindowIsOpen = open;
-	animationsWindowIsOpen = spritesWindowIsOpen = scriptsWindowIsOpen = soundsWindowIsOpen = musicsWindowIsOpen = false;
+	animationsWindowIsOpen = spritesWindowIsOpen = scriptsWindowIsOpen = soundsWindowIsOpen = musicsWindowIsOpen = particleFXWindowIsOpen = false;
 	switch (type) {
 	case Resource::animationResource:
 		animationsWindowIsOpen = open;
@@ -176,6 +196,9 @@ void ModuleResources::SetResourcesWindowOpen(Resource::ResourceType type, bool o
 		break;
 	case Resource::musicResource:
 		musicsWindowIsOpen = open;
+		break;
+	case Resource::particleFXResource:
+		particleFXWindowIsOpen = open;
 		break;
 	}
 }

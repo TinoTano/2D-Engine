@@ -8,6 +8,7 @@ ResourceSprite::ResourceSprite(string spritePath, string name)
 		texture->setSmooth(true);
 		sprite = new sf::Sprite();
 		sprite->setTexture(*texture, true);
+		sprite->setOrigin(sprite->getLocalBounds().width / 2, sprite->getLocalBounds().height / 2);
 		this->name = name;
 		resourceType = spriteResource;
 		path = spritePath;

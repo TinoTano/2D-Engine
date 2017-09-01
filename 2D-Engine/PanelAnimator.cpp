@@ -12,6 +12,7 @@ PanelAnimator::PanelAnimator()
 	active = false;
 	panelName = "Animator";
 	animation = new Animation();
+	creatingAnimation = false;
 	isPlaying = false;
 	isPaused = true;
 	currentFrameIndex = 1;
@@ -69,7 +70,8 @@ void PanelAnimator::DrawPanel()
 	ImGui::Spacing();
 	
 	if (ImGui::Button("Add sprite")) {
-		engine->resourcesModule->SetResourcesWindowOpen(Resource::animationResource, true);
+		engine->resourcesModule->SetResourcesWindowOpen(Resource::spriteResource, true);
+		engine->resourcesModule->isOpenFromPanel = "Animator";
 	}
 
 	if (animation->Size() > 0) {
@@ -142,10 +144,10 @@ void PanelAnimator::DrawPanel()
 
 	ImGui::End();
 
-	if (engine->resourcesModule->IsResourcesWindowOpen(Resource::animationResource)) {
+	if (engine->resourcesModule->IsResourcesWindowOpen(Resource::spriteResource) && engine->resourcesModule->isOpenFromPanel == "Animator") {
 		ResourceSprite* sprite = (ResourceSprite*)engine->resourcesModule->DrawResourcesWindow(Resource::spriteResource);
 		if (sprite != nullptr) {
-			engine->resourcesModule->SetResourcesWindowOpen(Resource::animationResource, false);
+			engine->resourcesModule->SetResourcesWindowOpen(Resource::spriteResource, false);
 			AddSpriteToAnimation(sprite);
 		}
 	}

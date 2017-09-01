@@ -107,6 +107,9 @@ private:
 	static int GetGameObjectMusicState(lua_State* luaState);
 	static int SetGameObjectMusicVolume(lua_State* luaState);
 	static int SetGameObjectMusicPitch(lua_State* luaState);
+	static int PlayGameObjectParticleFX(lua_State* luaState);
+	static int StopGameObjectParticleFX(lua_State* luaState);
+	static int PauseGameObjectParticleFX(lua_State* luaState);
 	
 
 	//Globals

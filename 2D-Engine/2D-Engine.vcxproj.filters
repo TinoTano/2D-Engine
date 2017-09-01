@@ -41,15 +41,6 @@
     <ClCompile Include="ModuleInput.cpp">
       <Filter>Modules</Filter>
     </ClCompile>
-    <ClCompile Include="SFML-2.4.2\include\imgui-1.49\imgui.cpp">
-      <Filter>ImGUI</Filter>
-    </ClCompile>
-    <ClCompile Include="SFML-2.4.2\include\imgui-1.49\imgui_draw.cpp">
-      <Filter>ImGUI</Filter>
-    </ClCompile>
-    <ClCompile Include="SFML-2.4.2\include\imgui-1.49\imgui-SFML.cpp">
-      <Filter>ImGUI</Filter>
-    </ClCompile>
     <ClCompile Include="ModuleGraphics.cpp">
       <Filter>Modules</Filter>
     </ClCompile>
@@ -76,9 +67,6 @@
     </ClCompile>
     <ClCompile Include="ComponentTransform.cpp">
       <Filter>GameObject\Components</Filter>
-    </ClCompile>
-    <ClCompile Include="SFML-2.4.2\include\imgui-1.49\imguidock.cpp">
-      <Filter>ImGUI</Filter>
     </ClCompile>
     <ClCompile Include="PanelScene.cpp">
       <Filter>Editor</Filter>
@@ -146,6 +134,30 @@
     <ClCompile Include="ComponentAudio.cpp">
       <Filter>GameObject\Components</Filter>
     </ClCompile>
+    <ClCompile Include="ComponentParticle.cpp">
+      <Filter>GameObject\Components</Filter>
+    </ClCompile>
+    <ClCompile Include="ResourceParticleEffect.cpp">
+      <Filter>Resources</Filter>
+    </ClCompile>
+    <ClCompile Include="PanelParticleEditor.cpp">
+      <Filter>Editor</Filter>
+    </ClCompile>
+    <ClCompile Include="ParticleSystem.cpp">
+      <Filter>Tools</Filter>
+    </ClCompile>
+    <ClCompile Include="SFML-2.4.2\include\imgui-1.49\imgui.cpp">
+      <Filter>ImGUI</Filter>
+    </ClCompile>
+    <ClCompile Include="SFML-2.4.2\include\imgui-1.49\imgui_draw.cpp">
+      <Filter>ImGUI</Filter>
+    </ClCompile>
+    <ClCompile Include="SFML-2.4.2\include\imgui-1.49\imguidock.cpp">
+      <Filter>ImGUI</Filter>
+    </ClCompile>
+    <ClCompile Include="SFML-2.4.2\include\imgui-1.49\imgui-SFML.cpp">
+      <Filter>ImGUI</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Engine.h">
@@ -183,9 +195,6 @@
     </ClInclude>
     <ClInclude Include="ComponentTransform.h">
       <Filter>GameObject\Components</Filter>
-    </ClInclude>
-    <ClInclude Include="SFML-2.4.2\include\imgui-1.49\imguidock.h">
-      <Filter>ImGUI</Filter>
     </ClInclude>
     <ClInclude Include="PanelScene.h">
       <Filter>Editor</Filter>
@@ -255,6 +264,21 @@
     </ClInclude>
     <ClInclude Include="ComponentAudio.h">
       <Filter>GameObject\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="ComponentParticle.h">
+      <Filter>GameObject\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="ResourceParticleEffect.h">
+      <Filter>Resources</Filter>
+    </ClInclude>
+    <ClInclude Include="ParticleSystem.h">
+      <Filter>Tools</Filter>
+    </ClInclude>
+    <ClInclude Include="PanelParticleEditor.h">
+      <Filter>Editor</Filter>
+    </ClInclude>
+    <ClInclude Include="SFML-2.4.2\include\imgui-1.49\imguidock.h">
+      <Filter>ImGUI</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

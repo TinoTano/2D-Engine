@@ -21,6 +21,7 @@ private:
 	void FillAssetsLists();
 	void DrawChilds(fs::path path);
 	void CreateScript(ScripType type, string scriptName);
+	int string2int(string str);
 
 private:
 	fs::path selectedFolder;

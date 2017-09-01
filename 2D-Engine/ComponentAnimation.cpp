@@ -49,14 +49,14 @@ void ComponentAnimation::SetAnimation(ResourceAnimation* newAnimation)
 	spriteRenderer->ChangeSprite(currentAnimation->GetAnimation()->GetCurrentFrame()->GetSprite(), currentAnimation->GetAnimation()->GetCurrentFrame()->GetPath());
 }
 
-void ComponentAnimation::AddAnimation(ResourceAnimation * animation, int pos)
+void ComponentAnimation::AddAnimation(ResourceAnimation * animation, int index)
 {
-	if (pos == -1) {
+	if (index == -1) {
 		animationsList.push_back(animation);
 	}
 	else {
-		if (pos < animationsList.size() && pos >= 0) {
-			animationsList[pos] = animation;
+		if (index < animationsList.size() && index >= 0) {
+			animationsList[index] = animation;
 		}
 		else {
 			LOG_ERROR("Tying to add animation %s to invalid index!", animation->GetName().c_str());
@@ -151,5 +151,15 @@ void ComponentAnimation::SetFrame(ResourceSprite * frame)
 void ComponentAnimation::RemoveFrame(ResourceSprite * frame)
 {
 	currentAnimation->GetAnimation()->RemoveFrame(frame);
+}
+
+vector<ResourceAnimation*> ComponentAnimation::GetAnimationList() const
+{
+	return animationsList;
+}
+
+string ComponentAnimation::GetPlayingAnimationName() const
+{
+	return playingAnimationName;
 }
 

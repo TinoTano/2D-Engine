@@ -47,7 +47,7 @@ PanelAssets::~PanelAssets()
 
 void PanelAssets::DrawPanel()
 {
-	if (ImGui::BeginDock(panelName.c_str(), false, false, ImGuiWindowFlags_HorizontalScrollbar)) {
+	if (ImGui::BeginDock(panelName.c_str(), false, false, engine->IsPlaying(), ImGuiWindowFlags_HorizontalScrollbar)) {
 		ImGui::Columns(2);
 		node = 0;
 		ImGui::Spacing();
@@ -167,14 +167,16 @@ void PanelAssets::DrawPanel()
 
 		ImGui::NextColumn();
 
-		if (ImGui::BeginChild("Files", ImVec2(0,0), false, ImGuiWindowFlags_HorizontalScrollbar)) {
+		//Need to optimize this!!
+		if (ImGui::BeginChild("Files", ImVec2(0,0), false, ImGuiWindowFlags_HorizontalScrollbar, engine->IsPlaying())) {
 			if (!selectedFolder.empty()) {
 				for (auto & p : fs::directory_iterator(selectedFolder)) {
 					if (!fs::is_directory(p)) {
-						if (p.path().extension().string() == ".wav") {
+						bool selected = false;
+						switch (string2int(p.path().extension().string())) {
+						case 0:
 							ImGui::Image(*soundImage, { 16,16 }, sf::Color::White, sf::Color::Transparent);
 							ImGui::SameLine();
-							bool selected = false;
 							if (p.path() == selectedFilePath) {
 								if (engine->sceneManagerModule->selectedGameObjects.empty()) {
 									selected = true;
@@ -195,11 +197,34 @@ void PanelAssets::DrawPanel()
 									}
 								}
 							}
-						}
-						else if (p.path().extension().string() == ".png" || p.path().extension().string() == ".jpg") {
+							break;
+						case 1:
+							//ImGui::Image(*soundImage, { 16,16 }, sf::Color::White, sf::Color::Transparent);
+							//ImGui::SameLine();
+							if (p.path() == selectedFilePath) {
+								if (engine->sceneManagerModule->selectedGameObjects.empty()) {
+									selected = true;
+								}
+								else {
+									selectedFilePath.clear();
+								}
+							}
+							ImGui::Selectable(p.path().filename().string().c_str(), &selected, 0, { 0,0 }, false);
+							if (ImGui::IsItemHoveredRect()) {
+								if (ImGui::IsItemClicked(0) || ImGui::IsItemClicked(1) && !fileOptionsOpen) {
+									selectedFilePath = p.path();
+									engine->sceneManagerModule->selectedGameObjects.clear();
+									if (ImGui::IsItemClicked(1)) {
+										ImGui::SetNextWindowPos(ImGui::GetMousePos());
+										ImGui::OpenPopup("File Options");
+										fileOptionsOpen = true;
+									}
+								}
+							}
+							break;
+						case 2:
 							ImGui::Image(*textureImage, { 16,16 }, sf::Color::White, sf::Color::Transparent);
 							ImGui::SameLine();
-							bool selected = false;
 							if (p.path() == selectedFilePath) {
 								if (engine->sceneManagerModule->selectedGameObjects.empty()) {
 									selected = true;
@@ -239,9 +264,80 @@ void PanelAssets::DrawPanel()
 									}
 								}
 							}
-						}
-						else if (p.path().extension().string() == ".prefab") {
-							bool selected = false;
+							break;
+						case 3:
+							ImGui::Image(*luaScriptImage, { 16,16 }, sf::Color::White, sf::Color::Transparent);
+							ImGui::SameLine();
+							if (p.path() == selectedFilePath) {
+								if (engine->sceneManagerModule->selectedGameObjects.empty()) {
+									selected = true;
+								}
+								else {
+									selectedFilePath.clear();
+								}
+							}
+							ImGui::Selectable(p.path().filename().string().c_str(), &selected, 0, { 0,0 }, false);
+							if (ImGui::IsItemHoveredRect()) {
+								if (ImGui::IsItemClicked(0) || ImGui::IsItemClicked(1) && !fileOptionsOpen) {
+									selectedFilePath = p.path();
+									engine->sceneManagerModule->selectedGameObjects.clear();
+									if (ImGui::IsItemClicked(1)) {
+										ImGui::SetNextWindowPos(ImGui::GetMousePos());
+										ImGui::OpenPopup("File Options");
+										fileOptionsOpen = true;
+									}
+								}
+							}
+							break;
+						case 4:
+							//ImGui::Image(*soundImage, { 16,16 }, sf::Color::White, sf::Color::Transparent);
+							//ImGui::SameLine();
+							if (p.path() == selectedFilePath) {
+								if (engine->sceneManagerModule->selectedGameObjects.empty()) {
+									selected = true;
+								}
+								else {
+									selectedFilePath.clear();
+								}
+							}
+							ImGui::Selectable(p.path().filename().string().c_str(), &selected, 0, { 0,0 }, false);
+							if (ImGui::IsItemHoveredRect()) {
+								if (ImGui::IsItemClicked(0) || ImGui::IsItemClicked(1) && !fileOptionsOpen) {
+									selectedFilePath = p.path();
+									engine->sceneManagerModule->selectedGameObjects.clear();
+									if (ImGui::IsItemClicked(1)) {
+										ImGui::SetNextWindowPos(ImGui::GetMousePos());
+										ImGui::OpenPopup("File Options");
+										fileOptionsOpen = true;
+									}
+								}
+							}
+							break;
+						case 5:
+							//ImGui::Image(*soundImage, { 16,16 }, sf::Color::White, sf::Color::Transparent);
+							//ImGui::SameLine();
+							if (p.path() == selectedFilePath) {
+								if (engine->sceneManagerModule->selectedGameObjects.empty()) {
+									selected = true;
+								}
+								else {
+									selectedFilePath.clear();
+								}
+							}
+							ImGui::Selectable(p.path().filename().string().c_str(), &selected, 0, { 0,0 }, false);
+							if (ImGui::IsItemHoveredRect()) {
+								if (ImGui::IsItemClicked(0) || ImGui::IsItemClicked(1) && !fileOptionsOpen) {
+									selectedFilePath = p.path();
+									engine->sceneManagerModule->selectedGameObjects.clear();
+									if (ImGui::IsItemClicked(1)) {
+										ImGui::SetNextWindowPos(ImGui::GetMousePos());
+										ImGui::OpenPopup("File Options");
+										fileOptionsOpen = true;
+									}
+								}
+							}
+							break;
+						case 6:
 							if (p.path() == selectedFilePath) {
 								if (engine->sceneManagerModule->selectedGameObjects.empty()) {
 									selected = true;
@@ -271,34 +367,8 @@ void PanelAssets::DrawPanel()
 									}
 								}
 							}
-						}
-						else if (p.path().extension().string() == ".lua") {
-							ImGui::Image(*luaScriptImage, { 16,16 }, sf::Color::White, sf::Color::Transparent);
-							ImGui::SameLine();
-							bool selected = false;
-							if (p.path() == selectedFilePath) {
-								if (engine->sceneManagerModule->selectedGameObjects.empty()) {
-									selected = true;
-								}
-								else {
-									selectedFilePath.clear();
-								}
-							}
-							ImGui::Selectable(p.path().filename().string().c_str(), &selected, 0, { 0,0 }, false);
-							if (ImGui::IsItemHoveredRect()) {
-								if (ImGui::IsItemClicked(0) || ImGui::IsItemClicked(1) && !fileOptionsOpen) {
-									selectedFilePath = p.path();
-									engine->sceneManagerModule->selectedGameObjects.clear();
-									if (ImGui::IsItemClicked(1)) {
-										ImGui::SetNextWindowPos(ImGui::GetMousePos());
-										ImGui::OpenPopup("File Options");
-										fileOptionsOpen = true;
-									}
-								}
-							}
-						}
-						else {
-							bool selected = false;
+							break;
+						default:
 							if (p.path() == selectedFilePath) selected = true;
 							ImGui::Selectable(p.path().filename().string().c_str(), &selected, 0, { 0,0 }, false);
 							if (ImGui::IsItemClicked(0) || ImGui::IsItemClicked(1) && !fileOptionsOpen) {
@@ -310,6 +380,7 @@ void PanelAssets::DrawPanel()
 									fileOptionsOpen = true;
 								}
 							}
+							break;
 						}
 					}
 				}
@@ -347,9 +418,6 @@ void PanelAssets::DrawPanel()
 		ImGui::EndChild();
 	}
 	ImGui::EndDock();
-
-	
-	
 }
 
 void PanelAssets::FillAssetsLists()
@@ -375,6 +443,10 @@ void PanelAssets::FillAssetsLists()
 			else if (p.path().extension().string() == ".ogg") {
 				ResourceMusic* music = new ResourceMusic(p.path().string(), p.path().filename().replace_extension("").string());
 				engine->resourcesModule->AddResourceMusic(music);
+			}
+			else if (p.path().extension().string() == ".particleFX") {
+				ResourceParticleEffect* particleFX = new ResourceParticleEffect(p.path().string(), p.path().filename().replace_extension("").string());
+				engine->resourcesModule->AddResourceParticleFX(particleFX);
 			}
 		}
 	}
@@ -482,4 +554,17 @@ void PanelAssets::CreateScript(ScripType type, string scriptName)
 		}
 	}
 	
+}
+
+
+int PanelAssets::string2int(string str)
+{
+	if (str == ".wav") return 0;
+	else if (str == ".ogg") return 1;
+	else if (str == ".jpg" || str == ".png") return 2;
+	else if (str == ".lua") return 3;
+	else if (str == ".animation") return 4;
+	else if (str == ".particleFX") return 5;
+	else if (str == ".prefab") return 6;
+	else return -1;
 }

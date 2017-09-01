@@ -34,8 +34,10 @@ public:
 	bool IsFinish();
 	void SetFrame(ResourceSprite* frame);
 	void RemoveFrame(ResourceSprite* frame);
+	vector<ResourceAnimation*> GetAnimationList() const;
+	string GetPlayingAnimationName() const;
 
-public:
+private:
 	ResourceAnimation* currentAnimation = nullptr;
 	vector<ResourceAnimation*> animationsList;
 	ComponentSpriteRenderer* spriteRenderer = nullptr;

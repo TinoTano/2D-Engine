@@ -9,6 +9,7 @@
 #include "PanelConsole.h"
 #include "GameObject.h"
 #include "PanelAnimator.h"
+#include "PanelParticleEditor.h"
 
 struct DragObjectData {
 	string fromPanel;
@@ -49,6 +50,7 @@ private:
 	PanelScene* scenePanel = nullptr;
 	PanelConsole* consolePanel = nullptr;
 	PanelAnimator* animatorPanel = nullptr;
+	PanelParticleEditor* particleEditorPanel = nullptr;
 
 public:
 	vector<Panel*> editorPanels;

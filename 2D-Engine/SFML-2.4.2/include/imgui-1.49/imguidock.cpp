@@ -997,7 +997,7 @@ namespace ImGui {
 		}
 
 
-		bool begin(const char* label, bool noTab, bool* opened, ImGuiWindowFlags extra_flags, const ImVec2& default_size)
+		bool begin(const char* label, bool noTab, bool* opened, bool locked, ImGuiWindowFlags extra_flags, const ImVec2& default_size)
 		{
 			ImGuiDockSlot next_slot = m_next_dock_slot;
 			m_next_dock_slot = ImGuiDockSlot_Tab;
@@ -1052,7 +1052,7 @@ namespace ImGui {
 					opened,
 					dock.size,
 					-1.0f,
-					ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_ShowBorders | extra_flags);
+					ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_ShowBorders | extra_flags, locked);
 				m_end_action = EndAction_End;
 				dock.pos = GetWindowPos();
 				dock.size = GetWindowSize();
@@ -1096,7 +1096,7 @@ namespace ImGui {
 				ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse |
 				ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoBringToFrontOnFocus |
 				extra_flags;
-			bool ret = BeginChild(label, size, true, flags);
+			bool ret = BeginChild(label, size, true, flags, locked);
 			PopStyleColor();
 
 			return ret;
@@ -1278,9 +1278,9 @@ namespace ImGui {
 	}
 
 
-	bool BeginDock(const char* label, bool noTab, bool* opened, ImGuiWindowFlags extra_flags, const ImVec2& default_size)
+	bool BeginDock(const char* label, bool noTab, bool* opened, bool locked, ImGuiWindowFlags extra_flags, const ImVec2& default_size)
 	{
-		return g_dock.begin(label, noTab, opened, extra_flags, default_size);
+		return g_dock.begin(label, noTab, opened, locked, extra_flags, default_size);
 	}
 
 

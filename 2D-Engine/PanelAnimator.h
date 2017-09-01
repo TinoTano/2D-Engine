@@ -14,7 +14,7 @@ public:
 	void AddSpriteToAnimation(ResourceSprite* sprite);
 
 private:
-	bool creatingAnimation = false;
+	bool creatingAnimation;
 	Animation* animation = nullptr;
 	int currentFrameIndex;
 	bool isPlaying;

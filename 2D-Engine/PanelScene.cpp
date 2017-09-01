@@ -21,7 +21,7 @@ PanelScene::~PanelScene()
 
 void PanelScene::DrawPanel()
 {
-	if (ImGui::BeginDock(panelName.c_str(),false, false, ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse)) {
+	if (ImGui::BeginDock(panelName.c_str(), false, false, false, ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse)) {
 		sf::Vector2f size = ImGui::GetContentRegionAvail();
 		if (size != storedSceneSize) {
 			engine->sceneWindow->ResizeScene(size.x, size.y, engine->engineWindow->window->getSize());

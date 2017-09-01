@@ -8,6 +8,7 @@
 #include "Data.h"
 #include "ComponentAnimation.h"
 #include "ComponentAudio.h"
+#include "ComponentParticle.h"
 
 GameObject::GameObject() 
 {
@@ -104,6 +105,9 @@ Component* GameObject::AddComponent(Component::ComponentType componentType)
 		break;
 	case Component::Script:
 		componentsList.push_back(component = new ComponentScript(this));
+		break;
+	case Component::ParticleSystem:
+		componentsList.push_back(component = new ComponentParticle(this));
 		break;
 	default:
 		break;

@@ -21,8 +21,8 @@ PanelHierarchy::~PanelHierarchy()
 
 void PanelHierarchy::DrawPanel()
 {
-	if (ImGui::BeginDock(panelName.c_str(), false, false, ImGuiWindowFlags_HorizontalScrollbar)) {
-		if (ImGui::IsMouseClicked(1) && ImGui::IsMouseHoveringWindow()) {
+	if (ImGui::BeginDock(panelName.c_str(), false, false, false, ImGuiWindowFlags_HorizontalScrollbar)) {
+		if (ImGui::IsMouseClicked(1) && ImGui::IsMouseHoveringWindow() && !engine->IsPlaying()) {
 			ImGui::SetNextWindowPos(ImGui::GetMousePos());
 			ImGui::OpenPopup("GameObject Options");
 		}
@@ -194,7 +194,7 @@ void PanelHierarchy::CheckMouseOver(GameObject* gameObject)
 		}
 	}
 
-	if (ImGui::IsMouseDoubleClicked(0))
+	if (ImGui::IsMouseDoubleClicked(0) && !engine->IsPlaying())
 	{
 		if (ImGui::IsItemHoveredRect())
 		{

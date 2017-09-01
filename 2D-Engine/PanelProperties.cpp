@@ -27,7 +27,7 @@ PanelProperties::~PanelProperties()
 
 void PanelProperties::DrawPanel()
 {
-	if (ImGui::BeginDock(panelName.c_str(), false, false, ImGuiWindowFlags_HorizontalScrollbar)) {
+	if (ImGui::BeginDock(panelName.c_str(), false, false, engine->IsPlaying(), ImGuiWindowFlags_HorizontalScrollbar)) {
 		GameObject* selectedGameObject = nullptr;
 		if (engine->sceneManagerModule->selectedGameObjects.size() == 1) {
 			selectedGameObject = engine->sceneManagerModule->selectedGameObjects.front();
@@ -90,7 +90,7 @@ void PanelProperties::DrawPanel()
 				//		selectedGameObject->AddComponent(Component::RigidBody);
 				//	}
 				//}
-				if (ImGui::MenuItem("SpriteRenderer")) {
+				if (ImGui::MenuItem("Sprite Renderer")) {
 					if (selectedGameObject->GetComponent(Component::SpriteRenderer) == nullptr) {
 						selectedGameObject->AddComponent(Component::SpriteRenderer);
 					}
@@ -103,6 +103,11 @@ void PanelProperties::DrawPanel()
 				if (ImGui::MenuItem("Audio")) {
 					if (selectedGameObject->GetComponent(Component::AudioSource) == nullptr) {
 						selectedGameObject->AddComponent(Component::AudioSource);
+					}
+				}
+				if (ImGui::MenuItem("Particle System")) {
+					if (selectedGameObject->GetComponent(Component::ParticleSystem) == nullptr) {
+						selectedGameObject->AddComponent(Component::ParticleSystem);
 					}
 				}
 				if(ImGui::BeginMenu("Scripts")) {
@@ -156,6 +161,9 @@ void PanelProperties::DrawComponent(Component* component)
 	case Component::Script:
 		DrawScriptPanel((ComponentScript*)component);
 		break;
+	case Component::ParticleSystem:
+		DrawParticlePanel((ComponentParticle*)component);
+		break;
 	default:
 		break;
 	}
@@ -191,8 +199,9 @@ void PanelProperties::DrawSpriteRendererPanel(ComponentSpriteRenderer * spriteRe
 	if (ImGui::CollapsingHeader("Sprite Renderer", ImGuiTreeNodeFlags_DefaultOpen)) {
 		sf::Sprite* sprite = spriteRenderer->gameObject->gameObjectSprite;
 		ImGui::Image(*sprite, ImVec2(100.f, 100.f), sf::Color::White, sf::Color::Transparent);
-		if (ImGui::IsItemClicked(0)) {
+		if (ImGui::IsItemClicked(0) && !engine->IsPlaying()) {
 			engine->resourcesModule->SetResourcesWindowOpen(Resource::spriteResource, true);
+			engine->resourcesModule->isOpenFromPanel = "Sprite Renderer";
 		}
 		if (ImGui::Checkbox("Flip x", &spriteRenderer->isFlippedX)) {
 			if (spriteRenderer->isFlippedX) {
@@ -212,7 +221,7 @@ void PanelProperties::DrawSpriteRendererPanel(ComponentSpriteRenderer * spriteRe
 		}
 	}
 
-	if (engine->resourcesModule->IsResourcesWindowOpen(Resource::spriteResource)) {
+	if (engine->resourcesModule->IsResourcesWindowOpen(Resource::spriteResource) && engine->resourcesModule->isOpenFromPanel == "Sprite Renderer") {
 		ResourceSprite* sprite = (ResourceSprite*)engine->resourcesModule->DrawResourcesWindow(Resource::spriteResource);
 		if (sprite != nullptr) {
 			engine->resourcesModule->SetResourcesWindowOpen(Resource::spriteResource, false);
@@ -226,21 +235,22 @@ void PanelProperties::DrawAnimatonPanel(ComponentAnimation * animator)
 	if (ImGui::CollapsingHeader("Animation", ImGuiTreeNodeFlags_DefaultOpen)) {
 		ImGui::Spacing();
 
-		if (animator->animationsList.empty()) {
+		if (animator->GetAnimationList().empty()) {
 			ImGui::Text("No animations added.");
 		}
 		else {
-			for (int i = 0; i < animator->animationsList.size(); i++) {
+			for (int i = 0; i < animator->GetAnimationList().size(); i++) {
 				ImGui::Text("Animation %d:", i);
 				ImGui::SameLine();
-				ImGui::Text("%s", animator->animationsList[i]->GetName().c_str());
+				ImGui::Text("%s", animator->GetAnimationList()[i]->GetName().c_str());
 				if (ImGui::Button(("Remove##" + to_string(i)).c_str())) {
 					animator->RemoveAnimation(i);
 				}
 				ImGui::SameLine();
 				if (ImGui::Button(("Change##" + to_string(i)).c_str())) {
 					engine->resourcesModule->SetResourcesWindowOpen(Resource::animationResource, true);
-					animPos = i;
+					engine->resourcesModule->isOpenFromPanel = "Animation";
+					animIndex = i;
 				}
 			}
 		}
@@ -249,7 +259,8 @@ void PanelProperties::DrawAnimatonPanel(ComponentAnimation * animator)
 		ImGui::Spacing();
 		if (ImGui::Button("Add animation")) {
 			engine->resourcesModule->SetResourcesWindowOpen(Resource::animationResource, true);
-			animPos = -1;
+			engine->resourcesModule->isOpenFromPanel = "Animation";
+			animIndex = -1;
 		}
 		
 		ImGui::SameLine();
@@ -263,11 +274,11 @@ void PanelProperties::DrawAnimatonPanel(ComponentAnimation * animator)
 		ImGui::Spacing();
 	}
 
-	if (engine->resourcesModule->IsResourcesWindowOpen(Resource::animationResource)) {
+	if (engine->resourcesModule->IsResourcesWindowOpen(Resource::animationResource) && engine->resourcesModule->isOpenFromPanel == "Animation") {
 		ResourceAnimation* animation = (ResourceAnimation*)engine->resourcesModule->DrawResourcesWindow(Resource::animationResource);
 		if (animation != nullptr) {
 			engine->resourcesModule->SetResourcesWindowOpen(Resource::animationResource, false);
-			animator->AddAnimation(animation, animPos);
+			animator->AddAnimation(animation, animIndex);
 		}
 	}
 }
@@ -277,70 +288,71 @@ void PanelProperties::DrawAudioPanel(ComponentAudio * audio)
 	if (ImGui::CollapsingHeader("Audio", ImGuiTreeNodeFlags_DefaultOpen)) {
 		ImGui::Spacing();
 
-		if (audio->soundsListVector.empty()) {
+		if (audio->GetSoundsList().empty()) {
 			ImGui::Text("No sounds added.");
 		}
 		else {
-			for (int i = 0; i < audio->soundsListVector.size(); i++) {
+			for (int i = 0; i < audio->GetSoundsList().size(); i++) {
 				ImGui::Text("Sound %d:", i);
 				ImGui::SameLine();
-				ImGui::Text("%s", audio->soundsListVector[i]->GetName().c_str());
+				ImGui::Text("%s", audio->GetSoundsList()[i]->GetName().c_str());
 
-				float actualVolume = audio->soundsListVector[i]->GetSound()->getVolume();
+				float actualVolume = audio->GetSoundsList()[i]->GetSound()->getVolume();
 				ImGui::Text("Volume");
 				ImGui::SameLine(70);
 				if (ImGui::DragFloat(("##SoundVolume" + to_string(i)).c_str(), &actualVolume, 0.25f, 0, 100)) {
-					audio->soundsListVector[i]->GetSound()->setVolume(actualVolume);
+					audio->GetSoundsList()[i]->GetSound()->setVolume(actualVolume);
 				}
-				float actualPitch = audio->soundsListVector[i]->GetSound()->getPitch();
+				float actualPitch = audio->GetSoundsList()[i]->GetSound()->getPitch();
 				ImGui::Text("Pitch");
 				ImGui::SameLine(70);
 				if (ImGui::DragFloat(("##SoundPitch" + to_string(i)).c_str(), &actualPitch, 0.25f)) {
-					audio->soundsListVector[i]->GetSound()->setPitch(actualPitch);
+					audio->GetSoundsList()[i]->GetSound()->setPitch(actualPitch);
 				}
-				bool actualLoop = audio->soundsListVector[i]->GetSound()->getLoop();
+				bool actualLoop = audio->GetSoundsList()[i]->GetSound()->getLoop();
 				ImGui::Text("Loop");
 				ImGui::SameLine(70);
 				if (ImGui::Checkbox(("##SoundLoop" + to_string(i)).c_str(), &actualLoop)) {
-					audio->soundsListVector[i]->GetSound()->setLoop(actualLoop);
+					audio->GetSoundsList()[i]->GetSound()->setLoop(actualLoop);
 				}
 				
-				if (audio->soundsListVector[i]->GetSound()->getStatus() == 0 || //Stopped
-					audio->soundsListVector[i]->GetSound()->getStatus() == 1) //Paused
+				if (audio->GetSoundsList()[i]->GetSound()->getStatus() == 0 || //Stopped
+					audio->GetSoundsList()[i]->GetSound()->getStatus() == 1) //Paused
 				{
 					if (ImGui::Button(("Play##Sound" + to_string(i)).c_str())) {
-						for (int j = 0; j < audio->soundsListVector.size(); j++) {
-							if (audio->soundsListVector[j]->GetSound()->getStatus() == 2) {
-								audio->soundsListVector[j]->GetSound()->stop();
+						for (int j = 0; j < audio->GetSoundsList().size(); j++) {
+							if (audio->GetSoundsList()[j]->GetSound()->getStatus() == 2) {
+								audio->GetSoundsList()[j]->GetSound()->stop();
 							}
 						}
-						audio->soundsListVector[i]->GetSound()->play();
+						audio->GetSoundsList()[i]->GetSound()->play();
 					}
-					if (audio->soundsListVector[i]->GetSound()->getStatus() == 1) {
+					if (audio->GetSoundsList()[i]->GetSound()->getStatus() == 1) {
 						ImGui::SameLine();
 						if (ImGui::Button(("Stop##Sound" + to_string(i)).c_str())) {
-							audio->soundsListVector[i]->GetSound()->stop();
+							audio->GetSoundsList()[i]->GetSound()->stop();
 						}
 					}
 				}
 				else {
 					if (ImGui::Button(("Pause##Sound" + to_string(i)).c_str())) {
-						audio->soundsListVector[i]->GetSound()->pause();
+						audio->GetSoundsList()[i]->GetSound()->pause();
 					}
 					ImGui::SameLine();
 					if (ImGui::Button(("Stop##Sound" + to_string(i)).c_str())) {
-						audio->soundsListVector[i]->GetSound()->stop();
+						audio->GetSoundsList()[i]->GetSound()->stop();
 					}
 				}
 				
 				ImGui::SameLine();
 				if (ImGui::Button(("Change##Sound" + to_string(i)).c_str())) {
 					engine->resourcesModule->SetResourcesWindowOpen(Resource::soundResource, true);
-					soundPos = i;
+					engine->resourcesModule->isOpenFromPanel = "Audio";
+					soundIndex = i;
 				}
 				ImGui::SameLine();
 				if (ImGui::Button(("Remove##Sound" + to_string(i)).c_str())) {
-					audio->soundsListVector[i]->GetSound()->stop();
+					audio->GetSoundsList()[i]->GetSound()->stop();
 					audio->RemoveSound(i);
 				}
 			}
@@ -350,72 +362,74 @@ void PanelProperties::DrawAudioPanel(ComponentAudio * audio)
 		ImGui::Spacing();
 		if (ImGui::Button("Add sound")) {
 			engine->resourcesModule->SetResourcesWindowOpen(Resource::soundResource, true);
-			soundPos = -1;
+			engine->resourcesModule->isOpenFromPanel = "Audio";
+			soundIndex = -1;
 		}
 
 		ImGui::Spacing();
 		ImGui::Spacing();
 
-		if (audio->musicListVector.empty()) {
+		if (audio->GetMusicList().empty()) {
 			ImGui::Text("No music added.");
 		}
 		else {
-			for (int i = 0; i < audio->musicListVector.size(); i++) {
+			for (int i = 0; i < audio->GetMusicList().size(); i++) {
 				ImGui::Text("Music %d:", i);
 				ImGui::SameLine();
-				ImGui::Text("%s", audio->musicListVector[i]->GetName().c_str());
+				ImGui::Text("%s", audio->GetMusicList()[i]->GetName().c_str());
 
-				float actualVolume = audio->musicListVector[i]->GetMusic()->getVolume();
+				float actualVolume = audio->GetMusicList()[i]->GetMusic()->getVolume();
 				ImGui::Text("Volume");
 				ImGui::SameLine(70);
 				if (ImGui::DragFloat(("##MusicVolume" + to_string(i)).c_str(), &actualVolume, 0.25f, 0, 100)) {
-					audio->musicListVector[i]->GetMusic()->setVolume(actualVolume);
+					audio->GetMusicList()[i]->GetMusic()->setVolume(actualVolume);
 				}
-				float actualPitch = audio->musicListVector[i]->GetMusic()->getPitch();
+				float actualPitch = audio->GetMusicList()[i]->GetMusic()->getPitch();
 				ImGui::Text("Pitch");
 				ImGui::SameLine(70);
 				if (ImGui::DragFloat(("##MusicPitch" + to_string(i)).c_str(), &actualPitch)) {
-					audio->musicListVector[i]->GetMusic()->setPitch(actualPitch);
+					audio->GetMusicList()[i]->GetMusic()->setPitch(actualPitch);
 				}
-				bool actualLoop = audio->musicListVector[i]->GetMusic()->getLoop();
+				bool actualLoop = audio->GetMusicList()[i]->GetMusic()->getLoop();
 				ImGui::Text("Loop");
 				ImGui::SameLine(70);
 				if (ImGui::Checkbox(("##MusicLoop" + to_string(i)).c_str(), &actualLoop)) {
-					audio->musicListVector[i]->GetMusic()->setLoop(actualLoop);
+					audio->GetMusicList()[i]->GetMusic()->setLoop(actualLoop);
 				}
 
-				if (audio->musicListVector[i]->GetMusic()->getStatus() == 0 || //Stopped
-					audio->musicListVector[i]->GetMusic()->getStatus() == 1) //Paused
+				if (audio->GetMusicList()[i]->GetMusic()->getStatus() == 0 || //Stopped
+					audio->GetMusicList()[i]->GetMusic()->getStatus() == 1) //Paused
 				{
 					if (ImGui::Button(("Play##Music" + to_string(i)).c_str())) {
-						for (int j = 0; j < audio->soundsListVector.size(); j++) {
-							if (audio->musicListVector[j]->GetMusic()->getStatus() == 2) {
-								audio->musicListVector[j]->GetMusic()->stop();
+						for (int j = 0; j < audio->GetMusicList().size(); j++) {
+							if (audio->GetMusicList()[j]->GetMusic()->getStatus() == 2) {
+								audio->GetMusicList()[j]->GetMusic()->stop();
 							}
 						}
-						audio->musicListVector[i]->GetMusic()->play();
+						audio->GetMusicList()[i]->GetMusic()->play();
 					}
-					if (audio->musicListVector[i]->GetMusic()->getStatus() == 1) {
+					if (audio->GetMusicList()[i]->GetMusic()->getStatus() == 1) {
 						ImGui::SameLine();
 						if (ImGui::Button(("Stop##Music" + to_string(i)).c_str())) {
-							audio->musicListVector[i]->GetMusic()->stop();
+							audio->GetMusicList()[i]->GetMusic()->stop();
 						}
 					}
 				}
 				else {
 					if (ImGui::Button(("Pause##Music" + to_string(i)).c_str())) {
-						audio->musicListVector[i]->GetMusic()->pause();
+						audio->GetMusicList()[i]->GetMusic()->pause();
 					}
 					ImGui::SameLine();
 					if (ImGui::Button(("Stop##Music" + to_string(i)).c_str())) {
-						audio->musicListVector[i]->GetMusic()->stop();
+						audio->GetMusicList()[i]->GetMusic()->stop();
 					}
 				}
 
 				ImGui::SameLine();
 				if (ImGui::Button(("Change##Music" + to_string(i)).c_str())) {
 					engine->resourcesModule->SetResourcesWindowOpen(Resource::musicResource, true);
-					musicPos = i;
+					engine->resourcesModule->isOpenFromPanel = "Audio";
+					musicIndex = i;
 				}
 				ImGui::SameLine();
 				if (ImGui::Button(("Remove##Music" + to_string(i)).c_str())) {
@@ -428,25 +442,79 @@ void PanelProperties::DrawAudioPanel(ComponentAudio * audio)
 		ImGui::Spacing();
 		if (ImGui::Button("Add music")) {
 			engine->resourcesModule->SetResourcesWindowOpen(Resource::musicResource, true);
-			musicPos = -1;
+			engine->resourcesModule->isOpenFromPanel = "Audio";
+			musicIndex = -1;
 		}
 
 		ImGui::Spacing();
 	}
 
-	if (engine->resourcesModule->IsResourcesWindowOpen(Resource::soundResource)) {
+	if (engine->resourcesModule->IsResourcesWindowOpen(Resource::soundResource) && engine->resourcesModule->isOpenFromPanel == "Audio") {
 		ResourceSound* sound = (ResourceSound*)engine->resourcesModule->DrawResourcesWindow(Resource::soundResource);
 		if (sound != nullptr) {
 			engine->resourcesModule->SetResourcesWindowOpen(Resource::soundResource, false);
-			audio->AddSound(sound, soundPos);
+			audio->AddSound(sound, soundIndex);
 		}
 	}
 
-	if (engine->resourcesModule->IsResourcesWindowOpen(Resource::musicResource)) {
+	if (engine->resourcesModule->IsResourcesWindowOpen(Resource::musicResource) && engine->resourcesModule->isOpenFromPanel == "Audio") {
 		ResourceMusic* music = (ResourceMusic*)engine->resourcesModule->DrawResourcesWindow(Resource::musicResource);
 		if (music != nullptr) {
 			engine->resourcesModule->SetResourcesWindowOpen(Resource::musicResource, false);
-			audio->AddMusic(music, musicPos);
+			audio->AddMusic(music, musicIndex);
+		}
+	}
+}
+
+void PanelProperties::DrawParticlePanel(ComponentParticle * particle)
+{
+	if (ImGui::CollapsingHeader("Particle FX", ImGuiTreeNodeFlags_DefaultOpen)) {
+		ImGui::Spacing();
+
+		if (particle->GetParticleFXList().empty()) {
+			ImGui::Text("No Particle FX added.");
+		}
+		else {
+			for (int i = 0; i < particle->GetParticleFXList().size(); i++) {
+				ImGui::Text("Particle FX %d:", i);
+				ImGui::SameLine();
+				ImGui::Text("%s", particle->GetParticleFXList()[i]->GetName().c_str());
+				if (ImGui::Button(("Remove##" + to_string(i)).c_str())) {
+					particle->RemoveEffect(i);
+				}
+				ImGui::SameLine();
+				if (ImGui::Button(("Change##" + to_string(i)).c_str())) {
+					engine->resourcesModule->SetResourcesWindowOpen(Resource::particleFXResource, true);
+					engine->resourcesModule->isOpenFromPanel = "Particle";
+					particleFXIndex = i;
+				}
+			}
+		}
+
+		ImGui::Spacing();
+		ImGui::Spacing();
+		if (ImGui::Button("Add Particle FX")) {
+			engine->resourcesModule->SetResourcesWindowOpen(Resource::particleFXResource, true);
+			engine->resourcesModule->isOpenFromPanel = "Particle";
+			particleFXIndex = -1;
+		}
+		ImGui::Spacing();
+
+		if (ImGui::Button("Create Particle FX")) {
+			for (int i = 0; i < engine->editorModule->editorPanels.size(); i++) {
+				if (engine->editorModule->editorPanels[i]->panelName == "Particle Editor") {
+					engine->editorModule->editorPanels[i]->SetActive(true);
+				}
+			}
+		}
+		ImGui::Spacing();
+	}
+
+	if (engine->resourcesModule->IsResourcesWindowOpen(Resource::particleFXResource) && engine->resourcesModule->isOpenFromPanel == "Particle") {
+		ResourceParticleEffect* particleFX = (ResourceParticleEffect*)engine->resourcesModule->DrawResourcesWindow(Resource::particleFXResource);
+		if (particleFX != nullptr) {
+			engine->resourcesModule->SetResourcesWindowOpen(Resource::particleFXResource, false);
+			particle->AddEffect(particleFX, particleFXIndex);
 		}
 	}
 }
@@ -522,7 +590,7 @@ void PanelProperties::DrawScriptPanel(ComponentScript * componentScript)
 					sf::Vector3i v3i = componentScript->GetScript()->GetVec3iProperty(scriptFields[j]->fieldName.c_str());
 					ImGui::Text(" %s", scriptFields[j]->fieldName.c_str());
 					ImGui::SameLine(100);
-					if (ImGui::DragInt3(("##" + scriptFields[j]->fieldName).c_str(), (int*)&v3i, 0.25f)) {
+					if (ImGui::DragInt3(("##" + scriptFields[j]->fieldName).c_str(), (int*)&v3i, !engine->IsPlaying(), 0.25f)) {
 						componentScript->GetScript()->SetVec3iProperty(scriptFields[j]->fieldName.c_str(), v3i);
 					}
 				}

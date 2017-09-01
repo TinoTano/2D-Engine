@@ -10,7 +10,7 @@ class Resource
 {
 public:
 	enum ResourceType {
-		spriteResource, sceneResource, animationResource, prefabResource, scriptResource, soundResource, musicResource, unknown
+		spriteResource, sceneResource, animationResource, prefabResource, scriptResource, soundResource, musicResource, particleFXResource, unknown
 	};
 public:
 	Resource();

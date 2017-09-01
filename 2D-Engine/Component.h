@@ -12,7 +12,7 @@ class Component
 public:
 
 	enum ComponentType {
-		Transform, Camera, RigidBody, SpriteRenderer, BoxCollider, CircleCollider, AudioSource, Animaton, Script, Unknown
+		Transform, Camera, RigidBody, SpriteRenderer, BoxCollider, CircleCollider, AudioSource, Animaton, Script, ParticleSystem, Unknown
 	};
 
 public:

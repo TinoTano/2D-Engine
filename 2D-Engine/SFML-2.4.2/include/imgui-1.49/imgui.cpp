@@ -1888,13 +1888,13 @@ bool ImGui::IsClippedEx(const ImRect& bb, const ImGuiID* id, bool clip_even_when
 }
 
 // NB: This is an internal helper. The user-facing IsItemHovered() is using data emitted from ItemAdd(), with a slightly different logic.
-bool ImGui::IsHovered(const ImRect& bb, ImGuiID id, bool flatten_childs)
+bool ImGui::IsHovered(const ImRect& bb, ImGuiID id, bool flatten_childs, bool skipLock)
 {
     ImGuiContext& g = *GImGui;
     if (g.HoveredId == 0 || g.HoveredId == id || g.HoveredIdAllowOverlap)
     {
         ImGuiWindow* window = GetCurrentWindowRead();
-        if (g.HoveredWindow == window || (flatten_childs && g.HoveredRootWindow == window->RootWindow))
+        if ((!window->IsLocked || skipLock) && (g.HoveredWindow == window || (flatten_childs && g.HoveredRootWindow == window->RootWindow)))
             if ((g.ActiveId == 0 || g.ActiveId == id || g.ActiveIdAllowOverlap) && IsMouseHoveringRect(bb.Min, bb.Max))
                 if (IsWindowContentHoverable(g.HoveredRootWindow))
                     return true;
@@ -3539,7 +3539,7 @@ bool ImGui::BeginPopupContextVoid(const char* str_id, int mouse_button)
     return BeginPopup(str_id);
 }
 
-bool ImGui::BeginChild(const char* str_id, const ImVec2& size_arg, bool border, ImGuiWindowFlags extra_flags)
+bool ImGui::BeginChild(const char* str_id, const ImVec2& size_arg, bool border, ImGuiWindowFlags extra_flags, bool locked)
 {
     ImGuiWindow* window = GetCurrentWindow();
     ImGuiWindowFlags flags = ImGuiWindowFlags_NoTitleBar|ImGuiWindowFlags_NoResize|ImGuiWindowFlags_NoSavedSettings|ImGuiWindowFlags_ChildWindow;
@@ -3565,7 +3565,7 @@ bool ImGui::BeginChild(const char* str_id, const ImVec2& size_arg, bool border, 
     char title[256];
     ImFormatString(title, IM_ARRAYSIZE(title), "%s.%s", window->Name, str_id);
 
-    bool ret = ImGui::Begin(title, NULL, size, -1.0f, flags);
+    bool ret = ImGui::Begin(title, NULL, size, -1.0f, flags, locked);
 
     if (!(window->Flags & ImGuiWindowFlags_ShowBorders))
         GetCurrentWindow()->Flags &= ~ImGuiWindowFlags_ShowBorders;
@@ -3573,11 +3573,11 @@ bool ImGui::BeginChild(const char* str_id, const ImVec2& size_arg, bool border, 
     return ret;
 }
 
-bool ImGui::BeginChild(ImGuiID id, const ImVec2& size, bool border, ImGuiWindowFlags extra_flags)
+bool ImGui::BeginChild(ImGuiID id, const ImVec2& size, bool border, ImGuiWindowFlags extra_flags, bool locked)
 {
     char str_id[32];
     ImFormatString(str_id, IM_ARRAYSIZE(str_id), "child_%08x", id);
-    bool ret = ImGui::BeginChild(str_id, size, border, extra_flags);
+    bool ret = ImGui::BeginChild(str_id, size, border, extra_flags, locked);
     return ret;
 }
 
@@ -3780,12 +3780,12 @@ static void ApplySizeFullWithConstraint(ImGuiWindow* window, ImVec2 new_size)
 // - Return false when window is collapsed, so you can early out in your code. You always need to call ImGui::End() even if false is returned.
 // - Passing 'bool* p_open' displays a Close button on the upper-right corner of the window, the pointed value will be set to false when the button is pressed.
 // - Passing non-zero 'size' is roughly equivalent to calling SetNextWindowSize(size, ImGuiSetCond_FirstUseEver) prior to calling Begin().
-bool ImGui::Begin(const char* name, bool* p_open, ImGuiWindowFlags flags)
+bool ImGui::Begin(const char* name, bool* p_open, ImGuiWindowFlags flags, bool locked)
 {
-    return ImGui::Begin(name, p_open, ImVec2(0.f, 0.f), -1.0f, flags);
+    return ImGui::Begin(name, p_open, ImVec2(0.f, 0.f), -1.0f, flags, locked);
 }
 
-bool ImGui::Begin(const char* name, bool* p_open, const ImVec2& size_on_first_use, float bg_alpha, ImGuiWindowFlags flags)
+bool ImGui::Begin(const char* name, bool* p_open, const ImVec2& size_on_first_use, float bg_alpha, ImGuiWindowFlags flags, bool locked)
 {
     ImGuiContext& g = *GImGui;
     const ImGuiStyle& style = g.Style;
@@ -3804,7 +3804,14 @@ bool ImGui::Begin(const char* name, bool* p_open, const ImVec2& size_on_first_us
         window = CreateNewWindow(name, size_on_first_use, flags);
         window_is_new = true;
     }
-
+	window->IsLocked = locked;
+	if (window->IsLocked) {
+		g.Style.Alpha = 0.5f;
+	}
+	else {
+		g.Style.Alpha = 1.0f;
+	}
+	
     const int current_frame = ImGui::GetFrameCount();
     const bool first_begin_of_the_frame = (window->LastFrameActive != current_frame);
     if (first_begin_of_the_frame)
@@ -4170,7 +4177,7 @@ bool ImGui::Begin(const char* name, bool* p_open, const ImVec2& size_on_first_us
             ImVec4 bg_color = style.Colors[bg_color_idx];
             if (bg_alpha >= 0.0f)
                 bg_color.w = bg_alpha;
-            bg_color.w *= style.Alpha;
+			bg_color.w *= 1;// style.Alpha;
             if (bg_color.w > 0.0f)
                 window->DrawList->AddRectFilled(window->Pos+ImVec2(0,window->TitleBarHeight()), window->Pos+window->Size, ColorConvertFloat4ToU32(bg_color), window_rounding, (flags & ImGuiWindowFlags_NoTitleBar) ? 15 : 4|8);
 
@@ -5439,7 +5446,7 @@ static inline bool IsWindowContentHoverable(ImGuiWindow* window)
     return true;
 }
 
-bool ImGui::ButtonBehavior(const ImRect& bb, ImGuiID id, bool* out_hovered, bool* out_held, ImGuiButtonFlags flags)
+bool ImGui::ButtonBehavior(const ImRect& bb, ImGuiID id, bool* out_hovered, bool* out_held, ImGuiButtonFlags flags, bool skipLock)
 {
     ImGuiContext& g = *GImGui;
     ImGuiWindow* window = GetCurrentWindow();
@@ -5456,7 +5463,7 @@ bool ImGui::ButtonBehavior(const ImRect& bb, ImGuiID id, bool* out_hovered, bool
         flags |= ImGuiButtonFlags_PressedOnClickRelease;
 
     bool pressed = false;
-    bool hovered = IsHovered(bb, id, (flags & ImGuiButtonFlags_FlattenChilds) != 0);
+    bool hovered = IsHovered(bb, id, (flags & ImGuiButtonFlags_FlattenChilds) != 0, skipLock);
     if (hovered)
     {
         SetHoveredID(id);
@@ -5601,7 +5608,7 @@ bool ImGui::CloseButton(ImGuiID id, const ImVec2& pos, float radius)
     const ImRect bb(pos - ImVec2(radius,radius), pos + ImVec2(radius,radius));
 
     bool hovered, held;
-    bool pressed = ButtonBehavior(bb, id, &hovered, &held);
+    bool pressed = ButtonBehavior(bb, id, &hovered, &held, 0, true);
 
     // Render
     const ImU32 col = GetColorU32((held && hovered) ? ImGuiCol_CloseButtonActive : hovered ? ImGuiCol_CloseButtonHovered : ImGuiCol_CloseButton);
@@ -5883,7 +5890,7 @@ bool ImGui::TreeNodeBehavior(ImGuiID id, ImGuiTreeNodeFlags flags, const char* l
 	ImGuiButtonFlags button_flags = ImGuiButtonFlags_NoKeyModifiers | ((flags & ImGuiTreeNodeFlags_AllowOverlapMode) ? ImGuiButtonFlags_AllowOverlapMode : 0);
 	if (flags & ImGuiTreeNodeFlags_OpenOnDoubleClick)
 		button_flags |= ImGuiButtonFlags_PressedOnDoubleClick | ((flags & ImGuiTreeNodeFlags_OpenOnArrow) ? ImGuiButtonFlags_PressedOnClickRelease : 0);
-	bool hovered, held, pressed = ButtonBehavior(interact_bb, id, &hovered, &held, button_flags);
+	bool hovered, held, pressed = ButtonBehavior(interact_bb, id, &hovered, &held, button_flags, true);
 	if (pressed && !(flags & ImGuiTreeNodeFlags_Leaf))
 	{
 		bool toggled = !(flags & (ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick));
@@ -6838,7 +6845,7 @@ bool ImGui::DragFloat(const char* label, float* v, float v_speed, float v_min, f
 
     // Actual drag behavior
     ItemSize(total_bb, style.FramePadding.y);
-    const bool value_changed = DragBehavior(frame_bb, id, v, v_speed, v_min, v_max, decimal_precision, power);
+	const bool value_changed = DragBehavior(frame_bb, id, v, v_speed, v_min, v_max, decimal_precision, power);
 
     // Display value using user-provided display format so user can add prefix/suffix/decorations to the value.
     char value_buf[64];

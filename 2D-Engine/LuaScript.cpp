@@ -10,6 +10,7 @@
 #include "ModuleInput.h"
 #include "ResourceAnimation.h"
 #include "ComponentAudio.h"
+#include "ComponentParticle.h"
 
 bool LuaScript::insideFunction = false;
 
@@ -2806,7 +2807,7 @@ int LuaScript::IsGameObjectAnimationPlaying(lua_State * luaState)
 					else {
 						if (lua_isstring(luaState, 2)) {
 							string animName = lua_tostring(luaState, 2);
-							if (animation->playingAnimationName == animName) {
+							if (animation->GetPlayingAnimationName() == animName) {
 								lua_pushboolean(luaState, true);
 							}
 						}
@@ -3782,6 +3783,72 @@ int LuaScript::SetGameObjectMusicPitch(lua_State * luaState)
 			LOG_WARNING("SetMusicPitch() GameObject argument is not a GameObject!");
 		}
 	}
+	return 0;
+}
+
+int LuaScript::PlayGameObjectParticleFX(lua_State * luaState)
+{
+	int arguments = lua_gettop(luaState);
+	if (arguments != 2) {
+		LOG_WARNING("PlayParticleFX(GameObject, string) takes 2 arguments!");
+	}
+	else {
+		if (lua_istable(luaState, 1)) {
+			lua_pushstring(luaState, "Type");
+			lua_gettable(luaState, -3);
+			if (lua_isstring(luaState, -1)) {
+				string str = lua_tostring(luaState, -1);
+				if (str == "GameObject")
+				{
+					lua_pop(luaState, 1);
+					lua_pushstring(luaState, "Data");
+					lua_gettable(luaState, -3);
+					GameObject* go = (GameObject*)lua_touserdata(luaState, -1);
+					if (go == nullptr) {
+						LOG_WARNING("PlayParticleFX() GameObject argument is nil");
+					}
+					else {
+						ComponentParticle* particleSystem = (ComponentParticle*)go->GetComponent(Component::ParticleSystem);
+						if (particleSystem == nullptr) {
+							LOG_ERROR("PlayParticleFX() failed to get component Particle System");
+						}
+						else {
+							if (lua_isstring(luaState, 2)) {
+								string particleFXName = lua_tostring(luaState, 2);
+								ResourceAnimation* anim = particleSystem->GetParticleFXList;
+								if (anim != nullptr) {
+									animation->SetAnimation(anim);
+									animation->Play();
+								}
+								else {
+									LOG_WARNING("%s is not a particle effect of GameObject %s!", animName.c_str(), go->name.c_str());
+								}
+							}
+							else {
+								LOG_WARNING("PlayParticleFX() string argument is not a string!");
+							}
+						}
+					}
+				}
+				else {
+					LOG_WARNING("PlayParticleFX() GameObject argument is not a GameObject!");
+				}
+			}
+		}
+		else {
+			LOG_WARNING("PlayParticleFX() GameObject argument is not a GameObject!");
+		}
+	}
+	return 0;
+}
+
+int LuaScript::StopGameObjectParticleFX(lua_State * luaState)
+{
+	return 0;
+}
+
+int LuaScript::PauseGameObjectParticleFX(lua_State * luaState)
+{
 	return 0;
 }
 

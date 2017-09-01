@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
       <Configuration>Debug</Configuration>
@@ -22,6 +22,7 @@
     <ClCompile Include="Component.cpp" />
     <ClCompile Include="ComponentAnimation.cpp" />
     <ClCompile Include="ComponentAudio.cpp" />
+    <ClCompile Include="ComponentParticle.cpp" />
     <ClCompile Include="ComponentScript.cpp" />
     <ClCompile Include="ComponentSpriteRenderer.cpp" />
     <ClCompile Include="ComponentTransform.cpp" />
@@ -38,20 +39,19 @@
     <ClCompile Include="PanelAnimator.cpp" />
     <ClCompile Include="PanelAssets.cpp" />
     <ClCompile Include="PanelConsole.cpp" />
+    <ClCompile Include="PanelParticleEditor.cpp" />
     <ClCompile Include="PanelProperties.cpp" />
     <ClCompile Include="PanelHierarchy.cpp" />
     <ClCompile Include="PanelScene.cpp" />
+    <ClCompile Include="ParticleSystem.cpp" />
     <ClCompile Include="Resource.cpp" />
     <ClCompile Include="ResourceAnimation.cpp" />
     <ClCompile Include="ResourceMusic.cpp" />
+    <ClCompile Include="ResourceParticleEffect.cpp" />
     <ClCompile Include="ResourceSound.cpp" />
     <ClCompile Include="ResourceScript.cpp" />
     <ClCompile Include="ResourceSprite.cpp" />
     <ClCompile Include="Script.cpp" />
-    <ClCompile Include="SFML-2.4.2\include\imgui-1.49\imgui-SFML.cpp" />
-    <ClCompile Include="SFML-2.4.2\include\imgui-1.49\imgui.cpp" />
-    <ClCompile Include="SFML-2.4.2\include\imgui-1.49\imguidock.cpp" />
-    <ClCompile Include="SFML-2.4.2\include\imgui-1.49\imgui_draw.cpp" />
     <ClCompile Include="Engine.cpp" />
     <ClCompile Include="main.cpp">
       <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">C:\Users\admin\Documents\GitHub\2D-Engine\2D-Engine\SFML-2.4.2\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
@@ -59,6 +59,10 @@
     </ClCompile>
     <ClCompile Include="ModuleInput.cpp" />
     <ClCompile Include="ModuleEngineWindow.cpp" />
+    <ClCompile Include="SFML-2.4.2\include\imgui-1.49\imgui-SFML.cpp" />
+    <ClCompile Include="SFML-2.4.2\include\imgui-1.49\imgui.cpp" />
+    <ClCompile Include="SFML-2.4.2\include\imgui-1.49\imguidock.cpp" />
+    <ClCompile Include="SFML-2.4.2\include\imgui-1.49\imgui_draw.cpp" />
     <ClCompile Include="tinyfiledialogs.c" />
   </ItemGroup>
   <ItemGroup>
@@ -66,6 +70,7 @@
     <ClInclude Include="Component.h" />
     <ClInclude Include="ComponentAnimation.h" />
     <ClInclude Include="ComponentAudio.h" />
+    <ClInclude Include="ComponentParticle.h" />
     <ClInclude Include="ComponentScript.h" />
     <ClInclude Include="ComponentSpriteRenderer.h" />
     <ClInclude Include="ComponentTransform.h" />
@@ -86,12 +91,15 @@
     <ClInclude Include="PanelAnimator.h" />
     <ClInclude Include="PanelAssets.h" />
     <ClInclude Include="PanelConsole.h" />
+    <ClInclude Include="PanelParticleEditor.h" />
     <ClInclude Include="PanelProperties.h" />
     <ClInclude Include="PanelHierarchy.h" />
     <ClInclude Include="PanelScene.h" />
+    <ClInclude Include="ParticleSystem.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="ResourceAnimation.h" />
     <ClInclude Include="ResourceMusic.h" />
+    <ClInclude Include="ResourceParticleEffect.h" />
     <ClInclude Include="ResourceSound.h" />
     <ClInclude Include="ResourceScript.h" />
     <ClInclude Include="ResourceSprite.h" />
@@ -102,20 +110,20 @@
   <PropertyGroup Label="Globals">
     <ProjectGuid>{03FEF98F-A07D-4344-9822-C20E3DB131C1}</ProjectGuid>
     <RootNamespace>My2DEngine</RootNamespace>
-    <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.15063.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v140</PlatformToolset>
+    <PlatformToolset>v141</PlatformToolset>
     <CharacterSet>MultiByte</CharacterSet>
     <UseOfMfc>Dynamic</UseOfMfc>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v140</PlatformToolset>
+    <PlatformToolset>v141</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>MultiByte</CharacterSet>
     <UseOfMfc>Dynamic</UseOfMfc>
@@ -123,13 +131,13 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v140</PlatformToolset>
+    <PlatformToolset>v141</PlatformToolset>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v140</PlatformToolset>
+    <PlatformToolset>v141</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
@@ -157,7 +165,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(ProjectDir)SFML-2.4.2\include;C:\Users\admin\Downloads\lua-5.3.3_Win32_vc14_lib\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)SFML-2.4.2\include;$(ProjectDir)lua\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>

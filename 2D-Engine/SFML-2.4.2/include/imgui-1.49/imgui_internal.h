@@ -651,6 +651,9 @@ struct IMGUI_API ImGuiWindow
     int                     FocusIdxAllRequestNext;             // Item being requested for focus, for next update (relies on layout to be stable between the frame pressing TAB and the next frame)
     int                     FocusIdxTabRequestNext;             // "
 
+	//Locked
+	bool					IsLocked;								// Check if user can interact with window elements
+
 public:
     ImGuiWindow(const char* name);
     ~ImGuiWindow();
@@ -693,7 +696,7 @@ namespace ImGui
     IMGUI_API void          ItemSize(const ImRect& bb, float text_offset_y = 0.0f);
     IMGUI_API bool          ItemAdd(const ImRect& bb, const ImGuiID* id);
     IMGUI_API bool          IsClippedEx(const ImRect& bb, const ImGuiID* id, bool clip_even_when_logged);
-    IMGUI_API bool          IsHovered(const ImRect& bb, ImGuiID id, bool flatten_childs = false);
+    IMGUI_API bool          IsHovered(const ImRect& bb, ImGuiID id, bool flatten_childs = false, bool skipLock = false);
     IMGUI_API bool          FocusableItemRegister(ImGuiWindow* window, bool is_active, bool tab_stop = true);      // Return true if focus is requested
     IMGUI_API void          FocusableItemUnregister(ImGuiWindow* window);
     IMGUI_API ImVec2        CalcItemSize(ImVec2 size, float default_x, float default_y);
@@ -716,7 +719,7 @@ namespace ImGui
     IMGUI_API void          RenderCheckMark(ImVec2 pos, ImU32 col);
     IMGUI_API const char*   FindRenderedTextEnd(const char* text, const char* text_end = NULL); // Find the optional ## from which we stop displaying text.
 
-    IMGUI_API bool          ButtonBehavior(const ImRect& bb, ImGuiID id, bool* out_hovered, bool* out_held, ImGuiButtonFlags flags = 0);
+    IMGUI_API bool          ButtonBehavior(const ImRect& bb, ImGuiID id, bool* out_hovered, bool* out_held, ImGuiButtonFlags flags = 0, bool skipLock = false);
     IMGUI_API bool          ButtonEx(const char* label, const ImVec2& size_arg = ImVec2(0,0), ImGuiButtonFlags flags = 0);
     IMGUI_API bool          CloseButton(ImGuiID id, const ImVec2& pos, float radius);
 
